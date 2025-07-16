@@ -1,0 +1,9 @@
+.modal-backdrop {
+    z-index: 0;
+}
+
+.react-responsive-modal-modal {
+	max-width: none;
+	width: 90%;
+
+}
