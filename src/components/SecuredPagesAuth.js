@@ -18,13 +18,13 @@ const SecuredPagesAuth = () => {
 	
 	// secured pages list
 	const securedPagesPath 	= [
-		
+		'/profile'
 	]
 	
 	// pages to not referrer
 	const notToReferPages = [
-		'/registration',
-		'/login',
+		'/inscription',
+		'/connexion',
 	]
 	
 	// register current page
@@ -40,13 +40,13 @@ const SecuredPagesAuth = () => {
 
 		const security = async () => {
 			if( securedPagesPath.includes( currentPage ) && !authenticate ){
-				if( currentPage != '/login'  )
-					await navigate( '/login' )
+				if( currentPage != '/connexion'  )
+					await navigate( '/connexion' )
 			}
 			else if( currentPage.includes( 'dashboard/' ) && !adminList.includes( getUser().email ) ) {
 
 				message.error( 'Espace reservé aux Admin.' );
-				// await navigate( '/login' );
+				// await navigate( '/connexion' );
 			}
 		}
 

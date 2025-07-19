@@ -155,6 +155,10 @@ h6 {
 	background-color: #00BF63;
 }
 
+.marginTop25px {
+	margin-top: 25px;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -181,6 +185,16 @@ input[type=password]:hover {
 
 .textAlignCenter{
 	text-align: center;
+}
+
+
+.formError{
+	color: red;
+	padding-left: 4%;
+}
+
+.textRed{
+	color: red;
 }
 
 .letterSpacing5{

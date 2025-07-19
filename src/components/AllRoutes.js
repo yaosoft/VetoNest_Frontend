@@ -7,6 +7,8 @@ import Expertise from './pages/Expertise';
 import Contact from './pages/Contact';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 const AllRoutes = {
 
@@ -42,6 +44,18 @@ const AllRoutes = {
 		{	// Sign in
 			element:  <SignIn />,
 			path: '/connexion',
+		},
+		{	// Profile
+			element:  <Profile />,
+			path: '/profile',
+		},
+		{	// Not found page
+			element: <NotFound 
+				params={{ 
+					path:	'/*',
+				}}
+			/>,
+			path: '/*',
 		},
 	],
 }

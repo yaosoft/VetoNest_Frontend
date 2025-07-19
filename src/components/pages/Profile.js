@@ -24,7 +24,7 @@ import Footer from '../Footer';
 import { Form, Input, Select } from 'antd';
 
 
-const SignIn = ( params ) => {
+const Profile = ( params ) => {
 	// context
 	const { getReferrer }		= useContext( SiteContext );
 	const { logIn, setUser, isValidPassword }	= useContext( AuthContext );
@@ -207,7 +207,7 @@ console.log( 'resp', resp );
 						<div className="col-xl-6">
 							<div className="form-input-content">
 								
-										<h3 className="text-center marginTop25px" >Connexion</h3>
+										<h3 className="text-center marginTop25px" >Profile</h3>
 										 <Form 
 											className=""
 											form = {form}
@@ -343,4 +343,4 @@ console.log( 'resp', resp );
 	);
 };
 
-export default SignIn;
+export default Profile;

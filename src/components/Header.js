@@ -2,13 +2,24 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import SearchBox from './SearchBox';
 
-import { LanguagesContext } from "../../context/languages";
+import SecuredPagesAuth from "./SecuredPagesAuth";
+import { AuthContext } from "../context/AuthProvider";
+
+// import { LanguagesContext } from "../../context/languages";
 
 const Header = () => {
-	
-	const { getAllLanguages }	= useContext( LanguagesContext );
-	
+
+
+	// const { isAuthenticated, logOut, getUser, setUser } = useContext( AuthContext );
 	const navigate = useNavigate();
+
+	// const checkAuth = async () => {
+		// if( !isAuthenticated() ){
+			// navigate( '/login' );
+			// return false
+		// }
+	// }
+	// checkAuth();
 
 	const array = [ 
 		{
@@ -50,13 +61,13 @@ const Header = () => {
 		setActive( newActiveArr );	
 
 		// get project data
-		var languages = '';
-		const getLanguages = async () => {
-			languages = await getLanguages( );
-			setLanguages ( languages );
-console.log( 'languages', languages );
-		}
-		getLanguages();
+		// var languages = '';
+		// const getLanguages = async () => {
+			// languages = await getLanguages( );
+			// setLanguages ( languages );
+// console.log( 'languages', languages );
+		// }
+		// getLanguages();
 
 	}, [] );
 	
@@ -69,11 +80,13 @@ console.log( 'languages', languages );
 						<div className="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section">
 							<div className="full">
 								<div className="center-desk">
-								<div className="logo">
-									<Link to="/accueil">
-										<img src='./img/logo.png' style={{height:'100px'}} alt="#" />
-									</Link>
-								</div>
+									<div className="logo">
+										<Link to="/accueil">
+											<img 
+												id='img_'
+												src='./img/logo.png' style={{height:'100px'}} alt="#" />
+										</Link>
+									</div>
 								</div>
 							</div>
 						</div>
