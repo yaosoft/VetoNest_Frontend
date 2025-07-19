@@ -39,9 +39,8 @@ const SignUp = ( params ) => {
 		sendEmail,
 	}	= useContext( SiteContext );
 
-	const [loading, setLoading] = useState(false);
+	const [ loading, setLoading] = useState(false);
 
-	const [ title, setTitle ] = useState( 'Sign up' );
 	const [ signUpSpin, setSignUpSpin ] = useState( 'none' );
 	const [ sendingDisabled, setSendingDisabled ] = useState( false );
 	
@@ -213,10 +212,14 @@ const SignUp = ( params ) => {
 	
 	// sign up
 	const [ code, setCode ] = useState( '' );
+	const [ formError01, setFormError01 ] = useState( 'none' );
+	const [ formError02, setFormError02 ] = useState( 'none' );
 	const handleClickRegistration = async ( event ) => {
-		
+
 		event.preventDefault();
 		setSignUpSpin( 'block' );
+
+		clearFormErrors(); // clear form error
 
 		setSendingDisabled( true );
 
@@ -254,7 +257,9 @@ console.log( 'signUpType: ' + signUpType );
 
 		const check = await checkEmail( checkEmailData );
 		if( check ){
-			message.error( 'Email already exist. Chose another one please.' );
+			
+			setFormError02( 'block' );	// display form error
+			message.error( showAFormError( 'formError02' ) );	// display ant error
 			document.getElementById( 'signUpEmailInput' ).focus();
 			setSignUpSpin( 'none' );
 			setSendingDisabled( false );
@@ -287,8 +292,9 @@ console.log( 'signUpType: ' + signUpType );
 
 		const rep = await sendEmail( sendEmailData );	// send the code by email
 		
-		if( rep === false ){
-			message.error( 'Email address not found. Please try another one.' );
+		if( rep === false ){ // email address not found
+			setFormError01( 'block' );	// display form error
+			message.error( showAFormError( 'formError01' ) );	// display ant error
 			setSignUpSpin( 'none' );
 			document.getElementById( 'signUpEmailInput' ).focus();
 			setSendingDisabled( false );
@@ -302,6 +308,18 @@ console.log( 'signUpType: ' + signUpType );
 			setIsModalOpen(true);
 	}
 
+	// display a form error
+	const showAFormError = ( className ) => {
+		const errorTxt = document.getElementsByClassName( className )[0].innerText;
+		return errorTxt;
+	}
+
+	// clear form error
+	const clearFormErrors = () => {
+		setFormError01( 'none' );
+		setFormError02( 'none' );
+	}
+	
 	// signup
 	const signUpData = {
 		nom: 			signUpName.trim(),
@@ -324,7 +342,7 @@ console.log( 'signUpType: ' + signUpType );
 		
 		const rep = await signUp( signUpData );
 
-console.log( 'signUp rep: ' + rep );
+// console.log( 'signUp rep: ' + rep );
 		setSignUpSpin( 'none' );
 		setSendingDisabled( false );
 		if( rep === false ){
@@ -398,6 +416,7 @@ const handleChangeCode = ( e ) => {
 	 
 	 // form
 	 const [form] = Form.useForm();
+	 
 	 return (
 		<>
 			<Modal
@@ -443,7 +462,7 @@ const handleChangeCode = ( e ) => {
 						<div className="col-xl-6">
 							<div className="form-input-content">
 								
-										<h3 className="text-center">{ title }</h3><br/>
+										<h3 className="text-center marginTop25px" >Inscription</h3>
 										 <Form 
 											className=""
 											form = {form}
@@ -648,6 +667,27 @@ const handleChangeCode = ( e ) => {
 												
 											</Form.Item>
 											</div>
+									<>
+										
+										<div style={{ display: formError01 }} className="row formError formError01">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Email address
+											</span> 
+												&nbsp;{ signUpEmail }&nbsp;
+											<span id="cmp_vetonest.com_WbKGYyavtn">
+												not found.
+											</span> Please try another one.
+										</div>
+										<div style= {{ display: formError02 }}  className="row formError formError02">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Email address
+											</span> 
+												&nbsp;{ signUpEmail }&nbsp;
+											<span id="cmp_vetonest.com_071mCRIC59">
+												already exist.
+											</span> Please try another one.
+										</div>
+									</>
 											<button 
 												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickRegistration}

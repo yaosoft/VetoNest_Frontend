@@ -11,10 +11,9 @@ import {
 
 
 
+export const LanguagesContext = createContext();
 
 export const LanguagesProvider = ({ children }) => {
-	
-	export const LanguagesContext = createContext();
 
 	// spiner
 	const [ spiner, setSpiner ] = useState( 'none' );
@@ -58,7 +57,7 @@ export const LanguagesProvider = ({ children }) => {
 
 	// get all languages
 	const getAllLanguages = async () => {
-		const url	= base_api_url + 'langue/list';
+		const url	= base_api_url + 'content/list';
 		
 		const data 		= '';
 		const method	= 'GET';
@@ -71,7 +70,7 @@ export const LanguagesProvider = ({ children }) => {
 
 	return (	
 	
-		<SiteContext.Provider 
+		<LanguagesContext.Provider 
 			value={{
 				getAllLanguages,
 			}}

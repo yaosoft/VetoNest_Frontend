@@ -10,7 +10,6 @@ import {
 } from '@ant-design/icons';
 
 
-
 export const SiteContext = createContext();
 export const SiteProvider = ({ children }) => {
 
@@ -54,6 +53,18 @@ export const SiteProvider = ({ children }) => {
 	const [ siteUrl, setSiteUrl ] 	= useState( 'http://vetonrst.com' );
 	const [ siteEmail, setEmail ] 	= useState( 'info@vetonest.com' );
 
+	// site
+	const [ site, setSite ] = useState( {} );
+	// set user referrer before redirection to login page
+	const setReferrer = ( url ) => {
+		site[ 'referrer' ] = url;
+	}
+	
+	// get user referrer
+	const getReferrer = () => {
+		return site.referrer;
+	}
+
 	// check if email is not already registered
 	const checkEmail = async ( email ) => {
 		const url	= base_api_url + 'user/email/check';
@@ -91,6 +102,17 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// signin
+	const signIn = async ( signinData ) => {
+		const url		= base_api_url + 'user/login';
+		const data 		= signinData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// Generate random digits
 	const generateRandomDigits = (n) => {
 		// const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -111,8 +133,10 @@ export const SiteProvider = ({ children }) => {
 				siteEmail,
 				siteDomainName,
 				signUp,
+				signIn,
 				checkEmail,
 				sendEmail,
+				getReferrer,
 				generateRandomDigits
 			}}
 		>

@@ -15,11 +15,9 @@ root.render(
 	<React.StrictMode>
 		<AuthProvider>
 			<SiteProvider>
-				<LanguagesProvider>
 					<div>
 						<App />
 					</div>
-				</LanguagesProvider>
 			</SiteProvider>
 		</AuthProvider>
 	</React.StrictMode>
