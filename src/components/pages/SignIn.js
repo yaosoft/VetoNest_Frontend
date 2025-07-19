@@ -150,7 +150,8 @@ const SignIn = ( params ) => {
 		};
 		
 		const resp = await signIn( signInData );
-console.log( 'resp', resp );
+
+
 		// Login error
 		if( resp === false ){
 			
@@ -163,11 +164,19 @@ console.log( 'resp', resp );
 			return
 		}
 		
+		const logInData = {
+			password: 	signInPassword,
+			email: 		signInEmail,
+			userId: 	resp
+		};
+		
+		
 		// stop login button's spin
 		setSignInSpin( 'none' );
 
 		// Frontend login
-		logIn( signInData );	
+console.log( 'logInData', logInData );
+		await logIn( logInData );	
 		
 		// goto validation
 		const path	= getReferrer() ? getReferrer() : '/profile';
@@ -324,11 +333,9 @@ console.log( 'resp', resp );
 											</button> 
 											<div className='row'>
 												<div className='col-6'>
-													<Link to='/Login' className="text-primary">Terms and usage</Link>
+													<Link to='/mot-de-passe-oublie' className="text-primary">Mot de passe oublié</Link>
 												</div>
-												<div className='col-6 textAlignRight'>
-													Have account? <Link to='/connexion' className="text-primary">Login</Link>
-												</div>
+												
 											</div>
 										</Form>
 									</div>

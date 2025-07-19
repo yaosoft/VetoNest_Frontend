@@ -1,13 +1,22 @@
 import PropTypes from 'prop-types'
 import { createContext, useState, useEffect } from 'react'
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
+import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 	
-	// REST helper
-	async function postData( url, data, method ) {
+	// spiner
+	const [ spiner, setSpiner ] = useState( 'none' );
+	
+	// helper: Fetch data definition
+	async function fetchData( url, data, method ) {
+		// if( !isOnline ){
+// message.error( 'No network!' );
+		//	return false;
+		// }
+
 		const response = await fetch( url, {
 			method: method, // *GET, POST, PUT, DELETE, etc.
 			// mode: "no-cors", // no-cors, *cors, same-origin
@@ -15,18 +24,24 @@ export const AuthProvider = ({ children }) => {
 				"Content-Type": "application/json",
 				// 'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			body: JSON.stringify( data ), // body data type must match "Content-Type" header
+			...( method == 'POST' && { body: JSON.stringify( data ), } )
 		});
-		// if( response.status !== 200 ){
-			// return false;
-		// }
-		// else{
-			// return response.json(); // parses JSON response into native JavaScript objects
-		// }
-		return response;
+// console.log( '+++++++++++++++++ response', response );
+		// setTimeout( setSpiner, 2000, 'none' );
+		if( response.status != 200 ){
+			return false;
+		}
+		
+		if( response.status == 200 ){
+			return response.json(); // parses JSON response into native JavaScript objects
+		}
+		
 	}
-	
-	
+
+	// Backend url 
+	const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	// const base_api_url	= 'https://backend.vetonest.com/api/'// prod 
+
 	// user
 	const [ user, setUser ] = useState( localStorage.getItem( 'user' ) ? JSON.parse( localStorage.getItem( 'user' ) ) : {} );
 	
@@ -37,40 +52,20 @@ export const AuthProvider = ({ children }) => {
 	}
 
 	// get the user
-	// const navigate = useNavigate();
 	const getUser = () => {
-		if( user == null )
-			window.document.location.replace( '/login' );
-		else
-			return user
+		// if( user == null )
+		//  	window.document.location.replace( '/connexion' );
+		// else
+		return user
 	}
 	
-	// delete the user
-	const logOut = async() => {
-		// logout on the backend
-		// const logoutApiURL 	= 'http://localhost/diamta/projects/public/index.php/api/user/logout';
-		// const method = 'POST';
-		// const userId = getUser().id
-		// const logoutData = {
-			// userId: userId
-		// };
-
-		// const respJson = await postData( logoutApiURL, logoutData, method );
-
-		// if( respJson.status !== 200 ){
-			// alert( respJson.statusText );
-			// // message.error( respJson.statusText );
-			// return false;
-		// }
-		
-		// logout on the frontend
-
-		return true;
-	}
 	
 	// is authentificated
 	const isAuthenticated = () => {
-		return getUser() != null && getUser().userId != null ? true : false
+		
+		 const rep = getUser() != null && getUser().userId != null ? true : false
+
+		 return rep;
 	}
 	
 	// check password validation
@@ -90,7 +85,18 @@ export const AuthProvider = ({ children }) => {
 		
 		return true;
 	}
-	
+
+	// password replace
+	const passwordReplace = async ( pwReplaceData ) => {
+		const url		= base_api_url + 'user/login';
+		const data 		= pwReplaceData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	useEffect (() => {
 		setUser( null );
 		const data = localStorage.getItem( 'user' );
@@ -109,9 +115,9 @@ export const AuthProvider = ({ children }) => {
 				logIn, 
 				getUser,
 				setUser,
-				logOut,
 				isAuthenticated,
-				isValidPassword
+				isValidPassword,
+				passwordReplace
 			}}
 		>
 			{children}
