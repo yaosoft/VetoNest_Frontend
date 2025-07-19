@@ -137,6 +137,7 @@ export const SiteProvider = ({ children }) => {
 				checkEmail,
 				sendEmail,
 				getReferrer,
+				setReferrer,
 				generateRandomDigits
 			}}
 		>

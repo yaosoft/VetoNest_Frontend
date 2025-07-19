@@ -24,7 +24,7 @@ import Footer from '../Footer';
 import { Form, Input, Select } from 'antd';
 
 
-const SignUp = ( params ) => {
+const PasswordForgotReset = ( params ) => {
 
 	const { isValidPassword }	= useContext( AuthContext );
 	const { 
@@ -34,145 +34,57 @@ const SignUp = ( params ) => {
 		siteDomain,
 		siteDomainName,
 		generateRandomDigits,
-		signUp, 
+		pwReset, 
 		checkEmail, 
 		sendEmail,
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
 
-	const [ signUpSpin, setSignUpSpin ] = useState( 'none' );
+	const [ pwResetSpin, setPwResetSpin ] = useState( 'none' );
 	const [ sendingDisabled, setSendingDisabled ] = useState( false );
 	
 	const [ emailVerificationResult, setEmailVerificationResult ] = useState( false );
-	// name
-	const [ signUpName, setSignUpName ] = useState( '' );
-	const [ signUpNameError, setSignUpNameError ] = useState( '' );
-	const handleChangeSignUpName = ( e ) => {
-		const data = e.target.value;
-		setSignUpName( data );
-		
-		var signUpNameErrorText = '';
-		const test = nameValidator( data )
-
-		if( data && test === false )
-			signUpNameErrorText = 'Your name seems incorect'
-
-		setSignUpNameError( signUpNameErrorText );
-	}
-
-	// firstname
-	const [ signUpFirstName, setSignUpFirstName ] = useState( '' );
-	const [ signUpFirstNameError, setSignUpFirstNameError ] = useState( '' );
-	const handleChangeSignUpFirstName = ( e ) => {
-		const data = e.target.value;
-		setSignUpFirstName( data );
-		
-		var signUpFirstNameErrorText = '';
-		const test = nameValidator( data )
-		if( data && test === false )
-			signUpFirstNameErrorText = 'Your firstname seems incorect'
-
-		setSignUpFirstNameError( signUpFirstNameErrorText );
-	}
-
-	const nameValidator = ( name ) => {
-		const rep = /^(([A-Za-z]+[\-\']?)*([A-Za-z]+)?(\s)?)+([A-Za-z]+[\-\']?)*([A-Za-z]+)?$/.test( name );
-		return rep
-	}
-
-	// signUp email
-	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
-	const isValidEmail = ( email ) => {
-		if( !regexEmailValidation.test( email ) )
-			return false;
-
-		return true;
-	}
-	const [ signUpEmail, setSignUpEmail ] = useState( '' );
-	const [ signUpEmailDefault, setEmailDefault ] = useState( 'Email' );
-	const [ signUpEmailError, setSignUpEmailError ] = useState( '' );
-	const handleChangeSignUpEmail = ( e ) => {
-		const data = e.target.value;
-		setSignUpEmail( data );
-
-		var signUpEmailErrorText = '';
-		if( data && !isValidEmail( data ) )
-			signUpEmailErrorText = 'Your email is not correct'
-		
-		setSignUpEmailError ( signUpEmailErrorText );
-	}
 	
 	// password
-	const [ signUpPassword, setSignUpPassword ] = useState( '' );
-	const [ signUpPasswordError, setSignUpPasswordError ] = useState( '' );
-	const handleChangeSignUpPassword = ( e ) => {
+	const [ pwResetPassword, setPwResetPassword ] = useState( '' );
+	const [ pwResetPasswordError, setPwResetPasswordError ] = useState( '' );
+	const handleChangePwResetPassword = ( e ) => {
 		const data = e.target.value;
-		setSignUpPassword( data );
+		setPwResetPassword( data );
 		
-		var signUpPasswordErrorText = '';
+		var pwResetPasswordErrorText = '';
 		if( data && isValidPassword( data ) !== true )
-			signUpPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
+			pwResetPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
 
-		setSignUpPasswordError( signUpPasswordErrorText );
+		setPwResetPasswordError( pwResetPasswordErrorText );
 	}
 
 	// password repeat
-	const [ signUpPasswordRepeat, setSignUpPasswordRepeat ] = useState( '' );
-	const [ signUpPasswordRepeatError, setSignUpPasswordRepeatError ] = useState( '' );
-	const handleChangeSignUpPasswordRepeat = ( e ) => {
+	const [ pwResetPasswordRepeat, setPwResetPasswordRepeat ] = useState( '' );
+	const [ pwResetPasswordRepeatError, setPwResetPasswordRepeatError ] = useState( '' );
+	const handleChangePwResetPasswordRepeat = ( e ) => {
 		const data = e.target.value;
-		setSignUpPasswordRepeat( data );
+		setPwResetPasswordRepeat( data );
 		
-		var signUpPasswordRepeatErrorText = '';
+		var pwResetPasswordRepeatErrorText = '';
 		if( data && isValidPasswordRepeat( data ) === false )
-			signUpPasswordRepeatErrorText = 'Password are different'
-			setSignUpPasswordRepeatError( signUpPasswordRepeatErrorText );
+			pwResetPasswordRepeatErrorText = 'Password are different'
+			setPwResetPasswordRepeatError( pwResetPasswordRepeatErrorText );
 	}
-	const isValidPasswordRepeat = ( signUpPasswordRepeat ) => {
-		if( signUpPassword == signUpPasswordRepeat )
+	const isValidPasswordRepeat = ( pwResetPasswordRepeat ) => {
+		if( pwResetPassword == pwResetPasswordRepeat )
 			return true
 		else
 			return false
 	}
 
-	// type
-	const [ signUpType, setSignUpType ] =  useState( '' ); // 1 for user, 2 for veto
-
-	const handleChangeSignUpType = ( signUpType ) => {
-// alert( signUpType );
-		const elt01 = document.getElementById( 'signUpType' + signUpType ); // current elt
-		const elt02 = signUpType == 1 ? document.getElementById( 'signUpType' + 2) :   document.getElementById( 'signUpType' + 1 );
-
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
-		
-		if( elt01.checked == true && signUpType == 1 ){
-			message.info( 'Welcome pet\'s owner!' );
-			setSignUpType( 1 );
-		}
-		else if( elt01.checked == true && signUpType == 2 ){
-			message.info( 'Welcome veto!' )
-			setSignUpType( 2 );
-		}
-		else if( elt01.checked == false && elt01.checked == false ){
-			setSignUpType( '' );
-		}
-	}
 
 	// check the form errors
 	const checkFormErrors = async( ) => {
-		var errorsExist = false;
-		if( signUpNameError != '' )
+		else if( pwResetPasswordError != '' )
 			errorsExist = true
-		if( signUpFirstNameError != '' )
-			errorsExist = true
-		if( signUpEmailError != '' )
-			errorsExist = true
-		else if( signUpPasswordError != '' )
-			errorsExist = true
-		else if( signUpPasswordRepeatError != '' )
+		else if( pwResetPasswordRepeatError != '' )
 			errorsExist = true
 
 		return errorsExist
@@ -182,28 +94,16 @@ const SignUp = ( params ) => {
 	const checkFormEmpty = async( ) => {
 		var formHasEmpty = '';
 
-		if( signUpName == '' ){
-			const errorMessage = 'Name is empty';
-			document.getElementById( 'signUpNameInput' ).focus();
-			// await setSignUpNameError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		else if( signUpEmail == '' ){
-			const errorMessage = 'Email is empty';
-			document.getElementById( 'signUpEmailInput' ).focus();
-			// await setSignUpEmailError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		else if( signUpPassword == '' ){
+		if( pwResetPassword == '' ){
 			const errorMessage = 'Password is empty';
-			document.getElementById( 'signUpPasswordInput' ).focus();
-			// await setSignUpPasswordError( errorMessage );
+			document.getElementById( 'pwResetPasswordInput' ).focus();
+			// await setPwResetPasswordError( errorMessage );
 			formHasEmpty = errorMessage
 		}
-		else if( signUpPasswordRepeat == '' ){
+		else if( pwResetPasswordRepeat == '' ){
 			const errorMessage = 'Password repeat is empty';
-			document.getElementById( 'signUpPasswordRepeatInput' ).focus();
-			// await setSignUpPasswordRepeatError( errorMessage );
+			document.getElementById( 'pwResetPasswordRepeatInput' ).focus();
+			// await setPwResetPasswordRepeatError( errorMessage );
 			formHasEmpty = errorMessage
 		}
 
@@ -217,7 +117,7 @@ const SignUp = ( params ) => {
 	const handleClickRegistration = async ( event ) => {
 
 		event.preventDefault();
-		setSignUpSpin( 'block' );
+		setPwResetSpin( 'block' );
 
 		clearFormErrors(); // clear form error
 
@@ -227,15 +127,15 @@ const SignUp = ( params ) => {
 		const formHasErrors = await checkFormErrors();
 		if( formHasErrors ){
 			message.error( 'Please correct the errors before continuing.' );
-			setSignUpSpin( 'none' );
+			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
 			return
 		}
-console.log( 'signUpType: ' + signUpType );
-		// check if a signUp type is selected
-		if( !signUpType ){
+console.log( 'pwResetType: ' + pwResetType );
+		// check if a pwReset type is selected
+		if( !pwResetType ){
 			message.error( 'Are you a pet\'s owner or a veto? Please select.' );
-			setSignUpSpin( 'none' );
+			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
 			return	
 		}
@@ -245,14 +145,14 @@ console.log( 'signUpType: ' + signUpType );
 	
 		if( formHasEmpty ){
 			message.error( formHasEmpty );
-			setSignUpSpin( 'none' );
+			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
 			return
 		}
 		
 		// check if email already exists
 		const checkEmailData = {
-			email: signUpEmail
+			email: pwResetEmail
 		}
 
 		const check = await checkEmail( checkEmailData );
@@ -260,8 +160,8 @@ console.log( 'signUpType: ' + signUpType );
 			
 			setFormError02( 'block' );	// display form error
 			message.error( showAFormError( 'formError02' ) );	// display ant error
-			document.getElementById( 'signUpEmailInput' ).focus();
-			setSignUpSpin( 'none' );
+			document.getElementById( 'pwResetEmailInput' ).focus();
+			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
 			return
 		}
@@ -271,16 +171,16 @@ console.log( 'signUpType: ' + signUpType );
 		const genCode = await generateRandomDigits( maxCodeLength );
 		setCode( genCode );
 // console.log( 'genCode: ' + genCode );
-		const domainName 	= signUpEmail.split( '@' )[1];
+		const domainName 	= pwResetEmail.split( '@' )[1];
 		const subject 		= 'Verify your email address for ' + siteName;
-		const UserName 		= signUpName;
+		const UserName 		= pwResetName;
 		const code 			= genCode;
 		
 		const sendEmailData = {
-			to_email 		: signUpEmail,
+			to_email 		: pwResetEmail,
 			to_domain		: domainName,
 			subject			: subject,
-			userName    	: signUpName,
+			userName    	: pwResetName,
 			siteName    	: siteName,
 			siteDomain  	: siteDomain,
 			siteEmail		: siteEmail,
@@ -295,15 +195,15 @@ console.log( 'signUpType: ' + signUpType );
 		if( rep === false ){ // email address not found
 			setFormError01( 'block' );	// display form error
 			message.error( showAFormError( 'formError01' ) );	// display ant error
-			setSignUpSpin( 'none' );
-			document.getElementById( 'signUpEmailInput' ).focus();
+			setPwResetSpin( 'none' );
+			document.getElementById( 'pwResetEmailInput' ).focus();
 			setSendingDisabled( false );
 			return;
 		}
 // console.log( 'Check email', rep );
-		setSignUpSpin( 'none' );
+		setPwResetSpin( 'none' );
 		if( emailVerificationResult === true ) // email account already checked
-			await signUp( signUpData )
+			await pwReset( pwResetData )
 		else									// check email account
 			setIsModalOpen(true);
 	}
@@ -321,13 +221,13 @@ console.log( 'signUpType: ' + signUpType );
 	}
 	
 	// signup
-	const signUpData = {
-		nom: 			signUpName.trim(),
-		prenom: 		signUpFirstName.trim(),
-		email: 			signUpEmail,
-		password: 		signUpPassword,
+	const pwResetData = {
+		nom: 			pwResetName.trim(),
+		prenom: 		pwResetFirstName.trim(),
+		email: 			pwResetEmail,
+		password: 		pwResetPassword,
 		enabled:		1,
-		profileTypeId:	signUpType,
+		profileTypeId:	pwResetType,
 	}
 
 
@@ -337,13 +237,13 @@ console.log( 'signUpType: ' + signUpType );
 			setSendingDisabled( false );
 			return
 		}
-//setSignUpFirstNameError( "signUpFirstNameErrorText" );
+//setPwResetFirstNameError( "pwResetFirstNameErrorText" );
 
 		
-		const rep = await signUp( signUpData );
+		const rep = await pwReset( pwResetData );
 
-// console.log( 'signUp rep: ' + rep );
-		setSignUpSpin( 'none' );
+// console.log( 'pwReset rep: ' + rep );
+		setPwResetSpin( 'none' );
 		setSendingDisabled( false );
 		if( rep === false ){
 			message.error( 'Unable to create your account. Please retry later' )
@@ -429,7 +329,7 @@ const handleChangeCode = ( e ) => {
 				footer		= {null}
 			>
     <div className="App">
-		<span>We sent a verification code to { signUpEmail }.</span>
+		<span>We sent a verification code to { pwResetEmail }.</span>
       <InputCode
         length={6}
         label="Type your code"
@@ -470,7 +370,7 @@ const handleChangeCode = ( e ) => {
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
-													name  = "signUpTypeUser"
+													name  = "pwResetTypeUser"
 													className = "backgroundYellow borderRadius18 height40"
 												>
 													<div className='row'>
@@ -481,10 +381,10 @@ const handleChangeCode = ( e ) => {
 															<Input
 																className='width15 height15 marginTop10'
 																type="checkbox" 
-																name="signUpTypeUser"
-																id="signUpType1"
+																name="pwResetTypeUser"
+																id="pwResetType1"
 																value={ 1 }
-																onChange = { e => handleChangeSignUpType(1) }
+																onChange = { e => handleChangePwResetType(1) }
 																style={{ outline: 'none' }}
 															 />
 														</div>
@@ -493,7 +393,7 @@ const handleChangeCode = ( e ) => {
 											</div>
 											<div className="col-6">
 												<Form.Item
-													name  = "signUpTypeVeto"
+													name  = "pwResetTypeVeto"
 													className = "backgroundYellow borderRadius18 height40"
 												>
 													<div className='row'>
@@ -501,10 +401,10 @@ const handleChangeCode = ( e ) => {
 															<Input
 																className='width15 height15 marginTop10'
 																type="checkbox" 
-																name="signUpTypeVeto"
-																id="signUpType2"
+																name="pwResetTypeVeto"
+																id="pwResetType2"
 																value={ 2 }
-																onChange = { e => handleChangeSignUpType(2) }
+																onChange = { e => handleChangePwResetType(2) }
 																style={{ outline: 'none' }}
 															 />
 														</div>
@@ -518,13 +418,13 @@ const handleChangeCode = ( e ) => {
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
-													name  = "signUpName"
+													name  = "pwResetName"
 													rules = {[
 														{
-															message: signUpNameError,
+															message: pwResetNameError,
 															validator: ( value ) => {
-																if ( signUpNameError ) {
-																	return Promise.reject( signUpNameError );
+																if ( pwResetNameError ) {
+																	return Promise.reject( pwResetNameError );
 																} 
 																else {
 																	return Promise.resolve();
@@ -532,29 +432,29 @@ const handleChangeCode = ( e ) => {
 															}
 														}
 													]}
-													initialValue  = { signUpName }
+													initialValue  = { pwResetName }
 												>
 													<Input
-														id="signUpNameInput"
+														id="pwResetNameInput"
 														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
 														placeholder="Name" 
 														type="text" 
-														name="signUpName"
-														value={ signUpName }
-														onChange = { e => handleChangeSignUpName(e)}
+														name="pwResetName"
+														value={ pwResetName }
+														onChange = { e => handleChangePwResetName(e)}
 													/>
 
 												</Form.Item>
 											</div>
 											<div className="col-6">
 												<Form.Item
-													name  = "signUpFirstName"
+													name  = "pwResetFirstName"
 													rules = {[
 														{
-															message: signUpFirstNameError,
+															message: pwResetFirstNameError,
 															validator: ( value ) => {
-																if ( signUpFirstNameError ) {
-																	return Promise.reject( signUpFirstNameError );
+																if ( pwResetFirstNameError ) {
+																	return Promise.reject( pwResetFirstNameError );
 																} 
 																else {
 																	return Promise.resolve();
@@ -565,26 +465,26 @@ const handleChangeCode = ( e ) => {
 													initialValue  = ''
 												>
 													<Input 
-														id="signUpFirstNameInput"
+														id="pwResetFirstNameInput"
 														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
 														placeholder="First name" 
 														type="text" 
-														name="signUpFirstName"
-														value={ signUpFirstName }
-														onChange = { e => handleChangeSignUpFirstName(e) }
+														name="pwResetFirstName"
+														value={ pwResetFirstName }
+														onChange = { e => handleChangePwResetFirstName(e) }
 													/>
 												</Form.Item>
 											</div>
 										</div>
 										<div className="form-group">
 											<Form.Item
-												name  = "signUpEmail"
+												name  = "pwResetEmail"
 												rules = {[
 													{
-														message: signUpEmailError,
+														message: pwResetEmailError,
 														validator: ( value ) => {
-															if ( signUpEmailError ) {
-																return Promise.reject( signUpEmailError );
+															if ( pwResetEmailError ) {
+																return Promise.reject( pwResetEmailError );
 															} 
 															else {
 																return Promise.resolve();
@@ -596,13 +496,13 @@ const handleChangeCode = ( e ) => {
 											>
 
 												<Input 
-													id="signUpEmailInput"
+													id="pwResetEmailInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
 													placeholder="Enter your email" 
 													type="text" 
-													name="signUpmail"
-													value={ signUpEmail }
-													onChange = { e => handleChangeSignUpEmail(e)}
+													name="pwResetmail"
+													value={ pwResetEmail }
+													onChange = { e => handleChangePwResetEmail(e)}
 													
 												/>
 											</Form.Item>
@@ -612,10 +512,10 @@ const handleChangeCode = ( e ) => {
 												name  = "password"
 												rules = {[
 													{
-														message: signUpPasswordError,
+														message: pwResetPasswordError,
 														validator: ( value ) => {
-															if ( signUpPasswordError ) {
-																return Promise.reject( signUpPasswordError );
+															if ( pwResetPasswordError ) {
+																return Promise.reject( pwResetPasswordError );
 															} 
 															else {
 																return Promise.resolve();
@@ -626,13 +526,13 @@ const handleChangeCode = ( e ) => {
 												initialValue  = ''
 											>
 												<Input 
-													id="signUpPasswordInput"
+													id="pwResetPasswordInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
 													placeholder="Enter your password" 
 													type="password" 
 													name="password"
-													value={ signUpPassword }
-													onChange = { e => handleChangeSignUpPassword(e)}
+													value={ pwResetPassword }
+													onChange = { e => handleChangePwResetPassword(e)}
 													
 												/>
 											</Form.Item>
@@ -642,10 +542,10 @@ const handleChangeCode = ( e ) => {
 												name  = "passwordRepeat"
 												rules = {[
 													{
-														message: signUpPasswordRepeatError,
+														message: pwResetPasswordRepeatError,
 														validator: ( value ) => {
-															if ( signUpPasswordRepeatError ) {
-																return Promise.reject( signUpPasswordRepeatError );
+															if ( pwResetPasswordRepeatError ) {
+																return Promise.reject( pwResetPasswordRepeatError );
 															} 
 															else {
 																return Promise.resolve();
@@ -656,13 +556,13 @@ const handleChangeCode = ( e ) => {
 												initialValue  = ''
 											>
 												<Input 
-													id="signUpPasswordRepeatInput"
+													id="pwResetPasswordRepeatInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
 													placeholder="Repeat your password" 
 													type="password" 
 													name="passwordRepeat"
-													value={ signUpPasswordRepeat }
-													onChange = { e => handleChangeSignUpPasswordRepeat(e)}
+													value={ pwResetPasswordRepeat }
+													onChange = { e => handleChangePwResetPasswordRepeat(e)}
 												/>
 												
 											</Form.Item>
@@ -673,7 +573,7 @@ const handleChangeCode = ( e ) => {
 											<span id="cmp_vetonest.com_4LbLKwutmz">
 												Email address
 											</span> 
-												&nbsp;{ signUpEmail }&nbsp;
+												&nbsp;{ pwResetEmail }&nbsp;
 											<span id="cmp_vetonest.com_WbKGYyavtn">
 												not found.
 											</span> Please try another one.
@@ -682,7 +582,7 @@ const handleChangeCode = ( e ) => {
 											<span id="cmp_vetonest.com_4LbLKwutmz">
 												Email address
 											</span> 
-												&nbsp;{ signUpEmail }&nbsp;
+												&nbsp;{ pwResetEmail }&nbsp;
 											<span id="cmp_vetonest.com_071mCRIC59">
 												already exist.
 											</span> Please try another one.
@@ -701,7 +601,7 @@ const handleChangeCode = ( e ) => {
 															style={{
 																fontSize: 		20,
 																marginRight: 	'10px',
-																display:		signUpSpin,
+																display:		pwResetSpin,
 																color: 			'wheat',
 															}}
 															spin
@@ -732,4 +632,4 @@ const handleChangeCode = ( e ) => {
 	);
 };
 
-export default SignUp;
+export default PasswordForgotReset;

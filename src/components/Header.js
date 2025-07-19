@@ -9,17 +9,8 @@ import { AuthContext } from "../context/AuthProvider";
 
 const Header = () => {
 
-
-	// const { isAuthenticated, logOut, getUser, setUser } = useContext( AuthContext );
+	const { isAuthenticated, logOut, getUser, setUser } = useContext( AuthContext );
 	const navigate = useNavigate();
-
-	// const checkAuth = async () => {
-		// if( !isAuthenticated() ){
-			// navigate( '/login' );
-			// return false
-		// }
-	// }
-	// checkAuth();
 
 	const array = [ 
 		{
@@ -53,6 +44,22 @@ const Header = () => {
 		navigate( path );
 	}
 
+	// Login / logout
+	const handleClickLogInOut = async( event ) => {
+		event.preventDefault();
+		if( isAuthenticated() ){
+			// const resp = await logOut();
+			// if( resp !== true  ){
+				// message.error( resp );
+				// return;
+			// }
+			setUser( null );
+			
+		}
+
+		navigate( '/connexion' )
+	}
+
 	// get the profile data
 	useEffect( () => {
 
@@ -73,6 +80,7 @@ const Header = () => {
 	
 	return (
 		<>
+		<SecuredPagesAuth />
 			<header className="stick" style={{marginTop:0}}>
 				<div className="header">
 					<div className="container">
@@ -102,7 +110,7 @@ const Header = () => {
 										 </a>
 									  </li>
 									  <li className={ "nav-item " + active[4].actif }>
-										 <a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'contact' ) }>
+										 <a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'connexion' ) }>
 											Se connecter
 										 </a>
 									  </li>
@@ -111,11 +119,14 @@ const Header = () => {
 											S'inscrire
 										</a>
 									  </li>
-									  <li className={ "nav-item " + active[1].actif }>
-										<a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
-											S'inscrire
-										</a>
-									  </li>
+									  <li>
+										{ isAuthenticated() ? getUser().userEmail : '' }
+										</li>
+										<li>
+											<Link onClick={ e => handleClickLogInOut( e ) }>
+												<i className="icon-key"></i> <span>{ isAuthenticated() ? 'Déconnexion' : 'Connexion' }</span>
+											</Link>
+										</li>
 									</ul>
 								</div>
 							</nav>

@@ -8,7 +8,7 @@ import { message } from 'antd';
 const SecuredPagesAuth = () => {
 	const navigate 				= useNavigate();
 	const { isAuthenticated, getUser }	= useContext( AuthContext );
-	const { setReferrer } 		= useContext( SiteContext );
+	const { setReferrer } = useContext( SiteContext );
 	
 	// Admin's user list
 	const adminList = [ 
@@ -30,29 +30,29 @@ const SecuredPagesAuth = () => {
 	// register current page
 	const location 		= useLocation();
 	const currentPage 	= location.pathname;
+
 	if( !notToReferPages.includes( currentPage ) )
 		setReferrer( currentPage );
 	
 	// authentication
 	const [authenticate, setAuthenticate ] = useState( isAuthenticated() );
-// console.log( getUser() );
+
 	useEffect(() => {
+console.log( 'isAuthenticated', isAuthenticated() );
+			const security = async () => {
+				if( securedPagesPath.includes( currentPage ) && !authenticate ){
+					if( currentPage != '/connexion'  )
+						await navigate( '/connexion' )
+				}
+				else if( currentPage.includes( 'dashboard/' ) && !adminList.includes( getUser().email ) ) {
 
-		const security = async () => {
-			if( securedPagesPath.includes( currentPage ) && !authenticate ){
-				if( currentPage != '/connexion'  )
-					await navigate( '/connexion' )
+					message.error( 'Espace reservé aux Admin.' );
+					// await navigate( '/connexion' );
+				}
 			}
-			else if( currentPage.includes( 'dashboard/' ) && !adminList.includes( getUser().email ) ) {
+			security();
 
-				message.error( 'Espace reservé aux Admin.' );
-				// await navigate( '/connexion' );
-			}
-		}
-
-		security();
-	
-	}, [authenticate]);
+	}, []);
 	
 	return (
 		<></>
