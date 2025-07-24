@@ -1067,11 +1067,11 @@ ul.social_icon li a:hover {
 }
 .back_re .title h2 {
 color:#fff;
-font-size: 40px;
-padding: 40px 0;
+font-size: 25px;
+padding: 25px 0;
 font-weight: 600;
 text-transform: uppercase;
-line-height: 35px;
+line-height: 0px;
 }
 .margin_0 {
      margin:0 !important;
@@ -1084,7 +1084,16 @@ line-height: 35px;
 .inner_page .blog {
      margin-top: 90px;
 }
- 
 
+.marginTopBottom10{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 
+.marginTop10{
+    margin-top: 10px;
+}
 
+.marginBottom20{
+    margin-bottom: 20px;
+}

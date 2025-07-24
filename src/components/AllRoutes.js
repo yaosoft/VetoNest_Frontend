@@ -57,7 +57,7 @@ const AllRoutes = {
 		},
 		{	// password forgot | reset
 			element:  <PasswordForgotReset />,
-			path: '/mot-de-passe-oublie/reset',
+			path: '/mot-de-passe-oublie/reset/:code/:userId',
 		},
 		{	// Not found page
 			element: <NotFound 

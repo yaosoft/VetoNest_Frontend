@@ -21,6 +21,7 @@ import Footer from '../Footer';
 import { Form, Input, Select } from 'antd';
 import InputCode from "../InputCode";
 
+import Title from '../Title';
 const PasswordForgot = ( params ) => {
 
 	const { isValidPassword }	= useContext( AuthContext );
@@ -33,6 +34,8 @@ const PasswordForgot = ( params ) => {
 		generateRandomDigits,
 		sendEmail,
 		checkEmail,
+		setVerificationCode,
+		setVerificationUserId,
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -91,6 +94,7 @@ const PasswordForgot = ( params ) => {
 	const [ code, setCode ] = useState( '' );
 	const [ formError01, setFormError01 ] = useState( 'none' );
 	const [ formError02, setFormError02 ] = useState( 'none' );
+	const [ userId, setUserId ] = useState( 'none' );
 	const handleClickEmailValidation = async ( event ) => {
 
 		event.preventDefault();
@@ -124,8 +128,9 @@ const PasswordForgot = ( params ) => {
 			email: pwForgotEmail
 		}
 
-		const userId = await checkEmail( checkEmailData );
-		if( !userId ){
+		const id = await checkEmail( checkEmailData );
+
+		if( !id ){
 
 			setFormError01( 'block' );	// display form error
 			message.error( showAFormError( 'formError01' ) );	// display ant error
@@ -135,6 +140,7 @@ const PasswordForgot = ( params ) => {
 			return
 		}
 		
+		setUserId( id );
 		
 		// setOpenModalEmailValidate( true );
 		const genCode = await generateRandomDigits( maxCodeLength );
@@ -153,7 +159,7 @@ const PasswordForgot = ( params ) => {
 			siteDomain  	: siteDomain,
 			siteEmail		: siteEmail,
 			siteUrl     	: siteUrl,
-			code  			: genCode,
+			code  			: insertSpaceAtPosition ( genCode, 3 ),
 			emailTemplate	: 'password_forgot'
 		}
 // console.log( 'sendEmailData', sendEmailData );
@@ -173,6 +179,20 @@ const PasswordForgot = ( params ) => {
 		
 		showModal()
 
+	}
+
+	const insertSpaceAtPosition = ( originalString, position ) => {
+	  // Ensure the position is within valid bounds
+	  if (position < 0 || position > originalString.length) {
+		console.warn("Position is out of bounds. No space inserted.");
+		return originalString;
+	  }
+
+	  // Split the string into two parts and insert the space in between
+	  const part1 = originalString.substring(0, position);
+	  const part2 = originalString.substring(position);
+// console.log(part1 + " " + part2);
+	  return part1 + " " + part2;
 	}
 
 	// display a form error
@@ -195,43 +215,18 @@ const PasswordForgot = ( params ) => {
 			return
 		}
 
-		navigate( '/mot-de-passe-oublie/reset' );
+		setVerificationCode( code );
+		setVerificationUserId( userId );
+		navigate( '/mot-de-passe-oublie/reset/' + code + '/' + userId );
 	}
 
 	// modal
 	const [ isModalOpen, setIsModalOpen ] = useState(false);
-	const [ verificationCode, setVerificationCode ]  = useState( '' );
 	const [ displayCodeCorrect, setDisplayCodeCorrect ] = useState( 'none' );
 	const [ displayCodeIncorrect, setDisplayCodeIncorrect ] = useState( 'none' );
-	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
+	const [ displayCodeResend, setDisplayCodeResend ] = useState( 'block' );
 	
-	const handleChangeCode = ( e ) => {
-		const typedCode 	= e.target.value;
-		const countLetters 	= typedCode.length
-		if( countLetters > maxCodeLength )
-			return
-
-	setVerificationCode( typedCode );
-// console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
-		if( countLetters == maxCodeLength ){
-			if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
-			}
-			else{
-				message.success( 'Your code is correct' );
-				setEmailVerificationResult( true );
-				setDisplayCodeInorrect( 'none' );
-				setDisplayCodeCorrect( 'block' );
-				setTimeout( setIsModalOpen, 2000, false );
-			}
-		}
-		else {
-			setDisplayCodeIncorrect( 'none' );
-		}
-		
-	}
+	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
 	
 	const handleCompletedCode = ( typedCode ) => {
 		
@@ -244,6 +239,8 @@ const PasswordForgot = ( params ) => {
 			message.success( 'Your code is correct' );
 			setEmailVerificationResult( true );
 			setDisplayCodeCorrect( 'block' );
+			setDisplayCodeIncorrect( 'none' );
+			setDisplayCodeResend( 'none' );
 			setTimeout( setIsModalOpen, 2000, false );
 		}
 	}
@@ -277,7 +274,7 @@ const PasswordForgot = ( params ) => {
 		<span>We sent a verification code to { pwForgotEmail }.</span>
       <InputCode
         length={6}
-        label="Type your code"
+        label="Please type your code"
         loading={loading}
         onComplete={code => {
           setLoading(true);
@@ -288,7 +285,7 @@ const PasswordForgot = ( params ) => {
 	<div className = "row" >
 		<span className='text text-success' style={{display: displayCodeCorrect }} >Code correct!&nbsp;</span>
 		<span className='text text-danger' style={{display: displayCodeIncorrect }} >Code incorrect!&nbsp;</span>
-		<span className='text text-info' >Resend the code</span>
+		<span className='text text-info' style={{display: displayCodeResend }}>Resend the code</span>
 	</div>
 	</div>		
 					<br/><br/>
@@ -300,14 +297,13 @@ const PasswordForgot = ( params ) => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-
+			<Title title = { 'Mot de passe oublié' } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								
-										<h3 className="text-center marginTop25px" >Mot de passe oublié</h3>
+
 										 <Form 
 											className=""
 											form = {form}
@@ -355,16 +351,12 @@ const PasswordForgot = ( params ) => {
 												&nbsp;{ pwForgotEmail }&nbsp;
 											<span id="cmp_vetonest.com_WbKGYyavtn">
 												not found.
-											</span> Please try another one.
+											</span>
 										</div>
 										<div style= {{ display: formError02 }}  className="row formError formError02">
 											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ pwForgotEmail }&nbsp;
-											<span id="cmp_vetonest.com_071mCRIC59">
-												already exist.
-											</span> Please try another one.
+												Please check your network and email address.
+											</span>
 										</div>
 									</>
 											<button 

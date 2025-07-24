@@ -43,6 +43,12 @@ export const SiteProvider = ({ children }) => {
 		}
 		
 	}
+	
+	// Email verification code
+	const [ verificationCode, setVerificationCode ] = useState( localStorage.getItem( 'verificationCode' ) ? JSON.parse( localStorage.getItem( 'verificationCode' ) ) : '' );
+
+	// User Id
+	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend url 
 	const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
@@ -113,6 +119,61 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// update password
+	const updatePassword = async ( updatePasswordData ) => {
+		const url		= base_api_url + 'user/password/save';
+		const data 		= updatePasswordData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// update default language
+	const updateLanguagePreference = async ( languagePreferenceData ) => {
+		const url		= base_api_url + 'profile/language/preference/update';
+		const data 		= languagePreferenceData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// List all languages
+	const listLanguages = async () => {
+		const url		= base_api_url + 'langue/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a user profile
+	const getAProfile = async ( profileId ) => {
+		const url		= base_api_url + 'profileUser/show';
+		const data 		= profileId;
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// set a user profile
+	const saveAProfile = async ( profileId ) => {
+		const url		= base_api_url + 'profileUser/edit';
+		const data 		= profileId;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// Generate random digits
 	const generateRandomDigits = (n) => {
 		// const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -123,6 +184,22 @@ export const SiteProvider = ({ children }) => {
 			result += characters.charAt(randomIndex);
 		}
 		return result;
+	}
+
+	const defaultLanguageId = useState( 1 ); // fr
+
+	const [ siteLanguage, setSiteLanguage ] = useState( '' );
+	const [ languageFlag, setLanguageFlag ] = useState( '' );
+	const languageSetup = async ( languageId ) => {
+		const languages = await listLanguages();
+		
+		const language = languages.filter( e => e.id == languageId )[0];
+console.log( language );
+		const languageCode = language.languageCode;
+		const flag = '/img/flags/' + languageCode + '.svg';
+console.log( 'Flag, ' + flag );	
+		setLanguageFlag( flag );
+
 	}
 
 	return (	
@@ -138,7 +215,19 @@ export const SiteProvider = ({ children }) => {
 				sendEmail,
 				getReferrer,
 				setReferrer,
-				generateRandomDigits
+				generateRandomDigits,
+				setVerificationCode,
+				verificationCode,
+				verificationUserId,
+				setVerificationUserId,
+				updatePassword,
+				listLanguages,
+				updateLanguagePreference,
+				defaultLanguageId,
+				siteLanguage,
+				setSiteLanguage,
+				languageSetup,
+				languageFlag,
 			}}
 		>
 		

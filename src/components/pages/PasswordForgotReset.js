@@ -23,20 +23,17 @@ import Footer from '../Footer';
 
 import { Form, Input, Select } from 'antd';
 
-
+import Title from '../Title';
 const PasswordForgotReset = ( params ) => {
+
 
 	const { isValidPassword }	= useContext( AuthContext );
 	const { 
-		siteName,
-		siteEmail,
-		siteUrl,
-		siteDomain,
-		siteDomainName,
-		generateRandomDigits,
-		pwReset, 
-		checkEmail, 
-		sendEmail,
+		verificationCode,
+		verificationUserId,
+		setVerificationCode,
+		setVerificationUserId,
+		updatePassword,
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -82,7 +79,8 @@ const PasswordForgotReset = ( params ) => {
 
 	// check the form errors
 	const checkFormErrors = async( ) => {
-		else if( pwResetPasswordError != '' )
+		var errorsExist = false;
+		if( pwResetPasswordError != '' )
 			errorsExist = true
 		else if( pwResetPasswordRepeatError != '' )
 			errorsExist = true
@@ -95,26 +93,25 @@ const PasswordForgotReset = ( params ) => {
 		var formHasEmpty = '';
 
 		if( pwResetPassword == '' ){
-			const errorMessage = 'Password is empty';
 			document.getElementById( 'pwResetPasswordInput' ).focus();
-			// await setPwResetPasswordError( errorMessage );
-			formHasEmpty = errorMessage
+			setFormError01( 'block'  );
+			const error = showAFormError( 'formError01' ); // return error's tag inner text
+			formHasEmpty = error
 		}
 		else if( pwResetPasswordRepeat == '' ){
-			const errorMessage = 'Password repeat is empty';
-			document.getElementById( 'pwResetPasswordRepeatInput' ).focus();
-			// await setPwResetPasswordRepeatError( errorMessage );
-			formHasEmpty = errorMessage
+			setFormError02( 'block'  );
+			const error = showAFormError( 'formError02' ); // return error's tag inner text
+			formHasEmpty = error
 		}
 
 		return formHasEmpty
 	}
 	
 	// sign up
-	const [ code, setCode ] = useState( '' );
 	const [ formError01, setFormError01 ] = useState( 'none' );
 	const [ formError02, setFormError02 ] = useState( 'none' );
-	const handleClickRegistration = async ( event ) => {
+	const [ formError03, setFormError03 ] = useState( 'none' );
+	const handleClickReset = async ( event ) => {
 
 		event.preventDefault();
 		setPwResetSpin( 'block' );
@@ -131,15 +128,8 @@ const PasswordForgotReset = ( params ) => {
 			setSendingDisabled( false );
 			return
 		}
-console.log( 'pwResetType: ' + pwResetType );
-		// check if a pwReset type is selected
-		if( !pwResetType ){
-			message.error( 'Are you a pet\'s owner or a veto? Please select.' );
-			setPwResetSpin( 'none' );
-			setSendingDisabled( false );
-			return	
-		}
-		
+
+
 		// check form empty fields
 		const formHasEmpty = await checkFormEmpty();
 	
@@ -149,66 +139,29 @@ console.log( 'pwResetType: ' + pwResetType );
 			setSendingDisabled( false );
 			return
 		}
-		
-		// check if email already exists
-		const checkEmailData = {
-			email: pwResetEmail
-		}
 
-		const check = await checkEmail( checkEmailData );
-		if( check ){
-			
-			setFormError02( 'block' );	// display form error
-			message.error( showAFormError( 'formError02' ) );	// display ant error
-			document.getElementById( 'pwResetEmailInput' ).focus();
-			setPwResetSpin( 'none' );
-			setSendingDisabled( false );
-			return
+		// reset password
+		const pwResetData = {
+			userId: 	    verificationUserId,
+			password: 		pwResetPassword,
 		}
-
-		// email verification
-		// setOpenModalEmailValidate( true );
-		const genCode = await generateRandomDigits( maxCodeLength );
-		setCode( genCode );
-// console.log( 'genCode: ' + genCode );
-		const domainName 	= pwResetEmail.split( '@' )[1];
-		const subject 		= 'Verify your email address for ' + siteName;
-		const UserName 		= pwResetName;
-		const code 			= genCode;
-		
-		const sendEmailData = {
-			to_email 		: pwResetEmail,
-			to_domain		: domainName,
-			subject			: subject,
-			userName    	: pwResetName,
-			siteName    	: siteName,
-			siteDomain  	: siteDomain,
-			siteEmail		: siteEmail,
-			siteUrl     	: siteUrl,
-			code  			: genCode,
-			emailTemplate	: 'email_verification'
-		}
-// console.log( 'sendEmailData', sendEmailData );
-
-		const rep = await sendEmail( sendEmailData );	// send the code by email
-		
-		if( rep === false ){ // email address not found
-			setFormError01( 'block' );	// display form error
-			message.error( showAFormError( 'formError01' ) );	// display ant error
-			setPwResetSpin( 'none' );
-			document.getElementById( 'pwResetEmailInput' ).focus();
-			setSendingDisabled( false );
-			return;
-		}
-// console.log( 'Check email', rep );
+		const resp = await updatePassword( pwResetData );
 		setPwResetSpin( 'none' );
-		if( emailVerificationResult === true ) // email account already checked
-			await pwReset( pwResetData )
-		else									// check email account
-			setIsModalOpen(true);
+		setSendingDisabled( false );
+		
+		if( !resp ){
+			setFormError03( 'block' );
+			message.error( showAFormError( formError03 ) )
+		}
+		else{									// check email account
+			message.success( 'Votre mot de passe a été mis a jour.' );
+			setVerificationCode( '' );
+			setVerificationUserId( '' );
+			navigate( '/connexion' )
+		}
 	}
 
-	// display a form error
+	// display a form's error
 	const showAFormError = ( className ) => {
 		const errorTxt = document.getElementsByClassName( className )[0].innerText;
 		return errorTxt;
@@ -219,135 +172,40 @@ console.log( 'pwResetType: ' + pwResetType );
 		setFormError01( 'none' );
 		setFormError02( 'none' );
 	}
-	
-	// signup
-	const pwResetData = {
-		nom: 			pwResetName.trim(),
-		prenom: 		pwResetFirstName.trim(),
-		email: 			pwResetEmail,
-		password: 		pwResetPassword,
-		enabled:		1,
-		profileTypeId:	pwResetType,
-	}
-
 
 	const navigate = useNavigate();
-	const modalClosed = async () => {
-		if( emailVerificationResult === false ){
-			setSendingDisabled( false );
-			return
-		}
-//setPwResetFirstNameError( "pwResetFirstNameErrorText" );
-
-		
-		const rep = await pwReset( pwResetData );
-
-// console.log( 'pwReset rep: ' + rep );
-		setPwResetSpin( 'none' );
-		setSendingDisabled( false );
-		if( rep === false ){
-			message.error( 'Unable to create your account. Please retry later' )
-		}
-		else{
-			message.success( 'Your account is created!' );
-			navigate( '/connexion' )
-		}
-	}
-
-	// modal
-	const [ isModalOpen, setIsModalOpen ] = useState(false);
-	const [ verificationCode, setVerificationCode ]  = useState( '' );
-	const [ displayCodeCorrect, setDisplayCodeCorrect ] = useState( 'none' );
-	const [ displayCodeIncorrect, setDisplayCodeIncorrect ] = useState( 'none' );
-	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
 	
-const handleChangeCode = ( e ) => {
-		const typedCode 	= e.target.value;
-		const countLetters 	= typedCode.length
-		if( countLetters > maxCodeLength )
-			return
+	const [ urlCodeCheck, setUrlCodeCheck ] = useState( true );
+	const [ userId, setUserId ] = useState( '' );
+	useEffect( () => {
+		// url code verification
+		const currentLink = window.location.href;
+		const urlParts = currentLink.split( '/' );
+		const urlUserId = urlParts[ urlParts.length - 1 ];
+		const urlCode = urlParts[ urlParts.length - 2 ];
+// console.log( verificationCode + ' ' + urlCode + ' ' + verificationUserId + ' ' + urlUserId );
+		const isOk =  ( verificationCode == urlCode.trim() ) && ( verificationUserId == urlUserId.trim() ) ? true : false;
+		setUrlCodeCheck( isOk );
 
-	setVerificationCode( typedCode );
-// console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
-		if( countLetters == maxCodeLength ){
-			if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
-			}
-			else{
-				message.success( 'Your code is correct' );
-				setEmailVerificationResult( true );
-				setDisplayCodeCorrect( 'block' );
-				setTimeout( setIsModalOpen, 2000, false );
-			}
-		}
-		else {
-			setDisplayCodeIncorrect( 'none' );
+		if( !isOk ){
+			// message.error( "Validation code not found" );
+			console.log( 'Validation code not found' );
+			navigate( '/mot-de-passe-oublie' )
+			return;
 		}
 		
-	}
+
+	}, [] );
+
 	
-	const handleCompletedCode = ( typedCode ) => {
-		
-		if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
-		}
-		else{
-			message.success( 'Your code is correct' );
-			setEmailVerificationResult( true );
-			setDisplayCodeCorrect( 'block' );
-			setTimeout( setIsModalOpen, 2000, false );
-		}
-	}
-	
-	const showModal = () => {
-		setIsModalOpen(true);
-	};
-	  
-	const handleOk = () => {
-		setIsModalOpen(false);
-	};
-	const handleCancel = () => {
-		setIsModalOpen(false);
-	}
+
 	 
 	 // form
 	 const [form] = Form.useForm();
 	 
 	 return (
 		<>
-			<Modal
-				title		= "Email verification"
-				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { isModalOpen }
-				onOk		= { handleOk }
-				onCancel	= { handleCancel }
-				afterClose	= { modalClosed }
-				footer		= {null}
-			>
-    <div className="App">
-		<span>We sent a verification code to { pwResetEmail }.</span>
-      <InputCode
-        length={6}
-        label="Type your code"
-        loading={loading}
-        onComplete={code => {
-          setLoading(true);
-          setTimeout(() => setLoading(false), 10000);
-		  handleCompletedCode( code )
-        }}
-      />
-	<div className = "row" >
-		<span className='text text-success' style={{display: displayCodeCorrect }} >Code correct!&nbsp;</span>
-		<span className='text text-danger' style={{display: displayCodeIncorrect }} >Code incorrect!&nbsp;</span>
-		<span className='text text-info' >Resend the code</span>
-	</div>
-	</div>		
-					<br/><br/>
-			</Modal>
+			
 		
 		<Header />
 			
@@ -355,158 +213,21 @@ const handleChangeCode = ( e ) => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-
+			<Title title = { 'Reset your password' } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
 								
-										<h3 className="text-center marginTop25px" >Inscription</h3>
+										
 										 <Form 
 											className=""
 											form = {form}
 										 >
-										<div className="row">
-											<div className="col-6">
-												<Form.Item
-													name  = "pwResetTypeUser"
-													className = "backgroundYellow borderRadius18 height40"
-												>
-													<div className='row'>
-														<div className='col-8 marginLeft20'>
-															<i className='fa fa-paw marginTop10'></i> I have a pet
-														</div>
-														<div className='col-3'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="pwResetTypeUser"
-																id="pwResetType1"
-																value={ 1 }
-																onChange = { e => handleChangePwResetType(1) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-													</div>
-												</Form.Item>
-											</div>
-											<div className="col-6">
-												<Form.Item
-													name  = "pwResetTypeVeto"
-													className = "backgroundYellow borderRadius18 height40"
-												>
-													<div className='row'>
-														<div className='col-4'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="pwResetTypeVeto"
-																id="pwResetType2"
-																value={ 2 }
-																onChange = { e => handleChangePwResetType(2) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-														<div className='col-8 marginTop10'>
-															<i className='fa fa-user-md'></i> I'm a veto
-														</div>
-													</div>
-												</Form.Item>
-											</div>
-										</div>
-										<div className="row">
-											<div className="col-6">
-												<Form.Item
-													name  = "pwResetName"
-													rules = {[
-														{
-															message: pwResetNameError,
-															validator: ( value ) => {
-																if ( pwResetNameError ) {
-																	return Promise.reject( pwResetNameError );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
-													]}
-													initialValue  = { pwResetName }
-												>
-													<Input
-														id="pwResetNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-														placeholder="Name" 
-														type="text" 
-														name="pwResetName"
-														value={ pwResetName }
-														onChange = { e => handleChangePwResetName(e)}
-													/>
-
-												</Form.Item>
-											</div>
-											<div className="col-6">
-												<Form.Item
-													name  = "pwResetFirstName"
-													rules = {[
-														{
-															message: pwResetFirstNameError,
-															validator: ( value ) => {
-																if ( pwResetFirstNameError ) {
-																	return Promise.reject( pwResetFirstNameError );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
-													]}
-													initialValue  = ''
-												>
-													<Input 
-														id="pwResetFirstNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-														placeholder="First name" 
-														type="text" 
-														name="pwResetFirstName"
-														value={ pwResetFirstName }
-														onChange = { e => handleChangePwResetFirstName(e) }
-													/>
-												</Form.Item>
-											</div>
-										</div>
-										<div className="form-group">
-											<Form.Item
-												name  = "pwResetEmail"
-												rules = {[
-													{
-														message: pwResetEmailError,
-														validator: ( value ) => {
-															if ( pwResetEmailError ) {
-																return Promise.reject( pwResetEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-
-												<Input 
-													id="pwResetEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your email" 
-													type="text" 
-													name="pwResetmail"
-													value={ pwResetEmail }
-													onChange = { e => handleChangePwResetEmail(e)}
-													
-												/>
-											</Form.Item>
-											</div>
+										
+										
+									
 											<div className="form-group">
 											<Form.Item
 												name  = "password"
@@ -528,7 +249,7 @@ const handleChangeCode = ( e ) => {
 												<Input 
 													id="pwResetPasswordInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your password" 
+													placeholder="Enter your new password" 
 													type="password" 
 													name="password"
 													value={ pwResetPassword }
@@ -568,29 +289,25 @@ const handleChangeCode = ( e ) => {
 											</Form.Item>
 											</div>
 									<>
-										
 										<div style={{ display: formError01 }} className="row formError formError01">
 											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
+												Password is empty
 											</span> 
-												&nbsp;{ pwResetEmail }&nbsp;
-											<span id="cmp_vetonest.com_WbKGYyavtn">
-												not found.
-											</span> Please try another one.
 										</div>
 										<div style= {{ display: formError02 }}  className="row formError formError02">
 											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
+												Password repeat is empty
 											</span> 
-												&nbsp;{ pwResetEmail }&nbsp;
-											<span id="cmp_vetonest.com_071mCRIC59">
-												already exist.
-											</span> Please try another one.
+										</div>
+										<div style= {{ display: formError03 }}  className="row formError formError03">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Please check your network
+											</span> 
 										</div>
 									</>
 											<button 
 												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickRegistration}
+												onClick	= {handleClickReset}
 												disabled = { sendingDisabled }
 											>
 											

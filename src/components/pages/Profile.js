@@ -5,6 +5,7 @@ import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
 import { Space, Modal, Spin, Button, notification, message, Popconfirm } from 'antd';
+import { Form, Input, Select } from 'antd';
 import {
 	RadiusBottomleftOutlined,
 	RadiusBottomrightOutlined,
@@ -21,173 +22,86 @@ import Header from '../Header';
 import Footer from '../Footer';
 // import ModalEmailValidate from '../ModalEmailValidate';
 
-import { Form, Input, Select } from 'antd';
-
+import Title from '../Title';
 
 const Profile = ( params ) => {
 	// context
-	const { getReferrer }		= useContext( SiteContext );
-	const { logIn, setUser, isValidPassword }	= useContext( AuthContext );
+	const { 
+		logIn, 
+		setUser, 
+		getUser,
+		isValidPassword 
+	} = useContext( AuthContext );
 	const { 
 		siteName,
 		siteEmail,
 		siteUrl,
 		siteDomain,
 		siteDomainName,
-		signIn
-	}	= useContext( SiteContext );
+		listLanguages,
+		getProfile,
+		updateLanguagePreference,
+		defaultLanguageId,
+		defaultLanguage,
+		languageSetup
+	} = useContext( SiteContext );
 
-	const [ loading, setLoading] = useState(false);
+	const user = getUser();
 
-	const [ signInSpin, setSignInSpin ] = useState( 'none' );
-	const [ sendingDisabled, setSendingDisabled ] = useState( false );
-
-	// signIn email
-	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
-	const isValidEmail = ( email ) => {
-		if( !regexEmailValidation.test( email ) )
-			return false;
-
-		return true;
-	}
-	const [ signInEmail, setSignInEmail ] = useState( '' );
-	const [ signInEmailDefault, setEmailDefault ] = useState( 'Email' );
-	const [ signInEmailError, setSignInEmailError ] = useState( '' );
-	const handleChangeSignInEmail = ( e ) => {
-		const data = e.target.value;
-		setSignInEmail( data );
-
-		var signInEmailErrorText = '';
-		if( data && !isValidEmail( data ) )
-			signInEmailErrorText = 'Your email is not correct'
+	const handleChangeLanguages = async ( languageId ) => {
 		
-		setSignInEmailError ( signInEmailErrorText );
-	}
-	
-	// password
-	const [ signInPassword, setSignInPassword ] = useState( '' );
-	const [ signInPasswordError, setSignInPasswordError ] = useState( '' );
-	const handleChangeSignInPassword = ( e ) => {
-		const data = e.target.value;
-		setSignInPassword( data );
-		
-		var signInPasswordErrorText = '';
-		if( data && isValidPassword( data ) !== true )
-			signInPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
-
-		setSignInPasswordError( signInPasswordErrorText );
-	}
-
-	// check the form errors
-	const checkFormErrors = async( ) => {
-		var errorsExist = false;
-		if( signInEmailError != '' )
-			errorsExist = true
-		else if( signInPasswordError != '' )
-			errorsExist = true
-		return errorsExist
-	}
-
-	// check the form empty fields
-	const checkFormEmpty = async( ) => {
-		var formHasEmpty = '';
-
-		if( signInEmail == '' ){
-			const errorMessage = 'Email is empty';
-			document.getElementById( 'signInEmailInput' ).focus();
-			// await setSignInEmailError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		else if( signInPassword == '' ){
-			const errorMessage = 'Password is empty';
-			document.getElementById( 'signInPasswordInput' ).focus();
-			// await setSignInPasswordError( errorMessage );
-			formHasEmpty = errorMessage
+		const languagePreferenceData = {
+			userId: 	user.userId,
+			languageId: languageId
 		}
 
-		return formHasEmpty
-	}
-	
-	
-	const navigate = useNavigate();
-
-	// sign in
-	const [ code, setCode ] = useState( '' );
-	const [ formError01, setFormError01 ] = useState( 'none' );
-	const [ formError02, setFormError02 ] = useState( 'none' );
-	const handleClickInscription = async ( event ) => {
-
-		event.preventDefault();
-		setSignInSpin( 'block' );
-
-		clearFormErrors(); // clear form error
-
-		setSendingDisabled( true );
-
-		// check form erors
-		const formHasErrors = await checkFormErrors();
-		if( formHasErrors ){
-			message.error( 'Please correct the errors before continuing.' );
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			return
+		const rep = await updateLanguagePreference( languagePreferenceData )
+		if( rep !== true ){
+			message.success( 'Default language updated' );
 		}
-
-		// check form empty fields
-		const formHasEmpty = await checkFormEmpty();
-	
-		if( formHasEmpty ){
-			message.error( formHasEmpty );
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			return
+		else{
+			message.error( 'Default language not updated' );
 		}
 		
-		// login
-		const signInData = {
-			password: 	signInPassword,
-			email: 		signInEmail
-		};
+		setSelectedLanguageId( languageId )
 		
-		const resp = await signIn( signInData );
-console.log( 'resp', resp );
-		// Login error
-		if( resp === false ){
-			
-			setFormError01( 'block' );	// display form error
-			message.error( showAFormError( 'formError01' ) );	// display ant error
-			document.getElementById( 'signInEmailInput' ).focus();
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			
-			return
+		languageSetup( languageId );
+	}
+
+	const handleClickLanguages = ( e ) => {
+
+	}
+
+	const [ languages, setLanguages ] = useState( [] );
+	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user.languageId ? user.languageId : defaultLanguageId ); 
+	const BuildLanguagesList = () => {
+		return (
+			<Select
+				onChange 	= { ( e ) => handleChangeLanguages(e) }
+				value 		= { selectedLanguageId }
+			>
+				{ languages.map( ( option ) => (
+					<Select.Option 
+						key		= { option.id } 
+						value	= { option.id }
+					>
+						{option.name}
+					</Select.Option>
+				))}
+          </Select>
+		);
+	}
+
+	useEffect( () => {
+		// get all language
+		const getAllLanguage = async() => {
+			const languages = await listLanguages();
+			setLanguages( languages );
 		}
+		getAllLanguage();
 		
-		// stop login button's spin
-		setSignInSpin( 'none' );
 
-		// Frontend login
-		logIn( signInData );	
-		
-		// goto validation
-		const path	= getReferrer() ? getReferrer() : '/profile';
-
-		navigate( path );
-	}
-
-	// display a form error
-	const showAFormError = ( className ) => {
-		const errorTxt = document.getElementsByClassName( className )[0].innerText;
-		return errorTxt;
-	}
-
-	// clear form error
-	const clearFormErrors = () => {
-		setFormError01( 'none' );
-		setFormError02( 'none' );
-	}
-	
-
+	}, [user] );
 	 
 	 // form
 	 const [form] = Form.useForm();
@@ -200,140 +114,22 @@ console.log( 'resp', resp );
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-
+			
+			<Title title = { 'Profile' } />
+        
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								
-										<h3 className="text-center marginTop25px" >Profile</h3>
-										 <Form 
-											className=""
-											form = {form}
-										 >
-										
-										<div className="row">
-											
-										</div>
-										<div className="form-group">
-											<Form.Item
-												name  = "signInEmail"
-												rules = {[
-													{
-														message: signInEmailError,
-														validator: ( value ) => {
-															if ( signInEmailError ) {
-																return Promise.reject( signInEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-
-												<Input 
-													id="signInEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your email" 
-													type="text" 
-													name="signInmail"
-													value={ signInEmail }
-													onChange = { e => handleChangeSignInEmail(e)}
-													
-												/>
-											</Form.Item>
-											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "password"
-												rules = {[
-													{
-														message: signInPasswordError,
-														validator: ( value ) => {
-															if ( signInPasswordError ) {
-																return Promise.reject( signInPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-												<Input 
-													id="signInPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your password" 
-													type="password" 
-													name="password"
-													value={ signInPassword }
-													onChange = { e => handleChangeSignInPassword(e)}
-													
-												/>
-											</Form.Item>
-											</div>
-											
-									<>
-										
-										<div style={{ display: formError01 }} className="row formError formError01">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ signInEmail }&nbsp;
-											<span id="cmp_vetonest.com_WbKGYyavtn">
-												not found.
-											</span> Please try another one.
-										</div>
-										<div style= {{ display: formError02 }}  className="row formError formError02">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ signInEmail }&nbsp;
-											<span id="cmp_vetonest.com_071mCRIC59">
-												already exist.
-											</span> Please try another one.
-										</div>
-									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickInscription}
-												disabled = { sendingDisabled }
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		signInSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												Submit
-											</button> 
-											<div className='row'>
-												<div className='col-6'>
-													<Link to='/Login' className="text-primary">Terms and usage</Link>
-												</div>
-												<div className='col-6 textAlignRight'>
-													Have account? <Link to='/connexion' className="text-primary">Login</Link>
-												</div>
-											</div>
-										</Form>
-									</div>
-								</div>
-							
+								Select your language:<br/>
+									<Form 
+										form = {form}
+									>
+										<BuildLanguagesList />
+									</Form>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
