@@ -23,6 +23,7 @@ import Footer from '../Footer';
 
 import { Form, Input, Select } from 'antd';
 
+import Title from '../Title';
 
 const SignUp = ( params ) => {
 
@@ -455,14 +456,13 @@ const handleChangeCode = ( e ) => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-
+            <Title title = { 'Inscription' } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								
-										<h3 className="text-center marginTop25px" >Inscription</h3>
+
 										 <Form 
 											className=""
 											form = {form}

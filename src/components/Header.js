@@ -4,12 +4,24 @@ import SearchBox from './SearchBox';
 
 import SecuredPagesAuth from "./SecuredPagesAuth";
 import { AuthContext } from "../context/AuthProvider";
-
+import { SiteContext } from "../context/site";
 // import { LanguagesContext } from "../../context/languages";
 
 const Header = () => {
 
 	const { isAuthenticated, logOut, getUser, setUser } = useContext( AuthContext );
+	
+	const { 
+		siteName,
+		siteEmail,
+		siteUrl,
+		siteDomain,
+		siteDomainName,
+		defaultLanguage,
+		siteLanguage,
+		setSiteLanguage,
+	} = useContext( SiteContext );
+	
 	const navigate = useNavigate();
 
 	const array = [ 
@@ -34,6 +46,8 @@ const Header = () => {
  			actif: '' 
 		},
 	]
+
+	const user = getUser();
 
 	const [ languages, setLanguages ]  = useState( '' );
 
@@ -91,8 +105,10 @@ const Header = () => {
 									<div className="logo">
 										<Link to="/accueil">
 											<img 
-												id='img_'
-												src='./img/logo.png' style={{height:'100px'}} alt="#" />
+												src="/img/logo.png"
+												style={{height:'100px'}} 
+												alt="#"
+											/>
 										</Link>
 									</div>
 								</div>
@@ -110,21 +126,38 @@ const Header = () => {
 										 </a>
 									  </li>
 									  <li className={ "nav-item " + active[4].actif }>
-										 <a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'connexion' ) }>
-											Se connecter
-										 </a>
+										 <span>
+													{ isAuthenticated() && 
+														<ul>
+															<li>{ user.nom }</li>
+															<li>{ siteLanguage }</li>
+														</ul> 
+													}
+												</span>
 									  </li>
 									 <li className={ "nav-item " + active[1].actif }>
-										<a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
+										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
 											S'inscrire
-										</a>
+										</Link>
 									  </li>
 									  <li>
 										{ isAuthenticated() ? getUser().userEmail : '' }
 										</li>
 										<li>
 											<Link onClick={ e => handleClickLogInOut( e ) }>
-												<i className="icon-key"></i> <span>{ isAuthenticated() ? 'Déconnexion' : 'Connexion' }</span>
+												<i className="icon-key"></i> 
+												<span>
+													{ isAuthenticated() ? 
+														<ul>
+															<li>Déconnexion</li>
+														</ul> 
+													: 
+														<ul>
+															<li>Connexion</li>
+														</ul>
+													}
+												</span>
+												
 											</Link>
 										</li>
 									</ul>

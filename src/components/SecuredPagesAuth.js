@@ -25,20 +25,23 @@ const SecuredPagesAuth = () => {
 	const notToReferPages = [
 		'/inscription',
 		'/connexion',
+		'/mot-de-passe-oublie',
+		'/mot-de-passe-oublie/reset',
 	]
 	
 	// register current page
 	const location 		= useLocation();
 	const currentPage 	= location.pathname;
-
-	if( !notToReferPages.includes( currentPage ) )
-		setReferrer( currentPage );
+	
+	const hasNotAllowed = notToReferPages.filter( e => currentPage.includes( e ) )
+	if( hasNotAllowed.length == 0 )
+		setReferrer( currentPage )
 	
 	// authentication
 	const [authenticate, setAuthenticate ] = useState( isAuthenticated() );
 
 	useEffect(() => {
-console.log( 'isAuthenticated', isAuthenticated() );
+// console.log( 'isAuthenticated', isAuthenticated() );
 			const security = async () => {
 				if( securedPagesPath.includes( currentPage ) && !authenticate ){
 					if( currentPage != '/connexion'  )

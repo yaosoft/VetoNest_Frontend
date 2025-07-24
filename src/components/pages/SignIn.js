@@ -23,6 +23,7 @@ import Footer from '../Footer';
 
 import { Form, Input, Select } from 'antd';
 
+import Title from '../Title';
 
 const SignIn = ( params ) => {
 	// context
@@ -34,8 +35,12 @@ const SignIn = ( params ) => {
 		siteUrl,
 		siteDomain,
 		siteDomainName,
-		signIn
+		signIn,
+		defaultLanguageId,
+		siteLanguage,
+		languageSetup,
 	}	= useContext( SiteContext );
+
 
 	const [ loading, setLoading] = useState(false);
 
@@ -164,19 +169,20 @@ const SignIn = ( params ) => {
 			return
 		}
 		
-		const logInData = {
-			password: 	signInPassword,
-			email: 		signInEmail,
-			userId: 	resp
-		};
-		
-		
+		// const logInData = {
+			// password: 	signInPassword,
+			// email: 		signInEmail,
+			// userId: 	resp.userId
+		// };
+
 		// stop login button's spin
 		setSignInSpin( 'none' );
 
 		// Frontend login
-console.log( 'logInData', logInData );
-		await logIn( logInData );	
+// console.log( 'logInData', logInData );
+		await logIn( resp );	
+		
+		languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
 		
 		// goto validation
 		const path	= getReferrer() ? getReferrer() : '/profile';
@@ -196,11 +202,9 @@ console.log( 'logInData', logInData );
 		setFormError02( 'none' );
 	}
 	
-
-	 
-	 // form
-	 const [form] = Form.useForm();
-	 return (
+	// form
+	const [form] = Form.useForm();
+	return (
 		<>
 
 		<Header />
@@ -210,21 +214,19 @@ console.log( 'logInData', logInData );
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 
+            <Title title = { 'Connexion' } />
+
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								
-										<h3 className="text-center marginTop25px" >Connexion</h3>
+
 										 <Form 
 											className=""
 											form = {form}
 										 >
-										
-										<div className="row">
-											
-										</div>
+	
 										<div className="form-group">
 											<Form.Item
 												name  = "signInEmail"
@@ -259,20 +261,6 @@ console.log( 'logInData', logInData );
 											<div className="form-group">
 											<Form.Item
 												name  = "password"
-												rules = {[
-													{
-														message: signInPasswordError,
-														validator: ( value ) => {
-															if ( signInPasswordError ) {
-																return Promise.reject( signInPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
 											>
 												<Input 
 													id="signInPasswordInput"
@@ -288,23 +276,10 @@ console.log( 'logInData', logInData );
 											</div>
 											
 									<>
-										
-										<div style={{ display: formError01 }} className="row formError formError01">
+
+										<div style= {{ display: formError01 }}  className="row formError formError01">
 											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ signInEmail }&nbsp;
-											<span id="cmp_vetonest.com_WbKGYyavtn">
-												not found.
-											</span> Please try another one.
-										</div>
-										<div style= {{ display: formError02 }}  className="row formError formError02">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ signInEmail }&nbsp;
-											<span id="cmp_vetonest.com_071mCRIC59">
-												already exist.
+												Bad user name or password.
 											</span> Please try another one.
 										</div>
 									</>
