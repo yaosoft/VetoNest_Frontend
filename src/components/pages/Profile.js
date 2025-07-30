@@ -22,6 +22,7 @@ import Header from '../Header';
 import Footer from '../Footer';
 // import ModalEmailValidate from '../ModalEmailValidate';
 
+import LanguageSelector from '../LanguageSelector';
 import Title from '../Title';
 
 const Profile = ( params ) => {
@@ -48,50 +49,9 @@ const Profile = ( params ) => {
 
 	const user = getUser();
 
-	const handleChangeLanguages = async ( languageId ) => {
-		
-		const languagePreferenceData = {
-			userId: 	user.userId,
-			languageId: languageId
-		}
-
-		const rep = await updateLanguagePreference( languagePreferenceData )
-		if( rep !== true ){
-			message.success( 'Default language updated' );
-		}
-		else{
-			message.error( 'Default language not updated' );
-		}
-		
-		setSelectedLanguageId( languageId )
-		
-		languageSetup( languageId );
-	}
-
-	const handleClickLanguages = ( e ) => {
-
-	}
-
 	const [ languages, setLanguages ] = useState( [] );
-	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user.languageId ? user.languageId : defaultLanguageId ); 
-	const BuildLanguagesList = () => {
-		return (
-			<Select
-				onChange 	= { ( e ) => handleChangeLanguages(e) }
-				value 		= { selectedLanguageId }
-			>
-				{ languages.map( ( option ) => (
-					<Select.Option 
-						key		= { option.id } 
-						value	= { option.id }
-					>
-						{option.name}
-					</Select.Option>
-				))}
-          </Select>
-		);
-	}
-
+	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
+	
 	useEffect( () => {
 		// get all language
 		const getAllLanguage = async() => {
@@ -122,12 +82,25 @@ const Profile = ( params ) => {
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
+								<p className='fontWeight'>Account type:</p>
+								{ user.profileTypeId == 1 ?
+								  <span>Propriétaire</span>
+								  :
+								  <span>Vétérinaire</span>
+								}
+							</div>
+						</div>
+					</div>
+					<div className="row justify-content-center h-100">
+						<div className="col-xl-6">
+							<div className="form-input-content">
+								<p className='fontWeight'>Preferences:</p>
 								Select your language:<br/>
-									<Form 
-										form = {form}
-									>
-										<BuildLanguagesList />
-									</Form>
+									<LanguageSelector 
+										toPersist 	= { true } 
+										flag 		= { false }
+										context		= { false }
+									/>
 							</div>
 						</div>
 					</div>

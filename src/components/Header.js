@@ -5,21 +5,33 @@ import SearchBox from './SearchBox';
 import SecuredPagesAuth from "./SecuredPagesAuth";
 import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
-// import { LanguagesContext } from "../../context/languages";
 
+import LanguageSelector from './LanguageSelector';
 const Header = () => {
 
-	const { isAuthenticated, logOut, getUser, setUser } = useContext( AuthContext );
-	
+	const { 
+		isAuthenticated, 
+		logOut, 
+		getUser, 
+		setUser 
+	} = useContext( AuthContext );
+
 	const { 
 		siteName,
 		siteEmail,
 		siteUrl,
 		siteDomain,
 		siteDomainName,
+		getLanguagePreference,
+		defaultLanguageId,
 		defaultLanguage,
-		siteLanguage,
-		setSiteLanguage,
+		languageSetup,
+		languageFlag,
+		setSelectedLanguageId,
+		selectedLanguageId,
+		truncateString,
+
+		
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -38,7 +50,7 @@ const Header = () => {
  			actif: '', 
 		},
 		{
-			path: 'expertise',
+			path: 'blog',
  			actif: '',  
 		},
 		{
@@ -47,7 +59,7 @@ const Header = () => {
 		},
 	]
 
-	const user = getUser();
+	var user = getUser();
 
 	const [ languages, setLanguages ]  = useState( '' );
 
@@ -76,19 +88,30 @@ const Header = () => {
 
 	// get the profile data
 	useEffect( () => {
+// const test = document.getElementById( 'cmp_vetonest.com_bL1MO9LnVv' ).innerText;
+// alert( test );
+		if( user === null )
+			return
 
 		const path = window.location.pathname.replace( '/', '' );
 		const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
 		setActive( newActiveArr );	
+		
+		// Get user preference
+		const a = async () => {
+			const data = {
+				userId: user.userId,
+			}
+			const resp = await getLanguagePreference ( data );
+			if( resp === null )
+				return
 
-		// get project data
-		// var languages = '';
-		// const getLanguages = async () => {
-			// languages = await getLanguages( );
-			// setLanguages ( languages );
-// console.log( 'languages', languages );
-		// }
-		// getLanguages();
+			setSelectedLanguageId( resp.id );	// update languagelist boxes
+			languageSetup( resp.id ); 			// Update language flag
+			user.languageId = resp.id; 			// update user
+			setUser( user );
+		}		
+		a()
 
 	}, [] );
 	
@@ -101,12 +124,16 @@ const Header = () => {
 					<div className="row">
 						<div className="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section">
 							<div className="full">
-								<div className="center-desk">
+								<div className="center-desk"
+									style ={{
+										paddingLeft: '5%',
+									}}
+								>
 									<div className="logo">
 										<Link to="/accueil">
 											<img 
 												src="/img/logo.png"
-												style={{height:'100px'}} 
+												style={{height:'90px'}} 
 												alt="#"
 											/>
 										</Link>
@@ -115,52 +142,46 @@ const Header = () => {
 							</div>
 						</div>
 						<div className="col-xl-9 col-lg-9 col-md-9 col-sm-9">
-							<nav className="navigation navbar navbar-expand-md navbar-dark ">
+							<nav 
+								style={{ marginRight: '10px' }}
+								className="navigation navbar navbar-expand-md navbar-dark ">
 								<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
 								<span className="navbar-toggler-icon"></span>
 								</button>
 								<div className="collapse navbar-collapse" id="navbarsExample04">
 									<ul className="navbar-nav mr-auto">
-									  <li className={ "nav-item " + active[3].actif }>
-										 <a style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'expertise' ) }>	blog
-										 </a>
-									  </li>
-									  <li className={ "nav-item " + active[4].actif }>
-										 <span>
-													{ isAuthenticated() && 
-														<ul>
-															<li>{ user.nom }</li>
-															<li>{ siteLanguage }</li>
-														</ul> 
-													}
-												</span>
-									  </li>
-									 <li className={ "nav-item " + active[1].actif }>
-										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
-											S'inscrire
+									 <li className={ "nav-item " + active[4].actif }>
+										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'blog' )} >
+											Blog
+										</Link>
+									</li>
+									 <li className={ "nav-item " + active[2].actif }>
+										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
+											<ul>{ isAuthenticated() ? 
+													<li>Profile de { truncateString( user.userNom, 10 ) }</li>
+												: 
+													<li id="cmp_vetonest.com_bL1MO9LnVv">S'inscrire</li>
+											}</ul>
 										</Link>
 									  </li>
-									  <li>
-										{ isAuthenticated() ? getUser().userEmail : '' }
-										</li>
-										<li>
-											<Link onClick={ e => handleClickLogInOut( e ) }>
-												<i className="icon-key"></i> 
-												<span>
-													{ isAuthenticated() ? 
-														<ul>
-															<li>Déconnexion</li>
-														</ul> 
-													: 
-														<ul>
-															<li>Connexion</li>
-														</ul>
-													}
-												</span>
-												
-											</Link>
-										</li>
-									</ul>
+									 <li className={ "nav-item " + active[2].actif }>
+										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickLogInOut( e ) }>
+											<ul>{ isAuthenticated() ? 
+													<li id="cmp_vetonest.com_mzCrCgj9rj">Déconnexion</li>
+												: 
+													<li id="cmp_vetonest.com_adWeBARABI">Connexion</li>
+											}</ul>
+										</Link>
+									  </li>
+									<li className={ "nav-item " + active[4].actif } className="paddingTop4px"  >
+										<span className="colorBlack" id="cmp_vetonest.com_QrnuvOuzwI">Choix de la langue</span><br/>
+										<LanguageSelector 
+											toPersist 	= { false } 
+											flag 		= { true }
+											context		= { true }
+										/>
+									</li>
+								</ul>
 								</div>
 							</nav>
 						</div>

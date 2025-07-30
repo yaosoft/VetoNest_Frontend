@@ -23,6 +23,7 @@ const SecuredPagesAuth = () => {
 	
 	// pages to not referrer
 	const notToReferPages = [
+		'/accueil',
 		'/inscription',
 		'/connexion',
 		'/mot-de-passe-oublie',

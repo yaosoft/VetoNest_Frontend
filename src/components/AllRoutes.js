@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Home from './pages/Home';
 import About from './pages/About';
 import ImportExport from './pages/ImportExport';
-import Expertise from './pages/Expertise';
+import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
@@ -31,9 +31,9 @@ const AllRoutes = {
 			element:  <ImportExport />,
 			path: 'import-export',
 		},
-		{	// Expertise
-			element:  <Expertise />,
-			path: 'expertise',
+		{	// Blog
+			element:  <Blog />,
+			path: 'blog',
 		},
 		{	// Contact
 			element:  <Contact />,

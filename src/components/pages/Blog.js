@@ -18,7 +18,8 @@ import Footer from '../Footer';
 import { SiteContext } from '../../context/site';
 
 import Title from '../Title';
-const NotFound = () => {
+
+const Blog = () => {
 	const navigate = useNavigate();
 
 	
@@ -30,7 +31,7 @@ const NotFound = () => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-			<Title title = { 'Page non trouvée' } />
+			<Title title = { 'Blog' } />
 			<div className="back_re">
       </div>
 
@@ -38,7 +39,7 @@ const NotFound = () => {
          <div className="container">
             <div className="row">
                <div className="col-md-6">
-					La page demandée n'a pas été trouvée. 
+					Travaux en cours.
                </div>
                
             </div>
@@ -49,4 +50,4 @@ const NotFound = () => {
 	);
 };
 
-export default NotFound;
+export default Blog;
