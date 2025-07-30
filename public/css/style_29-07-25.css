@@ -35,7 +35,7 @@
 
 .container {
      /* max-width: 1170px; */
-	 max-width: 98%;
+	 max-width: 95%;
 }
 
 html {
@@ -135,16 +135,6 @@ h6 {
 	background-color: #000;
 }
 
-.searchButtonDiv {
-	padding-top: 0.7%;
-    cursor: pointer;
-    text-decoration: none; /* If styled like a link */
-}
-
-.searchButtonDiv:hover {
-    background-color: #FFC71C;
-}
-
 .borderRadius18 {
 	border-radius: 18px;
 }
@@ -193,7 +183,7 @@ h6 {
 
 .smallTitleBlack{
 	color: #000;
-	font-size: 16px;
+	font-size: 14px;
 	font-family: 'Verdana', 'Tahoma';
 	font-weight: bold;
 }
@@ -219,7 +209,7 @@ h6 {
 }
 
 .paddingTop4px{
-	padding-top: 0px;
+	padding-top: 4px;
 }
 
 .ant-select-selector {
@@ -511,8 +501,8 @@ button {
 .navigation.navbar-dark .navbar-nav .nav-link.active,
 .navigation.navbar-dark .navbar-nav .nav-link.show,
 .navigation.navbar-dark .navbar-nav .show>.nav-link {
-     color: #00BF63;
-     border-bottom: #00BF63 solid 3px;
+     color: #793DB6;
+     border-bottom: #793DB6 solid 3px;
 }
 
 .navbar-expand-md .navbar-nav {
@@ -552,7 +542,7 @@ button {
 }
 
 .banner .carousel-indicators .active {
-     background-color: #00BF63;
+     background-color: #793DB6;
 }
 
 .booking_ocline {
@@ -565,7 +555,7 @@ button {
 .book_room {
      background-color: #000000c7;
      padding: 30px 35px;
-     border-left: #00BF63 solid 5px;
+     border-left: #8549D9 solid 5px;
 }
 
 .book_room h1 {
@@ -607,7 +597,7 @@ button {
 }
 
 .book_btn {
-     background-color: #00BF63;
+     background-color: #793DB6;
      max-width: 189px;
      width: 100%;
      margin: 0 auto;
@@ -621,7 +611,7 @@ button {
 
 .book_btn:hover {
      background-color: #fff;
-     color: #00BF63;
+     color: #793DB6;
      transition: ease-in 0.5s;
 }
 
@@ -656,7 +646,7 @@ button {
 .titlepage h2::before {
      position: absolute;
      content: "";
-     /** background-color: #00BF63; **/
+     /** background-color: #8549D9; **/
      width: 20px;
      height: 4px;
      transform: rotate(-36deg);
@@ -665,7 +655,7 @@ button {
 .titlepage h2::after {
      position: absolute;
      content: "";
-     /** background-color: #00BF63; **/
+     /** background-color: #8549D9; **/
      width: 20px;
      height: 4px;
      transform: rotate(-36deg);
@@ -693,7 +683,7 @@ button {
 }
 
 .read_more:hover {
-     background: #00BF63;
+     background: #793DB6;
      color: #fff;
      transition: ease-in all 0.5s;
 }
@@ -935,12 +925,11 @@ button {
      padding: 0 15px;
      margin-bottom: 25px;
      width: 100%;
-     height: 50px;
+     height: 58px;
      background: #fff;
      color: #000000;
      font-size: 18px;
      font-weight: normal;
-	 border-radius: 25px;
 }
 
 .main_form .textarea {
@@ -971,7 +960,7 @@ button {
 }
 
 .main_form .send_btn:hover {
-     background-color: #00BF63;
+     background-color: #8549D9;
      transition: ease-in all 0.5s;
      color: #fff;
 }
@@ -1009,7 +998,7 @@ button {
      text-align: left;
      color: #fff;
      margin-bottom: 15px;
-     border-bottom: #00BF63 solid 3px;
+     border-bottom: #8549D9 solid 3px;
      padding-bottom: 3px;
      display: table;
 }
@@ -1037,7 +1026,7 @@ ul.link_menu li {
 }
 
 ul.link_menu li.active a {
-     color: #00BF63;
+     color: #8549D9;
 }
 
 ul.link_menu li a {
@@ -1049,7 +1038,7 @@ ul.link_menu li a {
 }
 
 ul.link_menu li a:hover {
-     color: #00BF63;
+     color: #8549D9;
 }
 
 .bottom_form {
@@ -1087,7 +1076,7 @@ ul.link_menu li a:hover {
      font-size: 17px;
      transition: ease-in all 0.5s;
      background-color: #fff;
-     color: #00BF63;
+     color: #8549D9;
      padding: 8px 0px;
      max-width: 147px;
      width: 100%;
@@ -1124,14 +1113,14 @@ ul.social_icon li a {
 }
 
 ul.social_icon li a:hover {
-     color: #00BF63;
+     color: #8549D9;
 }
 
 .copyright {
      margin-top: 60px;
      padding-bottom: 20px;
      background-color: #fff;
-     border: #00BF63 solid 3px;
+     border: #8549D9 solid 3px;
      border-right: inherit;
      border-left: inherit;
 }
@@ -1151,7 +1140,7 @@ ul.social_icon li a:hover {
 }
 
 .copyright a:hover {
-     color: #00BF63;
+     color: #8549D9;
 }
 
 
@@ -1168,7 +1157,7 @@ ul.social_icon li a:hover {
 }
 .back_re .title h2 {
 color: #05331d;
-font-size: 22px;
+font-size: 25px;
 padding: 25px 0;
 font-weight: 600;
 text-transform: uppercase;

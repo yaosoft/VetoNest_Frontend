@@ -186,22 +186,72 @@ export const SiteProvider = ({ children }) => {
 		return result;
 	}
 
-	const defaultLanguageId = useState( 1 ); // fr
+	const defaultLanguageId = 1; // fr
 
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
 		const languages = await listLanguages();
-		
-		const language = languages.filter( e => e.id == languageId )[0];
-console.log( language );
+// console.log( languageId );		
+		const language = await languages.filter( e => e.id == languageId )[0];
+// console.log( language );
 		const languageCode = language.languageCode;
 		const flag = '/img/flags/' + languageCode + '.svg';
-console.log( 'Flag, ' + flag );	
-		setLanguageFlag( flag );
+// console.log( 'Flag, ' + flag );	
 
+		setLanguageFlag( flag );
+		setSiteLanguage( languageCode )
 	}
 
+	const getLanguagePreference = async ( userData ) => {
+		const url		= base_api_url + 'profile/language/preference/get/?userId=' + userData.userId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	const [ selectedLanguageId, setSelectedLanguageId ] = useState( defaultLanguageId ); 
+
+	const truncateString = (str, maxLength) => {
+	  if (str.length > maxLength) {
+		// If the string is longer than maxLength,
+		// slice it to maxLength - 3 characters
+		// and append '...'
+		return str.slice(0, maxLength - 3) + '...';
+	  }
+	  // If the string is not longer than maxLength, return it as is
+	  return str;
+	}
+	
+	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/";
+	const [ siteContent, setSiteContent ] = useState( '' );
+	const getSiteContent = async ( siteContentData ) => {
+		const siteLanguage = siteContentData.siteLanguage;
+		
+		const url	= base_cmp_Url + 'tag_content/list/?domain=' + siteDomainName + '&languageCode=' + siteLanguage;
+
+		const data		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+
+// console.log( 'getSiteContent', rep );
+
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// placeholder translate for indirect translation cases
+	const [ searchInputVeto, setSearchInputVeto ] = useState( '' );
+	const [ searchInputVetoType, setSearchInputVetoType ] = useState( '' );
+	const [ searchInputLocation, setSearchInputLocation ] = useState( '' );
+	const [ homeTitle, setHomeTitle ] = useState( '' );
+	const [ contactTitle, setContactTitle ] = useState( '' );
+	
+	
 	return (	
 	
 		<SiteContext.Provider 
@@ -223,11 +273,28 @@ console.log( 'Flag, ' + flag );
 				updatePassword,
 				listLanguages,
 				updateLanguagePreference,
+				getLanguagePreference,
 				defaultLanguageId,
 				siteLanguage,
 				setSiteLanguage,
 				languageSetup,
 				languageFlag,
+				selectedLanguageId, 
+				setSelectedLanguageId,
+				truncateString,
+				getSiteContent,
+				siteContent,
+				setSiteContent,
+				searchInputVeto, 
+				setSearchInputVeto,
+				searchInputVetoType, 
+				setSearchInputVetoType,
+				setSearchInputLocation,
+				searchInputLocation,
+				homeTitle,
+				setHomeTitle,
+				contactTitle,
+				setContactTitle
 			}}
 		>
 		
@@ -239,14 +306,14 @@ console.log( 'Flag, ' + flag );
 						<LoadingOutlined
 							style={{
 									display:		spiner,
-									fontSize: 		30,
+									fontSize: 		60,
 									color: 			'#fcb800'
 								}}
 							spin
 						/>
 					}
 					fullscreen
-					tip		= "working ..." 
+					tip		= "" 
 					size	= "large"
 				/>
 			

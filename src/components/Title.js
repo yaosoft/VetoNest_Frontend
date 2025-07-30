@@ -11,7 +11,7 @@ const title = params.title;
 		<div className="row marginTop10 marginBottom20 back_re">
 			<div className="col-md-12">
 				<div className="title">
-						 <h2 className="textAlignCenter">{ title }</h2>
+					<h2 className="textAlignCenter">{ title }</h2>
 				</div>
 			</div>
 		</div>

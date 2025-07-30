@@ -14,7 +14,22 @@ import {
 } from '@ant-design/icons';
 import { Form, Input, Select } from 'antd';
 
+
 const Footer = () => {
+	
+	const { 
+		siteDomainName,
+		siteContent,
+		siteLanguage,
+		setSiteContent,
+		getSiteContent,
+		setSearchInputVeto,
+		setSearchInputVetoType,
+		setSearchInputLocation,
+		setHomeTitle,
+		setContactTitle,
+	} = useContext( SiteContext );
+
 	const navigate = useNavigate();
 	const array = [ 
 		{
@@ -30,7 +45,7 @@ const Footer = () => {
  			actif: '', 
 		},
 		{
-			path: 'expertise',
+			path: 'blog',
  			actif: '',  
 		},
 		{
@@ -136,20 +151,76 @@ const Footer = () => {
 		const path = '/' + goTo;
 		navigate( path );
 	}
+	
+	// site content & menu active button
 
-	// get the profile data
 	useEffect( () => {
-		
+		// menu active button
 		const path = window.location.pathname.replace( '/', '' );
-		console.log( 'path', path );
-console.log( 'active', active );
+// console.log( 'path', path );
+// console.log( 'active', active );
 		const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
-		
-console.log( 'newActiveArr', newActiveArr );
-
+// console.log( 'newActiveArr', newActiveArr );
 		setActive( newActiveArr );	
 
-	}, [] );
+		// update page tags content
+		const updatePageContent = async () => {	// Update page content from the CMP
+			// get site content
+			const siteContentData = {
+				siteLanguage: siteLanguage,
+			}
+			const siteContent = await getSiteContent( siteContentData );
+
+console.log( '>> siteContent', siteContent );
+
+			// setSiteContent( siteContent );
+			for ( const content of siteContent ) {
+				const tagRef  		= content.tagRef;
+				const contentTypeId = content.contentTypeId;
+				const contents 		= content.contents;
+
+				if( !contents.length )
+					continue;
+				
+				const element = document.getElementById( tagRef );
+				if( element === null )
+					continue  
+				
+				const currentLanguageTagContent = contents.filter( e => e.languageCode == siteLanguage );
+				if( !currentLanguageTagContent.length )
+					continue  
+				
+				const tagContent = contentTypeId == 1 ? currentLanguageTagContent[0].textContent : 
+				currentLanguageTagContent[0].mediaContent;
+				element.innerHTML = tagContent;
+
+				// indirect translations
+				const searchInputVetoElt  = document.getElementsByClassName( "searchInputVeto" )[0];
+				const searchInputVeto = searchInputVetoElt.innerHTML;
+				setSearchInputVeto( searchInputVeto  );
+				
+				const searchInputVetoTypeElt  = document.getElementsByClassName( "searchInputVetoType" )[0];
+				const searchInputVetoType = searchInputVetoTypeElt.innerHTML;
+				setSearchInputVetoType( searchInputVetoType  );	
+				
+				const locationElt  = document.getElementsByClassName( "searchInputLocation" )[0];
+				const location = locationElt.innerHTML;
+				setSearchInputLocation( location  );
+
+				const homeTitleElt  = document.getElementsByClassName( "homeTitle" )[0];
+				const homeTitle = homeTitleElt.innerHTML;
+				setHomeTitle( homeTitle  );
+
+				const contactTitleElt  = document.getElementsByClassName( "contactTitle" )[0];
+				const contactTitle = contactTitleElt.innerHTML;
+				setContactTitle( contactTitle  );
+				
+			}
+		}
+		updatePageContent();
+
+
+	}, [siteLanguage] );
 	
 	const [form] = Form.useForm();
 	
@@ -160,11 +231,11 @@ console.log( 'newActiveArr', newActiveArr );
             <div className="container">
                <div className="row">
                   <div className=" col-md-4">
-                     <h3>Contact US</h3>
+                     <h3>Contact us</h3>
                      <ul className="conta">
-                        <li><i className="fa fa-map-marker" aria-hidden="true"></i> 400 Galloway St NE,<br/>Apt 537N, Washington DC, 20011<br/>USA</li>
-                        <li><i className="fa fa-mobile" aria-hidden="true"></i> +1 (240) 544-8286</li>
-                        <li> <i className="fa fa-envelope" aria-hidden="true"></i><a href="#"> info@cecilia-group.com</a></li>
+                        <li><i className="fa fa-map-marker" aria-hidden="true"></i> 229 Rue Saint-Honore,<br/>75001 Paris<br/>France</li>
+                        <li><i className="fa fa-mobile" aria-hidden="true"></i> +33 602 455 0680</li>
+                        <li> <i className="fa fa-envelope" aria-hidden="true"></i><a href="#"> info@vetonest.com</a></li>
                      </ul>
 					 
                   </div>
