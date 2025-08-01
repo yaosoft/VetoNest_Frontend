@@ -250,8 +250,26 @@ export const SiteProvider = ({ children }) => {
 	const [ searchInputLocation, setSearchInputLocation ] = useState( '' );
 	const [ homeTitle, setHomeTitle ] = useState( '' );
 	const [ contactTitle, setContactTitle ] = useState( '' );
+	const [ blogTitle, setBlogTitle ] = useState( '' );
+	const [ placeholderFullname, setPlaceholderFullname ] = useState( '' );
+	const [ placeholderEmail, setPlaceholderEmail ] = useState( '' );
+	const [ placeholderPhone, setPlaceholderPhone ] = useState( '' );
+	const [ placeholderMessage, setPlaceholderMessage ] = useState( '' );
 	
+	const [ contactCorrectError, setContactCorrectError ] = useState( '' );
+	const [ contactErrorsExistText, setContactErrorsExistText ] = useState( '' );
+	const [ contactErrorOccured, setContactErrorOccured ] = useState( '' );
+	const [ contactThankYou, setContactThankYou ] = useState( '' );
+	const [ contactEmailError, setContactEmailError ] = useState( '' );
+	const [ contactFullnameErrorText, setContactFullnameErrorText ] = useState( '' );
+	const [ contactPhoneNumberErrorText, setContactPhoneNumberErrorText ] = useState( '' );
+	const [ contactFormMessageErrorText, setContactFormMessageErrorText ] = useState( '' );
+	const [ contactFullnameErrorEmptyText, setContactFullnameErrorEmptyText ] = useState( '' );
+	const [ contactEmailEmptyError, setContactEmailEmptyError ] = useState( '' );
+	const [ contactErrorPhonenumberEmpty, setContactErrorPhonenumberEmpty ] = useState( '' );
+	const [ contactEmptyMessageError, setContactEmptyMessageError ] = useState( '' );
 	
+
 	return (	
 	
 		<SiteContext.Provider 
@@ -294,10 +312,44 @@ export const SiteProvider = ({ children }) => {
 				homeTitle,
 				setHomeTitle,
 				contactTitle,
-				setContactTitle
+				setContactTitle,
+				blogTitle,
+				setBlogTitle,
+				placeholderFullname, 
+				setPlaceholderFullname,
+				placeholderEmail, 
+				setPlaceholderEmail,
+				placeholderPhone, 
+				setPlaceholderPhone,
+				placeholderMessage, 
+				setPlaceholderMessage,
+				contactCorrectError,
+				setContactCorrectError,
+				contactErrorsExistText,
+				setContactErrorsExistText,
+				contactErrorOccured,
+				setContactErrorOccured,	
+				contactThankYou,
+				setContactThankYou,	
+				contactEmailError,
+				setContactEmailError,
+				contactFullnameErrorText,
+				setContactFullnameErrorText,
+				contactPhoneNumberErrorText,			
+				setContactPhoneNumberErrorText,
+				contactFormMessageErrorText,
+				setContactFormMessageErrorText,
+				contactFullnameErrorEmptyText,
+				setContactFullnameErrorEmptyText,
+				contactEmailEmptyError,
+				setContactEmailEmptyError,
+				contactErrorPhonenumberEmpty,
+				setContactErrorPhonenumberEmpty,
+				contactEmptyMessageError,
+				setContactEmptyMessageError,
 			}}
 		>
-		
+
 			<Space
 				style={{ display: spiner }}
 			>

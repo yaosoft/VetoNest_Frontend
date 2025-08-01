@@ -122,26 +122,38 @@ const Header = () => {
 				<div className="header">
 					<div className="container">
 					<div className="row">
-						<div className="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section">
+						<div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col logo_section">
 							<div className="full">
 								<div className="center-desk"
 									style ={{
 										paddingLeft: '5%',
 									}}
 								>
-									<div className="logo">
-										<Link to="/accueil">
+									<div className="row">
+										<div className="logo col-md-2">
+											<Link to="/accueil">
+												<img 
+													src="/img/logo01.png"
+													style={{height:'80px'}} 
+													alt="#"
+												/>
+											</Link>
+										</div>
+										<div className="logo col-md-10" style={{paddingTop: '10px'}}>
 											<img 
-												src="/img/logo.png"
-												style={{height:'90px'}} 
-												alt="#"
+													src="/img/logo02.png"
+													style={{height:'43px'}} 
+													alt="#"
 											/>
-										</Link>
+											<br/>
+											<span className='headerSlogan' id="cmp_vetonest.com_zDVB9q7a2d">Consultation Vétérinaire </span>&nbsp;
+											<span className='headerSlogan' id="cmp_vetonest.com_hRtNBb3lSe">en Ligne et à Domicile</span>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div className="col-xl-9 col-lg-9 col-md-9 col-sm-9">
+						<div className="col-xl-6 col-lg-6 col-md-6 col-sm-6">
 							<nav 
 								style={{ marginRight: '10px' }}
 								className="navigation navbar navbar-expand-md navbar-dark ">
@@ -186,7 +198,7 @@ const Header = () => {
 							</nav>
 						</div>
 					</div>
-					<div>
+					<div className= "marginTop10">
 					<SearchBox/>
 					</div>
 					</div>

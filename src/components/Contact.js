@@ -8,7 +8,7 @@ import {
 	RadiusUprightOutlined,
 	LoadingOutlined,
 	InboxOutlined, 
-	QuestionCircleOutlined
+	QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { Form, Input, Select } from 'antd';
 
@@ -28,12 +28,30 @@ const Contact = () => {
 		signUp, 
 		checkEmail, 
 		sendEmail,
+		placeholderFullname,
+		placeholderPhone,
+		placeholderEmail,
+		placeholderMessage,
+		contactCorrectError,
+		contactErrorsExistText,
+		contactErrorOccured,
+		contactThankYou,
+		contactEmailError,
+		contactFullnameErrorText,
+		contactPhoneNumberErrorText,
+		contactFormMessageErrorText,
+		contactFullnameErrorEmptyText,
+		contactEmailEmptyError,
+		contactErrorPhonenumberEmpty,
+		contactEmptyMessageError
+
 	}	= useContext( SiteContext );
 
 	// Spiner
 	const [ loginSpin, setLoginSpin ] = useState( 'none' );
 	
-	const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+	const [ isButtonDisabled, setIsButtonDisabled] = useState(false);
+	const [ showMessageResult, setShowMessageResult ] = useState( 'none' );
 
 	// Email
 	const [ email, setEmail ] = useState( '' );
@@ -45,13 +63,14 @@ const Contact = () => {
 
 		var emailErrorText = '';
 		if( data && !isValidEmail( data ) )
-			emailErrorText = 'Your email is not correct'
+			emailErrorText = contactEmailError
+			// emailErrorText = 'Your email is not correct'
 		setEmailError( emailErrorText );
 	}
 	
 	// Full name
 	const [ fullname, setFullname ] = useState( '' );
-	const [ fullnameDefault, setFullnameDefault ] = useState( 'Full name' );
+	const [ fullnameDefault, setFullnameDefault ] = useState( '' );
 	const [ fullNameError, setFullNameError ] = useState( '' );
 	const handleChangeFullname = ( e ) => {
 		const data = e.target.value;
@@ -59,7 +78,8 @@ const Contact = () => {
 		
 		var fullNameErrorText = '';
 		if( data.length && data.length < 4 )
-			fullNameErrorText = 'Your name seems incomplete'
+			fullNameErrorText = contactFullnameErrorText
+			// fullNameErrorText = 'Your name seems incomplete'
 
 		setFullNameError( fullNameErrorText );
 	}
@@ -72,10 +92,12 @@ const Contact = () => {
 
 		var phoneNumberErrorText = '';
 		if( data.length < 7 )
-			phoneNumberErrorText = 'Your phone number seems incomplete';
+			phoneNumberErrorText = contactPhoneNumberErrorText;
 		else if( !isValidPhoneNumber( data ) )
-			phoneNumberErrorText = 'Your phone number seems incorrect';
-			
+			phoneNumberErrorText = contactPhoneNumberErrorText;
+
+// phoneNumberErrorText = 'Your phone number seems incomplete';
+
 		setPhoneNumberError( phoneNumberErrorText );
 	}
 
@@ -89,7 +111,9 @@ const Contact = () => {
 
 		var siteMessageErrorText = '';
 		if( !isValidSiteMessage( data ) )
-			siteMessageErrorText = 'Please add a few words to your message';
+			siteMessageErrorText = contactFormMessageErrorText;
+
+// siteMessageErrorText = 'Please add a few words to your message';
 
 		setSiteMessageError( siteMessageErrorText );
 	}
@@ -136,28 +160,32 @@ const Contact = () => {
 
 		// full name
 		if( !fullname ){
-			const nameErrorText = 'Your full name field is empty';
+			const nameErrorText = contactFullnameErrorEmptyText;
+// const nameErrorText = 'Full name field is empty';			
 			setFullNameError( nameErrorText );
 			// setErrorsExist( true )
 			errorsExist = true
 		}
 		// email
 		if( !email ){
-			const emailErrorText = 'The email field is empty';
+			const emailErrorText = contactEmailEmptyError;
+// const emailErrorText = 'The email field is empty';			
 			setEmailError( emailErrorText );
 			// setErrorsExist( true )
 			errorsExist = true
 		}
 		// phone
 		if( !phoneNumber ){
-			const phoneNumberErrorText = 'Your phone number is empty.';
+			const phoneNumberErrorText = contactErrorPhonenumberEmpty;
+// const phoneNumberErrorText = 'Your phone number is empty.';			
 			setPhoneNumberError( phoneNumberErrorText );
 			// errorsExist = true
 			errorsExist = true
 		}
 		// site message
 		if( !siteMessage ){
-			const siteMessageErrorText = 'Please add a few words to your message.';
+			const siteMessageErrorText = contactEmptyMessageError;
+// const siteMessageErrorText = 'Please add a few words to your message.';
 			setSiteMessageError( siteMessageErrorText );
 			// setErrorsExist( true )
 			errorsExist = true
@@ -165,17 +193,57 @@ const Contact = () => {
 		
 		return errorsExist
 	}
+
+	// check the form errors
+	const checkFormErrors = async( ) => {
+		var errorsExist = false;
+		if( fullNameError != '' )    
+			errorsExist = true
+		if( emailError != '' )
+			errorsExist = true
+		if( phoneNumberError != '' )
+			errorsExist = true
+		else if( siteMessageError != '' )
+			errorsExist = true
+		
+		return errorsExist
+	}
+
+	// clear all for
+	const clearFormErrors = () => {
+		setFullNameError( '' );
+		setPhoneNumberError( '' );
+		setEmailError( '' );
+		setSiteMessageError( '' );
+	}
 	
 	// Send contact form
-	async function handleClicSend ( ){		
+	async function handleClicSend (){		
+		
+		setIsButtonDisabled( true );
+		
+		// check form erors
+		const formHasErrors = await checkFormErrors();
+
+		if( formHasErrors ){
+// alert( contactCorrectError );
+			message.error( contactCorrectError );
+			setLoginSpin( 'none' );
+			setIsButtonDisabled( false );
+			return
+		}
+		
 		// check the form
 		const formError = await checkTheForm();	
 
 		// if errors exist in the form
 		if( formError === true ){
-			const errorsExistText = 'Please correct the errors and try again.';
+			// const errorsExistText = 'Please correct the errors and try again.';
+// alert( contactErrorsExistText );
+			const errorsExistText = contactErrorsExistText;
 			message.error( errorsExistText );
 			setLoginSpin( 'none' );
+			setIsButtonDisabled( false );
 			return;
 		}
 
@@ -188,35 +256,38 @@ const Contact = () => {
 		// send data
 		setLoginSpin( 'block' ); // spin
 
-		const subject 	= 'Nouveau message du site Vetonest';
-		const to_email 	= 'yaosoft@hotmail.com';
-			
+		const subject 		= 'Nouveau message du site Vetonest';
+		const to_email 		= 'yaosoft@hotmail.com';
+		const domainName 	= to_email.split( '@' )[1];
+		const userName		= fullname + ', ' + to_email;
 		const sendEmailData = {
 			to_email 		: to_email,
-			to_domain		: siteDomain,
+			to_domain		: domainName,
 			subject			: subject,
-			userName    	: fullname,
+			userName    	: userName,
 			siteName    	: siteName,
 			siteDomain  	: siteDomain,
 			siteEmail		: siteEmail,
 			siteUrl     	: siteUrl,
-			code  			: '',
-			emailTemplate	: 'email_contact.twig'
+			code  			: siteMessage,
+			emailTemplate	: 'email_contact'
 		}
 
 		const rep = await sendEmail( sendEmailData );
 // console.log( rep );
 		if( !rep ){
-			message.error( 'An error occured' )
+			// message.error( 'An error occured' )
+			message.error( contactErrorOccured )
 		}
 		else{
-			message.success( 'Thank you. We will contact you soon.' )
-			setFullname( '' );
-			setPhoneNumber( '' );
-			setEmail( '' );
-			setSiteMessage( '' );
+			// message.success( 'Thank you. We will contact you soon.' )
+			message.success( contactThankYou );
 			
-			setIsButtonDisabled( true )
+			// clear form error
+			clearFormErrors();
+			
+			setIsButtonDisabled( true );
+			setShowMessageResult( 'block' );
 		}
 		setLoginSpin( 'none' );
 		
@@ -259,12 +330,13 @@ const Contact = () => {
 							>
 							   <input 
 									className="contactus" 
-									placeholder="Full name" 
+									placeholder={ placeholderFullname } 
 									type="type" 
 									name="Fullname" 
 									value={ fullname }
-									onChange = {  e => handleChangeFullname(e) }
+									onChange = { e => handleChangeFullname(e) }
 							   /> 
+							   <span className="placeholderFullname displayNone" id="cmp_vetonest.com_InGStIvYcM" >Nom complet</span>
 							</Form.Item>
                         </div>
                         <div className="col-md-12">
@@ -288,12 +360,13 @@ const Contact = () => {
 							>
 							   <input 
 									className="contactus" 
-									placeholder="Email" 
+									placeholder={ placeholderEmail }
 									type="type" 
 									name="Email"
-									value={ email }
+									value={ email } 
 									onChange = { e => handleChangeEmail(e)}
 								/>
+								<span className="placeholderEmail displayNone" id="cmp_vetonest.com_Xep3PSNstf" >Email</span>
 							</Form.Item>
                         </div>
                         <div className="col-md-12">
@@ -317,12 +390,13 @@ const Contact = () => {
 							>
 								<input 
 									className="contactus" 
-									placeholder="Phone Number" 
+									placeholder={ placeholderPhone }
 									type="type" 
 									name="Phone Number" 
 									value={ phoneNumber }
 									onChange = { e => handleChangePhoneNumber(e)}
 								/>
+								<span className="placeholderPhone displayNone" id="cmp_vetonest.com_EeTPYxP4vF" >Numéro de téléphone</span>
 							</Form.Item>							
                         </div>
                         <div className="col-md-12">
@@ -345,18 +419,24 @@ const Contact = () => {
 							>
 							   <textarea 
 									className="textarea" 
-									placeholder="Message" 
+									placeholder={ placeholderMessage } 
 									type="type" 
 									value={ siteMessage }
 									onChange = { e => handleChangeSiteMessage(e) }
 								/>
+								<span className="placeholderMessage displayNone" id="cmp_vetonest.com_t6zZkOnoRQ" >Votre message</span>
 							</Form.Item>	
                         </div>
+						
                         <div className="col-md-12"
 							style={{
-								marginTop: '-6%',
+								marginTop: '-5%',
 							}}
 						>
+							<span 
+								id="cmp_vetonest.com_777tFuJNvs" className="marginLeft20  colorGreen"
+								style={{ display: showMessageResult }}
+							>Message envoyé!</span>
 							<Space>
 								<Spin
 									indicator={
@@ -376,13 +456,87 @@ const Contact = () => {
 								className="send_btn"
 								onClick={ e => handleClicSend() }
 								disabled={isButtonDisabled}
+								id="cmp_vetonest.com_OKXh27QMvJ"
 							>
 								Send
 							</button>
                         </div>
-					
                   </div>
                   </Form>
+				  
+				  
+				  <span 
+					className="displayNone contactCorrectError"
+					id="cmp_vetonest.com_Af92YTwI3c"
+				  >
+					Please correct the errors before continuing.
+				  </span>
+				  <span 
+					className="displayNone contactErrorsExistText"
+					id="cmp_vetonest.com_9Hbdb9SqSl"
+				  >
+					Please correct the errors and try again.
+				  </span>
+				  <span 
+					className="displayNone contactErrorOccured"
+					id="cmp_vetonest.com_lMQqX2bptt"
+				  >
+					An error occured.
+				  </span>
+				  <span 
+					className="displayNone contactThankYou"
+					id="cmp_vetonest.com_VSsCK6o6zI"
+				  >
+					Thank you. We will contact you soon.
+				  </span>
+				  <span 
+					className="displayNone contactEmailError"
+					id="cmp_vetonest.com_GomedYOvSx"
+				  >
+					Your email is not correct.
+				  </span>
+				  <span 
+					className="displayNone contactFullnameErrorText"
+					id="cmp_vetonest.com_Q22eMGX3FE"
+				  >
+					Your name seems incomplete.
+				  </span>
+				  <span 
+					className="displayNone contactPhoneNumberErrorText"
+					id="cmp_vetonest.com_IL7GoLwYHA"
+				  >
+					Your phone number seems incorect.
+				  </span>
+				  <span 
+					className="displayNone contactFormMessageErrorText"
+					id="cmp_vetonest.com_bkUm4O12mL"
+				  >
+					Please add a few words to your message.
+				  </span>
+				  <span 
+					className="displayNone contactFullnameErrorEmptyText"
+					id="cmp_vetonest.com_Wra91PDYGf"
+				  >
+					Full name field is empty.
+				  </span>
+				  <span 
+					className="displayNone contactEmailEmptyError"
+					id="cmp_vetonest.com_xkbeNSuXC9"
+				  >
+					The email field is empty.
+				  </span>
+				  <span 
+					className="displayNone contactErrorPhonenumberEmpty"
+					id="cmp_vetonest.com_E5vIP2zkqU"
+				  >
+					Your phone number is empty.
+				  </span>
+				  <span 
+					className="displayNone contactEmptyMessageError cmp_vetonest.com_bkUm4O12mL"
+				  >
+					Please add a few words to your message.
+				  </span>
+
                </div>
                <div className="col-md-6">
                   <div className="map_main">

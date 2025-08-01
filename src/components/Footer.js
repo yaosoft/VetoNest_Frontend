@@ -28,7 +28,27 @@ const Footer = () => {
 		setSearchInputLocation,
 		setHomeTitle,
 		setContactTitle,
+		setBlogTitle,
+		setPlaceholderFullname,
+		setPlaceholderEmail,
+		setPlaceholderPhone,
+		setPlaceholderMessage,
+		setContactCorrectError,
+		setContactErrorsExistText,
+		setContactErrorOccured,		
+		setContactThankYou,			
+		setContactEmailError,
+		setContactFullnameErrorText,			
+		setContactPhoneNumberErrorText,
+		setContactFormMessageErrorText,
+		setContactFullnameErrorEmptyText,
+		setContactEmailEmptyError,
+		setContactErrorPhonenumberEmpty,
+		setContactEmptyMessageError,
+
 	} = useContext( SiteContext );
+
+
 
 	const navigate = useNavigate();
 	const array = [ 
@@ -59,25 +79,25 @@ const Footer = () => {
 	
 	const [ loginSpin, setLoginSpin ] = useState( 'none' );
 	
-	// Email
-	const [ email, setEmail ] = useState( '' );
-	const [ emailDefault, setEmailDefault ] = useState( 'Email' );
-	const [ emailError, setEmailError ] = useState( '' );
-	const handleChangeEmail = ( e ) => {
+	// Message
+	const [ email, setMessage ] = useState( '' );
+	const [ emailDefault, setMessageDefault ] = useState( 'Message' );
+	const [ emailError, setMessageError ] = useState( '' );
+	const handleChangeMessage = ( e ) => {
 		const data = e.target.value;
-		setEmail( data );
+		setMessage( data );
 
 		var emailErrorText = '';
-		if( data && !isValidEmail( data ) )
+		if( data && !isValidMessage( data ) )
 			emailErrorText = 'Your email is not correct'
 		
-		setEmailError( emailErrorText );
+		setMessageError( emailErrorText );
 	}
 
-	// Email validation
-	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
-	const isValidEmail = ( email ) => {
-		if( !regexEmailValidation.test( email ) )
+	// Message validation
+	const regexMessageValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
+	const isValidMessage = ( email ) => {
+		if( !regexMessageValidation.test( email ) )
 			return false;
 
 		return true;
@@ -91,7 +111,7 @@ const Footer = () => {
 		// email
 		if( !email ){
 			const emailErrorText = 'The email field is empty';
-			setEmailError( emailErrorText );
+			setMessageError( emailErrorText );
 			// setErrorsExist( true )
 			errorsExist = true
 		}
@@ -99,7 +119,7 @@ const Footer = () => {
 		return errorsExist
 	}
 	
-	const { sendEmail }	= useContext( SiteContext );
+	const { sendMessage }	= useContext( SiteContext );
 
 	// Send contact form
 	async function handleClicSend ( ){		
@@ -129,7 +149,7 @@ const Footer = () => {
 		}
 // console.log( data )
 
-		const rep = await sendEmail( data );
+		const rep = await sendMessage( data );
 // console.log( rep );
 		if( !rep ){
 			message.error( 'An error occured' )
@@ -190,31 +210,151 @@ console.log( '>> siteContent', siteContent );
 				if( !currentLanguageTagContent.length )
 					continue  
 				
+				// insert content
 				const tagContent = contentTypeId == 1 ? currentLanguageTagContent[0].textContent : 
 				currentLanguageTagContent[0].mediaContent;
 				element.innerHTML = tagContent;
+				// insert in duplication of the tag. They have a classname named the ragRef as .
+				const elementDuplicates = document.getElementsByClassName( tagRef );
+				for ( const element of elementDuplicates ) {
+					element.innerHTML = tagContent;
+				}
+				
 
 				// indirect translations
 				const searchInputVetoElt  = document.getElementsByClassName( "searchInputVeto" )[0];
-				const searchInputVeto = searchInputVetoElt.innerHTML;
-				setSearchInputVeto( searchInputVeto  );
+				if( searchInputVetoElt ){
+					const searchInputVeto = searchInputVetoElt.innerHTML;
+					setSearchInputVeto( searchInputVeto  );
+				}
 				
 				const searchInputVetoTypeElt  = document.getElementsByClassName( "searchInputVetoType" )[0];
-				const searchInputVetoType = searchInputVetoTypeElt.innerHTML;
-				setSearchInputVetoType( searchInputVetoType  );	
+				if( searchInputVetoTypeElt ){
+					const searchInputVetoType = searchInputVetoTypeElt.innerHTML;
+					setSearchInputVetoType( searchInputVetoType  );	
+				}
 				
 				const locationElt  = document.getElementsByClassName( "searchInputLocation" )[0];
-				const location = locationElt.innerHTML;
-				setSearchInputLocation( location  );
-
-				const homeTitleElt  = document.getElementsByClassName( "homeTitle" )[0];
-				const homeTitle = homeTitleElt.innerHTML;
-				setHomeTitle( homeTitle  );
-
-				const contactTitleElt  = document.getElementsByClassName( "contactTitle" )[0];
-				const contactTitle = contactTitleElt.innerHTML;
-				setContactTitle( contactTitle  );
+				if( locationElt ){
+					const location = locationElt.innerHTML;
+					setSearchInputLocation( location );
+				}
 				
+				const homeTitleElt  = document.getElementsByClassName( "homeTitle" )[0];
+				if( homeTitleElt ){
+					const homeTitle = homeTitleElt.innerHTML;
+					setHomeTitle( homeTitle );
+				}
+				
+				const contactTitleElt  = document.getElementsByClassName( "contactTitle" )[0];
+				if( contactTitleElt ){
+					const contactTitle = contactTitleElt.innerHTML;
+					setContactTitle( contactTitle );
+				}
+				
+				const blogTitleElt  = document.getElementsByClassName( "blogTitle" )[0];
+				if( blogTitleElt ){
+					const blogTitle = blogTitleElt.innerHTML;
+					setBlogTitle( blogTitle );
+				}
+
+				const placeholderFullnameElt  = document.getElementsByClassName( "placeholderFullname" )[0];
+				if( placeholderFullnameElt ){
+					const placeholderFullname = placeholderFullnameElt.innerHTML;
+					setPlaceholderFullname( placeholderFullname );
+				}
+
+				const placeholderEmailElt  = document.getElementsByClassName( "placeholderEmail" )[0];
+				if( placeholderEmailElt ){
+					const placeholderEmail = placeholderEmailElt.innerHTML;
+					setPlaceholderEmail( placeholderEmail );
+				}
+				
+				const placeholderPhoneElt  = document.getElementsByClassName( "placeholderPhone" )[0];
+				if( placeholderPhoneElt ){
+					const placeholderPhone = placeholderPhoneElt.innerHTML;
+					setPlaceholderPhone( placeholderPhone );
+				}
+				
+				const placeholderMessageElt  = document.getElementsByClassName( "placeholderMessage" )[0];
+				if( placeholderMessageElt ){
+					const placeholderMessage = placeholderMessageElt.innerHTML;
+					setPlaceholderMessage( placeholderMessage );
+				}
+				
+				const contactCorrectErrorElt  = document.getElementsByClassName( "contactCorrectError" )[0];
+				if( contactCorrectErrorElt ){
+					const contactCorrectError = contactCorrectErrorElt.innerHTML;
+					setContactCorrectError( contactCorrectError );
+				}
+
+				const contactErrorsExistTextElt  = document.getElementsByClassName( "contactErrorsExistText" )[0];
+				if( contactErrorsExistTextElt ){
+					const contactErrorsExistText = contactErrorsExistTextElt.innerHTML;
+// alert( contactErrorsExistText );
+					setContactErrorsExistText( contactErrorsExistText );
+				}
+
+				const contactErrorOccuredElt  = document.getElementsByClassName( "contactErrorOccured" )[0];
+				if( contactErrorOccuredElt ){
+					const contactErrorOccured = contactErrorOccuredElt.innerHTML;
+					setContactErrorOccured( contactErrorOccured );
+				}
+
+				const contactThankYouElt  = document.getElementsByClassName( "contactThankYou" )[0];
+				if( contactThankYouElt ){
+					const contactThankYou = contactThankYouElt.innerHTML;
+					setContactThankYou( contactThankYou );
+				}
+				
+				const contactEmailErrorElt  = document.getElementsByClassName( "contactEmailError" )[0];
+				if( contactEmailErrorElt ){
+					const contactEmailError = contactEmailErrorElt.innerHTML;
+					setContactEmailError( contactEmailError );
+				}
+				
+				const contactFullnameErrorTextElt  = document.getElementsByClassName( "contactFullnameErrorText" )[0];
+				if( contactFullnameErrorTextElt ){
+					const contactFullnameErrorText = contactFullnameErrorTextElt.innerHTML;
+					setContactFullnameErrorText( contactFullnameErrorText );
+				}		
+		
+				const contactPhoneNumberErrorTextElt  = document.getElementsByClassName( "contactPhoneNumberErrorText" )[0];
+				if( contactPhoneNumberErrorTextElt ){
+					const contactPhoneNumberErrorText = contactPhoneNumberErrorTextElt.innerHTML;
+					setContactPhoneNumberErrorText( contactPhoneNumberErrorText );
+				}
+
+				const contactFormMessageErrorTextElt  = document.getElementsByClassName( "contactFormMessageErrorText" )[0];
+				if( contactFormMessageErrorTextElt ){
+					const contactFormMessageErrorText = contactFormMessageErrorTextElt.innerHTML;
+					setContactFormMessageErrorText( contactFormMessageErrorText );
+				}	
+
+				const contactFullnameErrorEmptyTextElt  = document.getElementsByClassName( "contactFullnameErrorEmptyText" )[0];
+				if( contactFullnameErrorEmptyTextElt ){
+					const contactFullnameErrorEmptyText = contactFullnameErrorEmptyTextElt.innerHTML;
+					setContactFullnameErrorEmptyText( contactFullnameErrorEmptyText );
+				}
+
+				const contactEmailEmptyErrorElt  = document.getElementsByClassName( "contactEmailEmptyError" )[0];
+				if( contactEmailEmptyErrorElt ){
+					const contactEmailEmptyError = contactEmailEmptyErrorElt.innerHTML;
+					setContactEmailEmptyError( contactEmailEmptyError );
+				}
+
+				const contactErrorPhonenumberEmptyElt  = document.getElementsByClassName( "contactErrorPhonenumberEmpty" )[0];
+				if( contactErrorPhonenumberEmptyElt ){
+					const contactErrorPhonenumberEmpty = contactErrorPhonenumberEmptyElt.innerHTML;
+					setContactErrorPhonenumberEmpty( contactErrorPhonenumberEmpty );
+				}
+
+				const contactEmptyMessageErrorElt  = document.getElementsByClassName( "contactEmptyMessageError" )[0];
+				if( contactEmptyMessageErrorElt ){
+					const contactEmptyMessageError = contactEmptyMessageErrorElt.innerHTML;
+					setContactEmptyMessageError( contactEmptyMessageError );
+				}
+
 			}
 		}
 		updatePageContent();
@@ -231,7 +371,7 @@ console.log( '>> siteContent', siteContent );
             <div className="container">
                <div className="row">
                   <div className=" col-md-4">
-                     <h3>Contact us</h3>
+                     <h3 className="cmp_vetonest.com_SOJVt74LSV">Contact us</h3>
                      <ul className="conta">
                         <li><i className="fa fa-map-marker" aria-hidden="true"></i> 229 Rue Saint-Honore,<br/>75001 Paris<br/>France</li>
                         <li><i className="fa fa-mobile" aria-hidden="true"></i> +33 602 455 0680</li>
@@ -243,74 +383,25 @@ console.log( '>> siteContent', siteContent );
                      <h3>Menu Link</h3>
                      <ul className="link_menu">
                         <li className={active[0].actif} >
-							<a  onClick={ e => handleClickGoto( 'home' ) }>
+							<a  onClick={ e => handleClickGoto( 'accueil' ) }>
 								Home
 							</a>
 						</li>
                         <li className={active[1].actif} >
-							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'about' ) }>
-								About
+							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'inscription' ) }>
+								Créer un compte
 							</a>
 						</li>
 						<li className={active[2].actif} >
-							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'import-export' ) }>
-								Import-Export
-							</a>
-						</li>
-						<li className={active[3].actif} >
-							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'expertise' ) }>
-								Expertise
-							</a>
-						</li>
-						<li className={active[4].actif} >
-							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'contact' ) }>
-								Contact
+							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'blog' ) }>
+								blog
 							</a>
 						</li>
                      </ul>
                   </div>
                   <div className="col-md-4">
-                     <h3>News letter</h3>
+                     <h3>Réseaux</h3>
 					 
-                     <Form 
-						className="bottom_form"
-						form = {form}
-					 >
-						<Form.Item
-								name  = "email"
-								rules = {[
-									{
-										message: emailError,
-										validator: ( value ) => {
-											if ( emailError ) {
-												return Promise.reject( emailError );
-											} 
-											else {
-												return Promise.resolve();
-											}
-										}
-									}
-								]}
-								/* initialValue  = { fullname ? fullname : fullnameDefault } */
-							>
-						
-								<input 
-									className="enter" 
-									placeholder="Enter your email" 
-									type="text" 
-									name="Enter your email"
-									value={ email }
-									onChange = { e => handleChangeEmail(e)}
-								/>
-							</Form.Item>
-                        <button 
-							className="sub_btn" 
-							disabled={isButtonDisabled}
-							onClick={ e => handleClicSend() }
-						>
-							subscribe
-						</button>
-                     </Form>
                      <ul className="social_icon">
                         <li><a href="#"><i className="fa fa-facebook" aria-hidden="true"></i></a></li>
                         <li><a href="#"><i className="fa fa-twitter" aria-hidden="true"></i></a></li>
