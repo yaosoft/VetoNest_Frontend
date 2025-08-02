@@ -45,6 +45,24 @@ const Footer = () => {
 		setContactEmailEmptyError,
 		setContactErrorPhonenumberEmpty,
 		setContactEmptyMessageError,
+		setSignUp_nameErrorText,
+		setSignUp_firstNameErrorText,
+		setSignUp_emailErrorText,
+		setSignUp_passwordErrorText,
+		setSignUp_passwordRepeatErrorText,
+		setSignUp_type1,
+		setSignUp_type2,
+		setSignUp_nameEmpty,
+		setSignUp_emailEmpty,
+		setSignUp_passwordEmpty,
+		setSignup_correctErrors,
+		setSignup_selectTypeError,
+		setSignUp_verifyEmailSubjet,
+		setSignup_firstNamePlaceholder,
+		setSignup_emailPlaceholder,
+		setSignup_passwordPlaceholder,
+		setSignup_passwordRepeatPlaceholder,
+		setSignup_namePlaceholder
 
 	} = useContext( SiteContext );
 
@@ -191,7 +209,7 @@ const Footer = () => {
 			}
 			const siteContent = await getSiteContent( siteContentData );
 
-console.log( '>> siteContent', siteContent );
+// console.log( '>> siteContent', siteContent );
 
 			// setSiteContent( siteContent );
 			for ( const content of siteContent ) {
@@ -349,12 +367,114 @@ console.log( '>> siteContent', siteContent );
 					setContactErrorPhonenumberEmpty( contactErrorPhonenumberEmpty );
 				}
 
-				const contactEmptyMessageErrorElt  = document.getElementsByClassName( "contactEmptyMessageError" )[0];
-				if( contactEmptyMessageErrorElt ){
-					const contactEmptyMessageError = contactEmptyMessageErrorElt.innerHTML;
-					setContactEmptyMessageError( contactEmptyMessageError );
+				const signUp_nameErrorTextElt  = document.getElementsByClassName( "signUp_nameErrorText" )[0];
+				if( signUp_nameErrorTextElt ){
+					const signUp_nameErrorText = signUp_nameErrorTextElt.innerHTML;
+					setSignUp_nameErrorText( signUp_nameErrorText );
 				}
 
+				const signUp_firstNameErrorTextElt  = document.getElementsByClassName( "signUp_firstNameErrorText" )[0];
+				if( signUp_firstNameErrorTextElt ){
+					const signUp_firstNameErrorText = signUp_firstNameErrorTextElt.innerHTML;
+					setSignUp_firstNameErrorText( signUp_firstNameErrorText );
+				}
+
+				const signUp_emailErrorTextElt  = document.getElementsByClassName( "signUp_emailErrorText" )[0];
+				if( signUp_emailErrorTextElt ){
+					const signUp_emailErrorText = signUp_emailErrorTextElt.innerHTML;
+					setSignUp_emailErrorText( signUp_emailErrorText );
+				}
+
+				const signUp_passwordErrorTextElt  = document.getElementsByClassName( "signUp_passwordErrorText" )[0];
+				if( signUp_passwordErrorTextElt ){
+					const signUp_passwordErrorText = signUp_passwordErrorTextElt.innerHTML;
+					setSignUp_passwordErrorText( signUp_passwordErrorText );
+				}
+
+				const signUp_passwordRepeatErrorTextElt  = document.getElementsByClassName( "signUp_passwordRepeatErrorText" )[0];
+				if( signUp_passwordRepeatErrorTextElt ){
+					const signUp_passwordRepeatErrorText = signUp_passwordRepeatErrorTextElt.innerHTML;
+					setSignUp_passwordRepeatErrorText( signUp_passwordRepeatErrorText );
+				} 
+
+				const signUp_type1Elt  = document.getElementsByClassName( "signUp_type1" )[0];
+				if( signUp_type1Elt ){
+					const signUp_type1 = signUp_type1Elt.innerHTML;
+					setSignUp_type1( signUp_type1 );
+				} 
+
+				const signUp_type2Elt  = document.getElementsByClassName( "signUp_type2" )[0];
+				if( signUp_type2Elt ){
+					const signUp_type2 = signUp_type2Elt.innerHTML;
+					setSignUp_type2( signUp_type2 );
+				} 
+
+				const signUp_nameEmptyElt  = document.getElementsByClassName( "signUp_nameEmpty" )[0];
+				if( signUp_nameEmptyElt ){
+					const signUp_nameEmpty = signUp_nameEmptyElt.innerHTML;
+					setSignUp_type1( signUp_nameEmpty );
+				} 
+				
+				const signUp_emailEmptyElt  = document.getElementsByClassName( "signUp_emailEmpty" )[0];
+				if( signUp_emailEmptyElt ){
+					const signUp_emailEmpty = signUp_emailEmptyElt.innerHTML;
+					setSignUp_emailEmpty( signUp_emailEmpty );
+				} 
+
+				const signUp_passwordEmptyElt  = document.getElementsByClassName( "signUp_passwordEmpty" )[0];
+				if( signUp_passwordEmptyElt ){
+					const signUp_passwordEmpty = signUp_passwordEmptyElt.innerHTML;
+					setSignUp_passwordEmpty( signUp_passwordEmpty );
+				} 
+
+				const signup_correctErrorsElt  = document.getElementsByClassName( "signup_correctErrors" )[0];
+				if( signup_correctErrorsElt ){
+					const signup_correctErrors = signup_correctErrorsElt.innerHTML;
+					setSignup_correctErrors( signup_correctErrors );
+				} 
+
+				const signup_selectTypeErrorElt  = document.getElementsByClassName( "signup_selectTypeError" )[0];
+				if( signup_selectTypeErrorElt ){
+					const signup_selectTypeError = signup_selectTypeErrorElt.innerHTML;
+					setSignup_selectTypeError( signup_selectTypeError );
+				} 
+				
+				const signUp_verifyEmailSubjetElt  = document.getElementsByClassName( "signUp_verifyEmailSubjet" )[0];
+				if( signUp_verifyEmailSubjetElt ){
+					const signUp_verifyEmailSubjet = signUp_verifyEmailSubjetElt.innerHTML;
+					setSignUp_verifyEmailSubjet( signUp_verifyEmailSubjet );
+				} 
+				
+				const signup_firstNamePlaceholderElt  = document.getElementsByClassName( "signup_firstNamePlaceholder" )[0];
+				if( signup_firstNamePlaceholderElt ){
+					const signup_firstNamePlaceholder = signup_firstNamePlaceholderElt.innerHTML;
+					setSignup_firstNamePlaceholder( signup_firstNamePlaceholder );
+				} 
+				
+				const signup_emailPlaceholderElt  = document.getElementsByClassName( "signup_emailPlaceholder" )[0];
+				if( signup_emailPlaceholderElt ){
+					const signup_emailPlaceholder = signup_emailPlaceholderElt.innerHTML;
+					setSignup_emailPlaceholder( signup_emailPlaceholder );
+				}
+				
+				const signup_passwordPlaceholderElt  = document.getElementsByClassName( "signup_passwordPlaceholder" )[0];
+				if( signup_passwordPlaceholderElt ){
+					const signup_passwordPlaceholder = signup_passwordPlaceholderElt.innerHTML;
+					setSignup_passwordPlaceholder( signup_passwordPlaceholder );
+				} 
+		
+				const signup_passwordRepeatPlaceholderElt  = document.getElementsByClassName( "signup_passwordRepeatPlaceholder" )[0];
+				if( signup_passwordRepeatPlaceholderElt ){
+					const signup_passwordRepeatPlaceholder = signup_passwordRepeatPlaceholderElt.innerHTML;
+					setSignup_passwordRepeatPlaceholder( signup_passwordRepeatPlaceholder );
+				} 
+				
+				const signup_namePlaceholderElt  = document.getElementsByClassName( "signup_namePlaceholder" )[0];
+				if( signup_namePlaceholderElt ){
+					const signup_namePlaceholder = signup_namePlaceholderElt.innerHTML;
+					setSignup_namePlaceholder( signup_namePlaceholder );
+				} 
+				
 			}
 		}
 		updatePageContent();
@@ -380,27 +500,41 @@ console.log( '>> siteContent', siteContent );
 					 
                   </div>
                   <div className="col-md-4">
-                     <h3>Menu Link</h3>
+                     <h3 id="cmp_vetonest.com_iXxQuX5SHG">Menu Link</h3>
                      <ul className="link_menu">
                         <li className={active[0].actif} >
-							<a  onClick={ e => handleClickGoto( 'accueil' ) }>
+							<a id="cmp_vetonest.com_TR3jIz4ldy" onClick={ e => handleClickGoto( 'accueil' ) }>
 								Home
 							</a>
 						</li>
                         <li className={active[1].actif} >
-							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'inscription' ) }>
+							<a 
+								style={{ cursor: 'pointer' }} 
+								onClick={ e => handleClickGoto( 'connexion' ) }
+								className="cmp_vetonest.com_adWeBARABI"
+							
+							>
+								Connexion
+							</a>
+						</li>
+                        <li className={active[1].actif} >
+							<a 
+								style={{ cursor: 'pointer' }} 
+								onClick={ e => handleClickGoto( 'inscription' ) }
+								className="cmp_vetonest.com_bL1MO9LnVv"
+							>
 								Créer un compte
 							</a>
 						</li>
 						<li className={active[2].actif} >
 							<a style={{ cursor: 'pointer' }} onClick={ e => handleClickGoto( 'blog' ) }>
-								blog
+								Blog
 							</a>
 						</li>
                      </ul>
                   </div>
                   <div className="col-md-4">
-                     <h3>Réseaux</h3>
+                     <h3 id="cmp_vetonest.com_jkquJ9NP2S">Réseaux</h3>
 					 
                      <ul className="social_icon">
                         <li><a href="#"><i className="fa fa-facebook" aria-hidden="true"></i></a></li>
@@ -415,7 +549,7 @@ console.log( '>> siteContent', siteContent );
                <div className="container">
                   <div className="row">
                      <div className="col-md-10 offset-md-1">
-                        <p> © 2025 All Rights Reserved. </p>
+                        <p > © 2025 <span id="cmp_vetonest.com_hMmiaD2Hx6">All Rights Reserved.</span> </p>
                      </div>
                   </div>
                </div>

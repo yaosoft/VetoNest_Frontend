@@ -105,3 +105,112 @@
 >
 	Send
 </button>
+
+<h3 id="cmp_vetonest.com_iXxQuX5SHG">Menu Link</h3>
+<a id="cmp_vetonest.com_TR3jIz4ldy" onClick={ e => handleClickGoto( 'accueil' ) }>
+	Home
+</a>
+<p > © 2025 <span id="cmp_vetonest.com_hMmiaD2Hx6">All Rights Reserved.</span> </p> 
+<h3 id="cmp_vetonest.com_jkquJ9NP2S">Réseaux</h3>
+
+------------
+
+
+<span id="cmp_vetonest.com_4LbLKwutmz">
+	Email address
+</span> 
+<span id="cmp_vetonest.com_WbKGYyavtn">
+	not found or already exist.
+</span> 
+<span id="cmp_vetonest.com_0lM8zJBsDN">
+	Please try another one.
+</span>
+<span id="cmp_vetonest.com_071mCRIC59">
+	already exist.
+</span>
+
+
+											<span 
+												id = "cmp_vetonest.com_2Mtv5nj9JA"
+												className ="signUp_nameErrorText" 
+											>
+												Your name seems to be wrong.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_P5crAMBBiW"
+												className ="signUp_FirstNameErrorText" 
+											>
+												Your first name seems incorect
+											</span>
+											<span 
+												id = "cmp_vetonest.com_X4989OHCsa"
+												className ="signUp_EmailErrorText" 
+											>
+												Your email is not correct
+											</span>
+											<span 
+												id = "cmp_vetonest.com_UcvWQuFUwO"
+												className ="signUp_PasswordErrorText" 
+											>
+												Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_BmYPSRuRRY"
+												className ="signUp_passwordRepeatErrorText" 
+											>
+												Password are different.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_rvKgJE6SFO"
+												className ="Welcome pet's owner!" 
+											>
+												Password are different.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_YMSim4wo9H"
+												className ="signUp_type1" 
+											>
+												Welcome pet owner!.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_zJUzx7C5AL"
+												className ="signUp_type2" 
+											>
+												Welcome veto!.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_EjMb0Ci9C6"
+												className ="signUp_nameEmpty" 
+											>
+												Name is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_7cAD5u6fyj"
+												className ="signUp_passwordEmpty" 
+											>
+												Password is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_kc3hRmQL1X"
+												className ="signUp_passwordRepeatEmpty" 
+											>
+												Password repeat is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_D6PwmqV638"
+												className ="signup_selectTypeError" 
+											>
+												Are you a pet owner or a veto? Please select.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_XqWZIGCbmK"
+												className ="signUp_verifyEmailSubjet" 
+											>
+												Password repeat is empty.
+											</span>
+											
+
+
+
+
+

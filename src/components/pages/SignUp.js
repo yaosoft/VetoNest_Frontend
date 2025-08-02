@@ -38,6 +38,26 @@ const SignUp = ( params ) => {
 		signUp, 
 		checkEmail, 
 		sendEmail,
+		signUp_nameErrorText,
+		signUp_firstNameErrorText,
+		signUp_emailErrorText,
+		signUp_passwordErrorText,
+		signUp_passwordRepeatErrorText,
+		signUp_type1,
+		signUp_type2,
+		signUp_nameEmpty,
+		signUp_emailEmpty,
+		signUp_passwordEmpty,
+		signUp_passwordRepeatEmpty,
+		signup_correctErrors,
+		signup_selectTypeError,
+		signUp_verifyEmailSubjet,
+		signup_firstNamePlaceholder,
+		signup_emailPlaceholder,
+		signup_passwordPlaceholder,
+		signup_passwordRepeatPlaceholder,
+		signup_namePlaceholder
+		
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -57,8 +77,9 @@ const SignUp = ( params ) => {
 		const test = nameValidator( data )
 
 		if( data && test === false )
-			signUpNameErrorText = 'Your name seems incorect'
-
+			signUpNameErrorText = signUp_nameErrorText
+		
+// signUpNameErrorText = 'Your name seems incorect'
 		setSignUpNameError( signUpNameErrorText );
 	}
 
@@ -72,7 +93,9 @@ const SignUp = ( params ) => {
 		var signUpFirstNameErrorText = '';
 		const test = nameValidator( data )
 		if( data && test === false )
-			signUpFirstNameErrorText = 'Your firstname seems incorect'
+			signUpFirstNameErrorText = signUp_firstNameErrorText
+		
+// signUpFirstNameErrorText = 'Your firstname seems incorect'
 
 		setSignUpFirstNameError( signUpFirstNameErrorText );
 	}
@@ -99,8 +122,10 @@ const SignUp = ( params ) => {
 
 		var signUpEmailErrorText = '';
 		if( data && !isValidEmail( data ) )
-			signUpEmailErrorText = 'Your email is not correct'
-		
+			signUpEmailErrorText = signUp_emailErrorText
+
+// signUpEmailErrorText = 'Your email is not correct'
+
 		setSignUpEmailError ( signUpEmailErrorText );
 	}
 	
@@ -113,7 +138,9 @@ const SignUp = ( params ) => {
 		
 		var signUpPasswordErrorText = '';
 		if( data && isValidPassword( data ) !== true )
-			signUpPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
+			signUpPasswordErrorText = signUp_passwordErrorText;
+
+//signUpPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
 
 		setSignUpPasswordError( signUpPasswordErrorText );
 	}
@@ -127,7 +154,8 @@ const SignUp = ( params ) => {
 		
 		var signUpPasswordRepeatErrorText = '';
 		if( data && isValidPasswordRepeat( data ) === false )
-			signUpPasswordRepeatErrorText = 'Password are different'
+			signUpPasswordRepeatErrorText = signUp_passwordRepeatErrorText
+// signUpPasswordRepeatErrorText = 'Password are different'
 			setSignUpPasswordRepeatError( signUpPasswordRepeatErrorText );
 	}
 	const isValidPasswordRepeat = ( signUpPasswordRepeat ) => {
@@ -150,11 +178,12 @@ const SignUp = ( params ) => {
 		}
 		
 		if( elt01.checked == true && signUpType == 1 ){
-			message.info( 'Welcome pet\'s owner!' );
+			message.info( signUp_type1 );
+// message.info( 'Welcome pet\'s owner!' );
 			setSignUpType( 1 );
 		}
 		else if( elt01.checked == true && signUpType == 2 ){
-			message.info( 'Welcome veto!' )
+			message.info( signUp_type2 )
 			setSignUpType( 2 );
 		}
 		else if( elt01.checked == false && elt01.checked == false ){
@@ -184,27 +213,31 @@ const SignUp = ( params ) => {
 		var formHasEmpty = '';
 
 		if( signUpName == '' ){
-			const errorMessage = 'Name is empty';
+			const errorMessage = signUp_nameEmpty;
+// const errorMessage = 'Name is empty';
 			document.getElementById( 'signUpNameInput' ).focus();
-			// await setSignUpNameError( errorMessage );
+			await setSignUpNameError( errorMessage );
 			formHasEmpty = errorMessage
 		}
 		else if( signUpEmail == '' ){
-			const errorMessage = 'Email is empty';
+			const errorMessage = signUp_emailEmpty;
+// const errorMessage = 'Email is empty';
 			document.getElementById( 'signUpEmailInput' ).focus();
-			// await setSignUpEmailError( errorMessage );
+			await setSignUpEmailError( errorMessage );
 			formHasEmpty = errorMessage
 		}
 		else if( signUpPassword == '' ){
-			const errorMessage = 'Password is empty';
+			const errorMessage = signUp_passwordEmpty;
+// const errorMessage = 'Password is empty';
 			document.getElementById( 'signUpPasswordInput' ).focus();
-			// await setSignUpPasswordError( errorMessage );
+			await setSignUpPasswordError( errorMessage );
 			formHasEmpty = errorMessage
 		}
 		else if( signUpPasswordRepeat == '' ){
-			const errorMessage = 'Password repeat is empty';
+			const errorMessage = signUp_passwordRepeatEmpty;
+// const errorMessage = 'Password repeat is empty';
 			document.getElementById( 'signUpPasswordRepeatInput' ).focus();
-			// await setSignUpPasswordRepeatError( errorMessage );
+			await setSignUpPasswordRepeatError( errorMessage );
 			formHasEmpty = errorMessage
 		}
 
@@ -217,7 +250,7 @@ const SignUp = ( params ) => {
 	const [ formError02, setFormError02 ] = useState( 'none' );
 	const handleClickRegistration = async ( event ) => {
 
-		event.preventDefault();
+		
 		setSignUpSpin( 'block' );
 
 		clearFormErrors(); // clear form error
@@ -227,7 +260,8 @@ const SignUp = ( params ) => {
 		// check form erors
 		const formHasErrors = await checkFormErrors();
 		if( formHasErrors ){
-			message.error( 'Please correct the errors before continuing.' );
+			message.error( signup_correctErrors );
+// message.error( 'Please correct the errors before continuing.' );
 			setSignUpSpin( 'none' );
 			setSendingDisabled( false );
 			return
@@ -235,7 +269,8 @@ const SignUp = ( params ) => {
 console.log( 'signUpType: ' + signUpType );
 		// check if a signUp type is selected
 		if( !signUpType ){
-			message.error( 'Are you a pet\'s owner or a veto? Please select.' );
+			message.error( signup_selectTypeError );
+// message.error( 'Are you a pet\'s owner or a veto? Please select.' );
 			setSignUpSpin( 'none' );
 			setSendingDisabled( false );
 			return	
@@ -273,7 +308,8 @@ console.log( 'signUpType: ' + signUpType );
 		setCode( genCode );
 // console.log( 'genCode: ' + genCode );
 		const domainName 	= signUpEmail.split( '@' )[1];
-		const subject 		= 'Verify your email address for ' + siteName;
+		const subject 		= signUp_verifyEmailSubjet + siteName;
+// const subject 		= 'Verify your email address for ' + siteName;
 		const UserName 		= signUpName;
 		const code 			= genCode;
 		
@@ -537,7 +573,7 @@ const handleChangeCode = ( e ) => {
 													<Input
 														id="signUpNameInput"
 														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-														placeholder="Name" 
+														placeholder={ signup_namePlaceholder }
 														type="text" 
 														name="signUpName"
 														value={ signUpName }
@@ -567,7 +603,7 @@ const handleChangeCode = ( e ) => {
 													<Input 
 														id="signUpFirstNameInput"
 														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-														placeholder="First name" 
+														placeholder={ signup_firstNamePlaceholder }
 														type="text" 
 														name="signUpFirstName"
 														value={ signUpFirstName }
@@ -598,7 +634,7 @@ const handleChangeCode = ( e ) => {
 												<Input 
 													id="signUpEmailInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your email" 
+													placeholder={ signup_emailPlaceholder }
 													type="text" 
 													name="signUpmail"
 													value={ signUpEmail }
@@ -628,7 +664,7 @@ const handleChangeCode = ( e ) => {
 												<Input 
 													id="signUpPasswordInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your password" 
+													placeholder={ signup_passwordPlaceholder }
 													type="password" 
 													name="password"
 													value={ signUpPassword }
@@ -658,7 +694,8 @@ const handleChangeCode = ( e ) => {
 												<Input 
 													id="signUpPasswordRepeatInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Repeat your password" 
+													placeholder={ signup_passwordRepeatPlaceholder }
+													
 													type="password" 
 													name="passwordRepeat"
 													value={ signUpPasswordRepeat }
@@ -675,17 +712,24 @@ const handleChangeCode = ( e ) => {
 											</span> 
 												&nbsp;{ signUpEmail }&nbsp;
 											<span id="cmp_vetonest.com_WbKGYyavtn">
-												not found.
-											</span> Please try another one.
+												not found or already exist.
+											</span> 
+											<span id="cmp_vetonest.com_0lM8zJBsDN">
+												Please try another one.
+											</span>
+											
 										</div>
 										<div style= {{ display: formError02 }}  className="row formError formError02">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
+											<span className="cmp_vetonest.com_4LbLKwutmz">
 												Email address
 											</span> 
 												&nbsp;{ signUpEmail }&nbsp;
 											<span id="cmp_vetonest.com_071mCRIC59">
 												already exist.
-											</span> Please try another one.
+											</span>
+											<span className="cmp_vetonest.com_0lM8zJBsDN">
+												Please try another one.
+											</span>
 										</div>
 									</>
 											<button 
@@ -719,10 +763,92 @@ const handleChangeCode = ( e ) => {
 													Have account? <Link to='/connexion' className="text-primary">connexion</Link>
 												</div>
 											</div>
-										</Form>
-									</div>
-								</div>
-							
+
+											<span 
+												id = "cmp_vetonest.com_2Mtv5nj9JA"
+												className ="signUp_nameErrorText" 
+											>
+												Your name seems incorect
+											</span>
+											<span 
+												id = "cmp_vetonest.com_P5crAMBBiW"
+												className ="signUp_FirstNameErrorText" 
+											>
+												Your first name seems incorect
+											</span>
+											<span 
+												className ="displayNone contactEmailError signUp_EmailErrorText" 
+											>
+												Your email is not correct
+											</span>
+											<span 
+												id = "cmp_vetonest.com_UcvWQuFUwO"
+												className ="signUp_PasswordErrorText" 
+											>
+												Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_BmYPSRuRRY"
+												className ="signUp_passwordRepeatErrorText" 
+											>
+												Password are different.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_rvKgJE6SFO"
+												className ="signUp_type1" 
+											>
+												Welcome pet's owner!
+											</span>
+											<span 
+												id = "cmp_vetonest.com_YMSim4wo9H"
+												className ="signUp_type2" 
+											>
+												Welcome veto!.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_EjMb0Ci9C6"
+												className ="signUp_nameEmpty" 
+											>
+												Name is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_7cAD5u6fyj"
+												className ="signUp_passwordEmpty" 
+											>
+												Password is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_kc3hRmQL1X"
+												className ="signUp_passwordRepeatEmpty" 
+											>
+												Password repeat is empty.
+											</span>
+											<span 
+												className ="cmp_vetonest.com_Af92YTwI3c signup_correctErrors" 
+											>
+												Please correct the errors before continuing.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_D6PwmqV638"
+												className ="signup_selectTypeError" 
+											>
+												Are you a pet owner or a veto? Please select.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_XqWZIGCbmK"
+												className ="signUp_verifyEmailSubjet" 
+											>
+												Password repeat is empty.
+											</span>
+											
+signup_emailPlaceholder,
+signup_firstNamePlaceholder
+signup_passwordPlaceholder,
+signup_passwordRepeatPlaceholder,
+signup_namePlaceholder
+								</Form>
+							</div>
+						</div>							
 					</div>
 				</div>
 			</div>

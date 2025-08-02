@@ -193,7 +193,10 @@ const SearchBox = () => {
 				> 
 					<span 
 						id="cmp_vetonest.com_ukiF7lBsd1"
-						style={{ fontSize: '13px' }}
+						style={{ 
+							fontSize: '13px',
+							height: '45px'
+						}}
 					>
 						Recherche
 					</span>
