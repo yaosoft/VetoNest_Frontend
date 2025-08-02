@@ -269,6 +269,26 @@ export const SiteProvider = ({ children }) => {
 	const [ contactErrorPhonenumberEmpty, setContactErrorPhonenumberEmpty ] = useState( '' );
 	const [ contactEmptyMessageError, setContactEmptyMessageError ] = useState( '' );
 	
+	const [ signUp_nameErrorText, setSignUp_nameErrorText ] = useState( '' );
+	const [ signUp_firstNameErrorText, setSignUp_firstNameErrorText ] = useState( '' );
+	const [ signUp_emailErrorText, setSignUp_emailErrorText ] = useState( '' );
+	const [ signUp_passwordErrorText, setSignUp_passwordErrorText ] = useState( '' );
+	const [ signUp_passwordRepeatErrorText,	setSignUp_passwordRepeatErrorText ] = useState( '' );
+	const [ signUp_type1, setSignUp_type1 ] = useState( '' );
+	const [ signUp_type2, setSignUp_type2 ] = useState( '' );
+	const [ signUp_nameEmpty, setSignUp_nameEmpty ] = useState( '' );
+	const [ signUp_emailEmpty, setSignUp_emailEmpty ] = useState( '' );
+	const [ signUp_passwordEmpty, setSignUp_passwordEmpty ] = useState( '' );
+	const [ signup_correctErrors, setSignup_correctErrors ] = useState( '' );
+	const [ signup_selectTypeError, setSignup_selectTypeError ] = useState( '' );
+	const [ signUp_verifyEmailSubjet, setSignUp_verifyEmailSubjet ] = useState( '' );
+	const [ signup_firstNamePlaceholder, setSignup_firstNamePlaceholder ] = useState( '' );
+	const [ signup_emailPlaceholder, setSignup_emailPlaceholder ] = useState( '' );
+	const [ signup_passwordPlaceholder, setSignup_passwordPlaceholder ] = useState( '' );
+	const [ signup_passwordRepeatPlaceholder, setSignup_passwordRepeatPlaceholder ] = useState( '');
+	const [ signUp_passwordRepeatEmpty, setSignUp_passwordRepeatEmpty ] = useState( '' );
+	const [ signup_namePlaceholder, setSignup_namePlaceholder ] = useState( '' );
+
 
 	return (	
 	
@@ -347,6 +367,46 @@ export const SiteProvider = ({ children }) => {
 				setContactErrorPhonenumberEmpty,
 				contactEmptyMessageError,
 				setContactEmptyMessageError,
+				signUp_nameErrorText,
+				setSignUp_nameErrorText,
+				signUp_firstNameErrorText,
+				setSignUp_firstNameErrorText,
+				signUp_emailErrorText,
+				setSignUp_emailErrorText,
+				signUp_passwordErrorText,
+				setSignUp_passwordErrorText,
+				signUp_passwordRepeatErrorText,
+				setSignUp_passwordRepeatErrorText,
+				signUp_type1,
+				setSignUp_type1,
+				signUp_type2,
+				setSignUp_type2,
+				signUp_nameEmpty,
+				setSignUp_nameEmpty,
+				signUp_emailEmpty,
+				setSignUp_emailEmpty,
+				signUp_emailEmpty,
+				setSignUp_emailEmpty,
+				signUp_passwordEmpty,
+				setSignUp_passwordEmpty,
+				signUp_passwordRepeatEmpty,
+				setSignUp_passwordRepeatEmpty,
+				signup_correctErrors,
+				setSignup_correctErrors,
+				signup_selectTypeError,
+				setSignup_selectTypeError,
+				signUp_verifyEmailSubjet,
+				setSignUp_verifyEmailSubjet,
+				signup_namePlaceholder,
+				setSignup_namePlaceholder,
+				signup_firstNamePlaceholder,
+				setSignup_firstNamePlaceholder,
+				signup_emailPlaceholder,
+				setSignup_emailPlaceholder,
+				signup_passwordPlaceholder,
+				setSignup_passwordPlaceholder,
+				signup_passwordRepeatPlaceholder,
+				setSignup_passwordRepeatPlaceholder,
 			}}
 		>
 

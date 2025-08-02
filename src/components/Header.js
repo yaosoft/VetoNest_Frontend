@@ -168,13 +168,20 @@ const Header = () => {
 										</Link>
 									</li>
 									 <li className={ "nav-item " + active[2].actif }>
-										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
+										
+												
 											<ul>{ isAuthenticated() ? 
-													<li>Profile de { truncateString( user.userNom, 10 ) }</li>
+												<>	
+													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
+														<li>Profile de { truncateString( user.userNom, 10 ) }</li>
+													</Link>
+												</>
 												: 
-													<li id="cmp_vetonest.com_bL1MO9LnVv">S'inscrire</li>
-											}</ul>
-										</Link>
+													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'inscription' ) }>
+														<li id="cmp_vetonest.com_bL1MO9LnVv">S'inscrire</li>
+													</Link>
+											}
+											</ul>
 									  </li>
 									 <li className={ "nav-item " + active[2].actif }>
 										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickLogInOut( e ) }>
