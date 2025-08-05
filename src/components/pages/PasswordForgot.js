@@ -36,6 +36,24 @@ const PasswordForgot = ( params ) => {
 		checkEmail,
 		setVerificationCode,
 		setVerificationUserId,
+		insertSpaceAtPosition,
+		signUp_passwordErrorText,
+		signUp_correctErrors,
+		signUp_passwordEmpty,
+		signUp_emailErrorText,
+		signUp_emailEmpty,
+		signUp_emailPlaceholder,
+		signUp_passwordPlaceholder,
+		signUp_btnSubmit,
+		signIn_passwordForgot,
+		signUp_codeIncorrect,
+		signUp_codeCorrect,
+		signUp_codeTitle,
+		signUp_codeIntro,
+		signUp_codeLabel,
+		signUp_codeResend,
+		signUp_termsUsage,
+
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -57,12 +75,13 @@ const PasswordForgot = ( params ) => {
 	const [ pwForgotEmail, setPwForgotEmail ] = useState( '' );
 	const [ pwForgotEmailError, setPwForgotEmailError ] = useState( '' );
 	const handleChangePwForgotEmail = ( e ) => {
+		setFormError01( 'none' );
 		const data = e.target.value;
 		setPwForgotEmail( data );
 
 		var pwForgotEmailErrorText = '';
 		if( data && !isValidEmail( data ) )
-			pwForgotEmailErrorText = 'Your email is not correct'
+			pwForgotEmailErrorText = signUp_emailErrorText;
 		
 		setPwForgotEmailError ( pwForgotEmailErrorText );
 	}
@@ -81,7 +100,7 @@ const PasswordForgot = ( params ) => {
 		var formHasEmpty = '';
 
 		if( pwForgotEmail == '' ){
-			const errorMessage = 'Email is empty';
+			const errorMessage = signUp_emailEmpty;
 			document.getElementById( 'pwForgotEmailInput' ).focus();
 			// await setSignInEmailError( errorMessage );
 			formHasEmpty = errorMessage
@@ -97,7 +116,7 @@ const PasswordForgot = ( params ) => {
 	const [ userId, setUserId ] = useState( 'none' );
 	const handleClickEmailValidation = async ( event ) => {
 
-		event.preventDefault();
+		// event.preventDefault();
 		setPwForgotSpin( 'block' );
 
 		clearFormErrors(); // clear form error
@@ -107,7 +126,7 @@ const PasswordForgot = ( params ) => {
 		// check form erors
 		const formHasErrors = await checkFormErrors();
 		if( formHasErrors ){
-			message.error( 'Please correct the errors before continuing.' );
+			message.error( signUp_correctErrors );
 			setPwForgotSpin( 'none' );
 			setSendingDisabled( false );
 			return
@@ -181,19 +200,7 @@ const PasswordForgot = ( params ) => {
 
 	}
 
-	const insertSpaceAtPosition = ( originalString, position ) => {
-	  // Ensure the position is within valid bounds
-	  if (position < 0 || position > originalString.length) {
-		console.warn("Position is out of bounds. No space inserted.");
-		return originalString;
-	  }
 
-	  // Split the string into two parts and insert the space in between
-	  const part1 = originalString.substring(0, position);
-	  const part2 = originalString.substring(position);
-// console.log(part1 + " " + part2);
-	  return part1 + " " + part2;
-	}
 
 	// display a form error
 	const showAFormError = ( className ) => {
@@ -231,12 +238,12 @@ const PasswordForgot = ( params ) => {
 	const handleCompletedCode = ( typedCode ) => {
 		
 		if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
+				message.error( signUp_codeIncorrect );
 				setDisplayCodeIncorrect( 'block' );
 				setEmailVerificationResult( false );
 		}
 		else{
-			message.success( 'Your code is correct' );
+			message.success( signUp_codeCorrect );
 			setEmailVerificationResult( true );
 			setDisplayCodeCorrect( 'block' );
 			setDisplayCodeIncorrect( 'none' );
@@ -262,19 +269,20 @@ const PasswordForgot = ( params ) => {
 	 return (
 		<>
 			<Modal
-				title		= "Email verification"
-				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { isModalOpen }
-				onOk		= { handleOk }
-				onCancel	= { handleCancel }
-				afterClose	= { modalClosed }
-				footer		= {null}
+				title			= { signUp_codeTitle }
+				closable		= {{ 'aria-label': 'Custom Close Button' }}
+				open			= { isModalOpen }
+				onOk			= { handleOk }
+				onCancel		= { handleCancel }
+				afterClose		= { modalClosed }
+				footer			= {null}
+				maskClosable	= {false} // This prevents closing on mask click
 			>
     <div className="App">
-		<span>We sent a verification code to { pwForgotEmail }.</span>
+		<span>{ signUp_codeIntro } { pwForgotEmail }.</span>
       <InputCode
         length={6}
-        label="Please type your code"
+        label={ signUp_codeLabel }
         loading={loading}
         onComplete={code => {
           setLoading(true);
@@ -283,9 +291,9 @@ const PasswordForgot = ( params ) => {
         }}
       />
 	<div className = "row" >
-		<span className='text text-success' style={{display: displayCodeCorrect }} >Code correct!&nbsp;</span>
-		<span className='text text-danger' style={{display: displayCodeIncorrect }} >Code incorrect!&nbsp;</span>
-		<span className='text text-info' style={{display: displayCodeResend }}>Resend the code</span>
+		<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
+		<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
+		<span className='text text-info' >{ signUp_codeResend }</span>
 	</div>
 	</div>		
 					<br/><br/>
@@ -297,7 +305,7 @@ const PasswordForgot = ( params ) => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-			<Title title = { 'Mot de passe oublié' } />
+			<Title title = { signIn_passwordForgot } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
@@ -332,12 +340,11 @@ const PasswordForgot = ( params ) => {
 												<Input 
 													id="pwForgotEmailInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your email" 
+													placeholder={signUp_emailPlaceholder} 
 													type="text" 
 													name="pwForgotmail"
 													value={ pwForgotEmail }
 													onChange = { e => handleChangePwForgotEmail(e)}
-													
 												/>
 											</Form.Item>
 											</div>
@@ -380,23 +387,86 @@ const PasswordForgot = ( params ) => {
 													}
 												/>
 											</Space>
-												Submit
+											{ signUp_btnSubmit }
 											</button> 
 											<div className='row'>
 												<div className='col-6'>
-													<Link to='/connexion' className="text-primary">Terms and usage</Link>
+													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
 												</div>
-												<div className='col-6 textAlignRight'>
-													Have account? <Link to='/connexion' className="text-primary">Envoyer</Link>
+												<div className='col-md-6 textAlignRight'>
+													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
 												</div>
 											</div>
 										</Form>
 									</div>
 								</div>
-							
+						<div className ="displayNone" >
+						<span 
+								id = "cmp_vetonest.com_2NbkrLN1Nt"
+								className ="signUp_codeIncorrect" 
+							>
+								Your code is not correct. Try again.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_MnveaCfq6X"
+								className ="signUp_codeCorrect" 
+							>
+								Your code is correct.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_WCfOc17hne"
+								className ="signUp_codeTitle" 
+							>
+								Email verification
+							</span>
+							<span
+								id = "cmp_vetonest.com_Xzm3u4t1uE"
+								className ="signUp_codeIntro" 
+							>
+							</span>
+							<span
+								id = "cmp_vetonest.com_Xzm3u4t1uE"
+								className ="signUp_codeIntro" 
+							>
+							</span>
+							<span
+								id = "cmp_vetonest.com_Y9LbvGXMq2"
+								className ="signIn_passwordForgot" 
+							>
+								Mot de passe oublié
+							</span>
+							<span 
+								id = "cmp_vetonest.com_LXBYsFPl1b"
+								className ="signUp_passwordPlaceholder" 
+							>
+							</span>
+							<span
+								id = "cmp_vetonest.com_f8Pqk3fJ2H"
+								className ="signUp_btnSubmit" 
+							>
+								Submit
+							</span>
+							<span
+								id = "cmp_vetonest.com_OFArwroEkk"
+								className ="signUp_termsUsage" 
+							>
+								Term and usage
+							</span>
+								
+							<span 
+								className ="cmp_vetonest.com_GomedYOvSx signUp_emailErrorText" 
+							>
+								Your email is not correct
+							</span>
+							<span 
+								className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
+							>
+								Email
+							</span>
+						</div>	
+						</div>
 					</div>
 				</div>
-			</div>
 			<div>&nbsp;</div>
 			<Footer />
 		</>

@@ -30,8 +30,8 @@ const Header = () => {
 		setSelectedLanguageId,
 		selectedLanguageId,
 		truncateString,
-
-		
+		siteLanguage,
+		flag
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -88,14 +88,17 @@ const Header = () => {
 
 	// get the profile data
 	useEffect( () => {
-// const test = document.getElementById( 'cmp_vetonest.com_bL1MO9LnVv' ).innerText;
-// alert( test );
-		if( user === null )
+		if( user === null ){
+			if( siteLanguage == '' ){
+				setSelectedLanguageId( defaultLanguageId );	// update languagelist boxes
+				languageSetup( defaultLanguageId ); 			// Update language flag
+			}
 			return
+		}
 
-		const path = window.location.pathname.replace( '/', '' );
-		const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
-		setActive( newActiveArr );	
+		// const path = window.location.pathname.replace( '/', '' );
+		// const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
+		// setActive( newActiveArr );	
 		
 		// Get user preference
 		const a = async () => {
@@ -103,12 +106,13 @@ const Header = () => {
 				userId: user.userId,
 			}
 			const resp = await getLanguagePreference ( data );
-			if( resp === null )
-				return
+			var languageId = defaultLanguageId;
+			if( resp !== null )
+				languageId = resp.id;
 
-			setSelectedLanguageId( resp.id );	// update languagelist boxes
-			languageSetup( resp.id ); 			// Update language flag
-			user.languageId = resp.id; 			// update user
+			setSelectedLanguageId( languageId );	// update languagelist boxes
+			languageSetup( languageId ); 			// Update language flag
+			user.languageId = languageId; 			// update user
 			setUser( user );
 		}		
 		a()
@@ -134,20 +138,21 @@ const Header = () => {
 											<Link to="/accueil">
 												<img 
 													src="/img/logo01.png"
-													style={{height:'80px'}} 
+													style={{height:'75px, width:94px'}} 
 													alt="#"
 												/>
 											</Link>
 										</div>
 										<div className="logo col-md-10" style={{paddingTop: '10px'}}>
-											<img 
+											<Link to="/accueil">
+												<img 
 													src="/img/logo02.png"
-													style={{height:'43px'}} 
+													style={{height:'35px'}} 
 													alt="#"
-											/>
+												/>
+											</Link>
 											<br/>
 											<span className='headerSlogan' id="cmp_vetonest.com_zDVB9q7a2d">Consultation Vétérinaire </span>&nbsp;
-											<span className='headerSlogan' id="cmp_vetonest.com_hRtNBb3lSe">en Ligne et à Domicile</span>
 										</div>
 									</div>
 								</div>
@@ -173,7 +178,7 @@ const Header = () => {
 											<ul>{ isAuthenticated() ? 
 												<>	
 													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>Profile de { truncateString( user.userNom, 10 ) }</li>
+														<li>{ truncateString( user.userNom, 10 ) }</li>
 													</Link>
 												</>
 												: 

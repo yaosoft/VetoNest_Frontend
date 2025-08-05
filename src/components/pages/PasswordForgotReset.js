@@ -34,6 +34,16 @@ const PasswordForgotReset = ( params ) => {
 		setVerificationCode,
 		setVerificationUserId,
 		updatePassword,
+		signUp_passwordErrorText,
+		signUp_passwordRepeatErrorText,
+		signUp_correctErrors,
+		passwordForgot_updateSuccess,
+		signUp_passwordPlaceholder,
+		signUp_passwordRepeatPlaceholder,
+		signUpPasswordRepeat,
+		signUp_termsUsage,
+		passwordForgotReset_title
+		
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -52,7 +62,7 @@ const PasswordForgotReset = ( params ) => {
 		
 		var pwResetPasswordErrorText = '';
 		if( data && isValidPassword( data ) !== true )
-			pwResetPasswordErrorText = 'Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.'
+			pwResetPasswordErrorText = signUp_passwordErrorText
 
 		setPwResetPasswordError( pwResetPasswordErrorText );
 	}
@@ -66,7 +76,7 @@ const PasswordForgotReset = ( params ) => {
 		
 		var pwResetPasswordRepeatErrorText = '';
 		if( data && isValidPasswordRepeat( data ) === false )
-			pwResetPasswordRepeatErrorText = 'Password are different'
+			pwResetPasswordRepeatErrorText = signUp_passwordRepeatErrorText;
 			setPwResetPasswordRepeatError( pwResetPasswordRepeatErrorText );
 	}
 	const isValidPasswordRepeat = ( pwResetPasswordRepeat ) => {
@@ -123,7 +133,7 @@ const PasswordForgotReset = ( params ) => {
 		// check form erors
 		const formHasErrors = await checkFormErrors();
 		if( formHasErrors ){
-			message.error( 'Please correct the errors before continuing.' );
+			message.error( signUp_correctErrors );
 			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
 			return
@@ -154,7 +164,8 @@ const PasswordForgotReset = ( params ) => {
 			message.error( showAFormError( formError03 ) )
 		}
 		else{									// check email account
-			message.success( 'Votre mot de passe a été mis a jour.' );
+			message.success( passwordForgot_updateSuccess );
+// message.success( 'Votre mot de passe a été mis a jour.' );
 			setVerificationCode( '' );
 			setVerificationUserId( '' );
 			navigate( '/connexion' )
@@ -189,11 +200,10 @@ const PasswordForgotReset = ( params ) => {
 
 		if( !isOk ){
 			// message.error( "Validation code not found" );
-			console.log( 'Validation code not found' );
+// console.log( 'Validation code not found' );
 			navigate( '/mot-de-passe-oublie' )
 			return;
 		}
-		
 
 	}, [] );
 
@@ -213,21 +223,17 @@ const PasswordForgotReset = ( params ) => {
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-			<Title title = { 'Reset your password' } />
+			<Title title = { passwordForgotReset_title } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								
-										
 										 <Form 
 											className=""
 											form = {form}
 										 >
-										
-										
-									
+
 											<div className="form-group">
 											<Form.Item
 												name  = "password"
@@ -244,12 +250,12 @@ const PasswordForgotReset = ( params ) => {
 														}
 													}
 												]}
-												initialValue  = ''
+												/* initialValue  = '' */
 											>
 												<Input 
 													id="pwResetPasswordInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Enter your new password" 
+													placeholder={ signUp_passwordPlaceholder }
 													type="password" 
 													name="password"
 													value={ pwResetPassword }
@@ -279,9 +285,10 @@ const PasswordForgotReset = ( params ) => {
 												<Input 
 													id="pwResetPasswordRepeatInput"
 													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder="Repeat your password" 
+													placeholder={ signUp_passwordRepeatPlaceholder 
+													} 
 													type="password" 
-													name="passwordRepeat"
+													name={ signUpPasswordRepeat }
 													value={ pwResetPasswordRepeat }
 													onChange = { e => handleChangePwResetPasswordRepeat(e)}
 												/>
@@ -326,24 +333,77 @@ const PasswordForgotReset = ( params ) => {
 													}
 												/>
 											</Space>
-												Submit
+												<span
+													id = "cmp_vetonest.com_f8Pqk3fJ2H"
+													className ="signUp_btnSubmit" 
+												>
+													Submit
+												</span>
 											</button> 
 											<div className='row'>
 												<div className='col-6'>
-													<Link to='/connexion' className="text-primary">Terms and usage</Link>
+													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
 												</div>
-												<div className='col-6 textAlignRight'>
-													Have account? <Link to='/connexion' className="text-primary">connexion</Link>
+												<div className='col-md-6 textAlignRight'>
+													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
 												</div>
 											</div>
 										</Form>
 									</div>
 								</div>
-							
+							</div>
+						</div>	
 					</div>
+				<div className="displayNone">	
+							<span 
+								id = "cmp_vetonest.com_UcvWQuFUwO"
+								className ="signUp_passwordErrorText" 
+							>
+								Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_BmYPSRuRRY"
+								className ="signUp_passwordRepeatErrorText" 
+							>
+								Password are different.
+							</span>
+							<span 
+								className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors"
+							>
+								Please correct the errors before continuing.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_cFjGEBvej6"
+								className ="passwordForgot_updateSuccess"
+							>
+								Votre mot de passe a été mis a jour.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_LXBYsFPl1b"
+								className ="signUp_passwordPlaceholder" 
+							>
+								Password
+							</span>
+							<span 
+								id = "cmp_vetonest.com_c6WAL3fo3k"
+								className ="signUp_passwordRepeatPlaceholder" 
+							>
+								Password repeat
+							</span>
+							<span 
+								id = "cmp_vetonest.com_JwgqTDF9g7"
+								className ="passwordForgotReset_title" 
+							>
+								Reset your password
+							</span>
+							<span
+								id = "cmp_vetonest.com_OFArwroEkk"
+								className ="signUp_termsUsage" 
+							>
+								Terms and usage
+							</span>
 				</div>
-			</div>
-			<div>&nbsp;</div>
+				<div>&nbsp;</div>
 			<Footer />
 		</>
 	);
