@@ -10,7 +10,7 @@ import {
 	InboxOutlined, 
 	QuestionCircleOutlined,
 } from '@ant-design/icons';
-import { Form, Input, Select } from 'antd';
+import { Form, Input, Select, Textarea } from 'antd';
 
 
 import { SiteContext } from '../context/site';
@@ -106,12 +106,18 @@ const Contact = () => {
 	const [ siteMessageError, setSiteMessageError]  = useState( '' );
 	const [ siteMessage, setSiteMessage ] = useState( '' );
 	const handleChangeSiteMessage = ( e ) => {
+		
+		clearFormErrors();
+		
 		const data = e.target.value;
 		setSiteMessage( data );
 
 		var siteMessageErrorText = '';
 		if( !isValidSiteMessage( data ) )
 			siteMessageErrorText = contactFormMessageErrorText;
+		else
+			siteMessageErrorText = ''
+			
 
 // siteMessageErrorText = 'Please add a few words to your message';
 
@@ -328,7 +334,7 @@ const Contact = () => {
 								]}
 								/* initialValue  = { fullname ? fullname : fullnameDefault } */
 							>
-							   <input 
+							   <Input 
 									className="contactus" 
 									placeholder={ placeholderFullname } 
 									type="type" 
@@ -358,7 +364,7 @@ const Contact = () => {
 								]}
 								/* initialValue  = { fullname ? fullname : fullnameDefault } */
 							>
-							   <input 
+							   <Input 
 									className="contactus" 
 									placeholder={ placeholderEmail }
 									type="type" 
@@ -388,7 +394,7 @@ const Contact = () => {
 									}
 								]}
 							>
-								<input 
+								<Input 
 									className="contactus" 
 									placeholder={ placeholderPhone }
 									type="type" 
@@ -407,7 +413,7 @@ const Contact = () => {
 									{
 										message: siteMessageError,
 										validator: ( value ) => {
-											if ( siteMessageError ) {
+											if ( !isValidSiteMessage(siteMessage) ) {
 												return Promise.reject( siteMessageError );
 											} 
 											else {
@@ -417,7 +423,7 @@ const Contact = () => {
 									}
 								]}
 							>
-							   <textarea 
+							   <Input.TextArea 
 									className="textarea" 
 									placeholder={ placeholderMessage } 
 									type="type" 
