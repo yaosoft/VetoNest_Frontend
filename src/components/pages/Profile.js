@@ -76,13 +76,25 @@ const Profile = ( params ) => {
 			<p>&nbsp;</p>
 			
 			<Title title = { 'Profile' } />
-        
+	<div className="contact">
+         <div className="container">
+            <div className="row">
+               <div className="col-md-6">
+					Travaux en cours.
+               </div>
+               
+            </div>
+         </div>
+      </div>
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
+						<span>{ user.userNom } { user.userPrenom }</span>
+					</div>
+					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								<p className='fontWeight'>Account type:</p>
+								<p className='fontWeight'>Type de compte:</p>
 								{ user.profileTypeId == 1 ?
 								  <span>Propriétaire</span>
 								  :
@@ -94,8 +106,8 @@ const Profile = ( params ) => {
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-								<p className='fontWeight'>Preferences:</p>
-								Select your language:<br/>
+								<p className='fontWeight'>Préférences:</p>
+								Language:<br/>
 									<LanguageSelector 
 										toPersist 	= { true } 
 										flag 		= { false }

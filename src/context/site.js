@@ -243,6 +243,21 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
+	
+	// insert space at position x
+	const insertSpaceAtPosition = ( originalString, position ) => {
+	  // Ensure the position is within valid bounds
+	  if (position < 0 || position > originalString.length) {
+		console.warn("Position is out of bounds. No space inserted.");
+		return originalString;
+	  }
+
+	  // Split the string into two parts and insert the space in between
+	  const part1 = originalString.substring(0, position);
+	  const part2 = originalString.substring(position);
+// console.log(part1 + " " + part2);
+	  return part1 + " " + part2;
+	}
 
 	// placeholder translate for indirect translation cases
 	const [ searchInputVeto, setSearchInputVeto ] = useState( '' );
@@ -255,7 +270,6 @@ export const SiteProvider = ({ children }) => {
 	const [ placeholderEmail, setPlaceholderEmail ] = useState( '' );
 	const [ placeholderPhone, setPlaceholderPhone ] = useState( '' );
 	const [ placeholderMessage, setPlaceholderMessage ] = useState( '' );
-	
 	const [ contactCorrectError, setContactCorrectError ] = useState( '' );
 	const [ contactErrorsExistText, setContactErrorsExistText ] = useState( '' );
 	const [ contactErrorOccured, setContactErrorOccured ] = useState( '' );
@@ -268,7 +282,6 @@ export const SiteProvider = ({ children }) => {
 	const [ contactEmailEmptyError, setContactEmailEmptyError ] = useState( '' );
 	const [ contactErrorPhonenumberEmpty, setContactErrorPhonenumberEmpty ] = useState( '' );
 	const [ contactEmptyMessageError, setContactEmptyMessageError ] = useState( '' );
-	
 	const [ signUp_nameErrorText, setSignUp_nameErrorText ] = useState( '' );
 	const [ signUp_firstNameErrorText, setSignUp_firstNameErrorText ] = useState( '' );
 	const [ signUp_emailErrorText, setSignUp_emailErrorText ] = useState( '' );
@@ -279,15 +292,41 @@ export const SiteProvider = ({ children }) => {
 	const [ signUp_nameEmpty, setSignUp_nameEmpty ] = useState( '' );
 	const [ signUp_emailEmpty, setSignUp_emailEmpty ] = useState( '' );
 	const [ signUp_passwordEmpty, setSignUp_passwordEmpty ] = useState( '' );
-	const [ signup_correctErrors, setSignup_correctErrors ] = useState( '' );
-	const [ signup_selectTypeError, setSignup_selectTypeError ] = useState( '' );
+	const [ signUp_correctErrors, setSignUp_correctErrors ] = useState( '' );
+	const [ signUp_selectTypeError, setSignUp_selectTypeError ] = useState( '' );
 	const [ signUp_verifyEmailSubjet, setSignUp_verifyEmailSubjet ] = useState( '' );
-	const [ signup_firstNamePlaceholder, setSignup_firstNamePlaceholder ] = useState( '' );
-	const [ signup_emailPlaceholder, setSignup_emailPlaceholder ] = useState( '' );
-	const [ signup_passwordPlaceholder, setSignup_passwordPlaceholder ] = useState( '' );
-	const [ signup_passwordRepeatPlaceholder, setSignup_passwordRepeatPlaceholder ] = useState( '');
+	const [ signUp_firstNamePlaceholder, setSignUp_firstNamePlaceholder ] = useState( '' );
+	const [ signUp_emailPlaceholder, setSignUp_emailPlaceholder ] = useState( '' );
+	const [ signUp_passwordPlaceholder, setSignUp_passwordPlaceholder ] = useState( '' );
+	const [ signUp_passwordRepeatPlaceholder, setSignUp_passwordRepeatPlaceholder ] = useState( '');
 	const [ signUp_passwordRepeatEmpty, setSignUp_passwordRepeatEmpty ] = useState( '' );
-	const [ signup_namePlaceholder, setSignup_namePlaceholder ] = useState( '' );
+	const [ signUp_namePlaceholder, setSignUp_namePlaceholder ] = useState( '' );
+	const [ signUp_formOption1ErrorText, setSignUp_formOption1ErrorText ] = useState( '' );
+	const [ signUp_formOption2ErrorText, setSignUp_formOption2ErrorText ] = useState( '' );
+	const [ signUp_codeTitle, setSignUp_codeTitle ] = useState( '' );
+	const [ signUp_codeCorrect, setSignUp_codeCorrect ] = useState( '' );
+	const [ signUp_codeIncorrect, setSignUp_codeIncorrect ] = useState( '' );	
+	const [ signUp_codeIntro, setSignUp_codeIntro ] = useState( '' );	
+	const [ signUp_codeResend, setSignUp_codeResend ] = useState( '' );
+	
+	const [ signUp_popConfirmVetTitle, setSignUp_popConfirmVetTitle ] = useState( '' );
+	const [ signUp_popConfirmPetTitle, setSignUp_popConfirmPetTitle ] = useState( '' );
+	const [ signUp_popConfirmVetDescription, setSignUp_popConfirmVetDescription ] = useState( '' );
+	const [ signUp_popConfirmPetDescription, setSignUp_popConfirmPetDescription ] = useState( '' );
+	const [ signUp_popConfirmYes, setSignUp_popConfirmYes ] = useState( '' );
+	const [ signUp_popConfirmNo, setSignUp_popConfirmNo ] = useState( '' );
+	const [ signUp_popConfirmDeleteBtn, setSignUp_popConfirmDeleteBtn ] = useState( '' );
+	const [ signUp_accountCreationSuccess, setSignUp_accountCreationSuccess ] = useState( '' );
+	
+	const [ signUp_title, setSignUp_title ] = useState( '' );
+	const [ signIn_title, setSignIn_title ] = useState( '' );
+	const [ signUp_btnSubmit, setSignUp_btnSubmit ] = useState( '' );
+	const [ signUp_termsUsage, setSignUp_termsUsage ] = useState( '' );
+	const [ signUp_accountCreationFails, setSignUp_accountCreationFails ] = useState( '' );
+
+	const [ signIn_passwordForgot, setSignIn_passwordForgot ] = useState( '' );
+	const [ passwordForgot_updateSuccess, setPasswordForgot_updateSuccess ] = useState( '' );
+	const [ passwordForgotReset_title, setPasswordForgotReset_title ] = useState( '' );
 
 
 	return (	
@@ -300,6 +339,7 @@ export const SiteProvider = ({ children }) => {
 				signUp,
 				signIn,
 				checkEmail,
+				insertSpaceAtPosition,
 				sendEmail,
 				getReferrer,
 				setReferrer,
@@ -385,28 +425,73 @@ export const SiteProvider = ({ children }) => {
 				setSignUp_nameEmpty,
 				signUp_emailEmpty,
 				setSignUp_emailEmpty,
-				signUp_emailEmpty,
-				setSignUp_emailEmpty,
 				signUp_passwordEmpty,
 				setSignUp_passwordEmpty,
 				signUp_passwordRepeatEmpty,
 				setSignUp_passwordRepeatEmpty,
-				signup_correctErrors,
-				setSignup_correctErrors,
-				signup_selectTypeError,
-				setSignup_selectTypeError,
+				signUp_correctErrors,
+				setSignUp_correctErrors,
+				signUp_selectTypeError,
+				setSignUp_selectTypeError,
 				signUp_verifyEmailSubjet,
 				setSignUp_verifyEmailSubjet,
-				signup_namePlaceholder,
-				setSignup_namePlaceholder,
-				signup_firstNamePlaceholder,
-				setSignup_firstNamePlaceholder,
-				signup_emailPlaceholder,
-				setSignup_emailPlaceholder,
-				signup_passwordPlaceholder,
-				setSignup_passwordPlaceholder,
-				signup_passwordRepeatPlaceholder,
-				setSignup_passwordRepeatPlaceholder,
+				signUp_namePlaceholder,
+				setSignUp_namePlaceholder,
+				signUp_firstNamePlaceholder,
+				setSignUp_firstNamePlaceholder,
+				signUp_emailPlaceholder,
+				setSignUp_emailPlaceholder,
+				signUp_passwordPlaceholder,
+				setSignUp_passwordPlaceholder,
+				signUp_passwordRepeatPlaceholder,
+				setSignUp_passwordRepeatPlaceholder,
+				signUp_formOption1ErrorText,
+				setSignUp_formOption1ErrorText,
+				signUp_formOption2ErrorText,
+				setSignUp_formOption2ErrorText,
+				signUp_codeTitle,
+				setSignUp_codeTitle,
+				signUp_codeCorrect,
+				setSignUp_codeCorrect,
+				signUp_codeIncorrect,
+				setSignUp_codeIncorrect,
+				signUp_codeIntro, 
+				setSignUp_codeIntro,
+				signUp_codeResend,
+				setSignUp_codeResend,
+				signUp_popConfirmVetTitle,
+				setSignUp_popConfirmVetTitle,
+				signUp_popConfirmPetTitle,
+				setSignUp_popConfirmPetTitle,
+				signUp_popConfirmVetDescription,
+				setSignUp_popConfirmVetDescription,
+				signUp_popConfirmPetDescription,
+				setSignUp_popConfirmPetDescription,
+				signUp_popConfirmYes,
+				setSignUp_popConfirmYes,
+				signUp_popConfirmNo,
+				setSignUp_popConfirmNo,
+				signUp_popConfirmDeleteBtn,
+				setSignUp_popConfirmDeleteBtn,
+				signUp_accountCreationSuccess,	
+				setSignUp_accountCreationSuccess,	
+				signUp_title,
+				setSignUp_title,
+				signUp_btnSubmit,
+				setSignUp_btnSubmit,
+				signUp_termsUsage,
+				setSignUp_termsUsage,
+				signUp_accountCreationFails,
+				setSignUp_accountCreationFails,
+				signIn_passwordForgot,
+				setSignIn_passwordForgot,
+				signIn_title,
+				setSignIn_title,
+				passwordForgot_updateSuccess,
+				setPasswordForgot_updateSuccess,
+				passwordForgotReset_title, 
+				setPasswordForgotReset_title
+				
 			}}
 		>
 

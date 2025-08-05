@@ -55,18 +55,41 @@ const Footer = () => {
 		setSignUp_nameEmpty,
 		setSignUp_emailEmpty,
 		setSignUp_passwordEmpty,
-		setSignup_correctErrors,
-		setSignup_selectTypeError,
+		setSignUp_correctErrors,
+		setSignUp_selectTypeError,
 		setSignUp_verifyEmailSubjet,
-		setSignup_firstNamePlaceholder,
-		setSignup_emailPlaceholder,
-		setSignup_passwordPlaceholder,
-		setSignup_passwordRepeatPlaceholder,
-		setSignup_namePlaceholder
-
+		setSignUp_firstNamePlaceholder,
+		setSignUp_emailPlaceholder,
+		setSignUp_passwordPlaceholder,
+		setSignUp_passwordRepeatPlaceholder,
+		setSignUp_namePlaceholder,
+		setSignUp_formOption1ErrorText,
+		setSignUp_formOption2ErrorText,
+		setSignUp_passwordRepeatEmpty,
+		setSignUp_codeCorrect,
+		setSignUp_codeTitle,
+		setSignUp_codeIncorrect,
+		setSignUp_codeIntro,
+		setSignUp_codeResend,
+		setSignUp_popConfirmVetTitle,
+		setSignUp_popConfirmPetTitle,
+		setSignUp_popConfirmVetDescription,
+		setSignUp_popConfirmPetDescription,
+		setSignUp_popConfirmYes,
+		setSignUp_popConfirmNo,
+		setSignUp_popConfirmDeleteBtn,
+		setSignUp_accountCreationSuccess,
+		setSignUp_title,
+		setSignUp_btnSubmit,
+		setSignUp_termsUsage,
+		setSignUp_accountCreationFails,
+		setSignIn_passwordForgot,
+		setSignIn_title,
+		setPasswordForgot_updateSuccess,
+		setPasswordForgotReset_title, 
+		passwordForgotReset_title,
+		flag
 	} = useContext( SiteContext );
-
-
 
 	const navigate = useNavigate();
 	const array = [ 
@@ -219,21 +242,23 @@ const Footer = () => {
 
 				if( !contents.length )
 					continue;
-				
+			
 				const element = document.getElementById( tagRef );
-				if( element === null )
-					continue  
-				
+				const elementDuplicates = document.getElementsByClassName( tagRef );
+				if( element === null && elementDuplicates.length == 0 )
+					continue 
+
 				const currentLanguageTagContent = contents.filter( e => e.languageCode == siteLanguage );
 				if( !currentLanguageTagContent.length )
 					continue  
-				
+
 				// insert content
 				const tagContent = contentTypeId == 1 ? currentLanguageTagContent[0].textContent : 
 				currentLanguageTagContent[0].mediaContent;
-				element.innerHTML = tagContent;
-				// insert in duplication of the tag. They have a classname named the ragRef as .
-				const elementDuplicates = document.getElementsByClassName( tagRef );
+				if( element !== null )
+					element.innerHTML = tagContent;
+				
+				// insert in repetition of the tag. They have a classname named the ragRef as .
 				for ( const element of elementDuplicates ) {
 					element.innerHTML = tagContent;
 				}
@@ -374,8 +399,10 @@ const Footer = () => {
 				}
 
 				const signUp_firstNameErrorTextElt  = document.getElementsByClassName( "signUp_firstNameErrorText" )[0];
+	
 				if( signUp_firstNameErrorTextElt ){
 					const signUp_firstNameErrorText = signUp_firstNameErrorTextElt.innerHTML;
+				
 					setSignUp_firstNameErrorText( signUp_firstNameErrorText );
 				}
 
@@ -411,8 +438,9 @@ const Footer = () => {
 
 				const signUp_nameEmptyElt  = document.getElementsByClassName( "signUp_nameEmpty" )[0];
 				if( signUp_nameEmptyElt ){
+
 					const signUp_nameEmpty = signUp_nameEmptyElt.innerHTML;
-					setSignUp_type1( signUp_nameEmpty );
+					setSignUp_nameEmpty( signUp_nameEmpty );
 				} 
 				
 				const signUp_emailEmptyElt  = document.getElementsByClassName( "signUp_emailEmpty" )[0];
@@ -427,16 +455,16 @@ const Footer = () => {
 					setSignUp_passwordEmpty( signUp_passwordEmpty );
 				} 
 
-				const signup_correctErrorsElt  = document.getElementsByClassName( "signup_correctErrors" )[0];
-				if( signup_correctErrorsElt ){
-					const signup_correctErrors = signup_correctErrorsElt.innerHTML;
-					setSignup_correctErrors( signup_correctErrors );
+				const signUp_correctErrorsElt  = document.getElementsByClassName( "signUp_correctErrors" )[0];
+				if( signUp_correctErrorsElt ){
+					const signUp_correctErrors = signUp_correctErrorsElt.innerHTML;
+					setSignUp_correctErrors( signUp_correctErrors );
 				} 
 
-				const signup_selectTypeErrorElt  = document.getElementsByClassName( "signup_selectTypeError" )[0];
-				if( signup_selectTypeErrorElt ){
-					const signup_selectTypeError = signup_selectTypeErrorElt.innerHTML;
-					setSignup_selectTypeError( signup_selectTypeError );
+				const signUp_selectTypeErrorElt  = document.getElementsByClassName( "signUp_selectTypeError" )[0];
+				if( signUp_selectTypeErrorElt ){
+					const signUp_selectTypeError = signUp_selectTypeErrorElt.innerHTML;
+					setSignUp_selectTypeError( signUp_selectTypeError );
 				} 
 				
 				const signUp_verifyEmailSubjetElt  = document.getElementsByClassName( "signUp_verifyEmailSubjet" )[0];
@@ -445,35 +473,180 @@ const Footer = () => {
 					setSignUp_verifyEmailSubjet( signUp_verifyEmailSubjet );
 				} 
 				
-				const signup_firstNamePlaceholderElt  = document.getElementsByClassName( "signup_firstNamePlaceholder" )[0];
-				if( signup_firstNamePlaceholderElt ){
-					const signup_firstNamePlaceholder = signup_firstNamePlaceholderElt.innerHTML;
-					setSignup_firstNamePlaceholder( signup_firstNamePlaceholder );
+				const signUp_firstNamePlaceholderElt  = document.getElementsByClassName( "signUp_firstNamePlaceholder" )[0];
+				if( signUp_firstNamePlaceholderElt ){
+					const signUp_firstNamePlaceholder = signUp_firstNamePlaceholderElt.innerHTML;
+					setSignUp_firstNamePlaceholder( signUp_firstNamePlaceholder );
 				} 
 				
-				const signup_emailPlaceholderElt  = document.getElementsByClassName( "signup_emailPlaceholder" )[0];
-				if( signup_emailPlaceholderElt ){
-					const signup_emailPlaceholder = signup_emailPlaceholderElt.innerHTML;
-					setSignup_emailPlaceholder( signup_emailPlaceholder );
+				const signUp_emailPlaceholderElt  = document.getElementsByClassName( "signUp_emailPlaceholder" )[0];
+				if( signUp_emailPlaceholderElt ){
+					const signUp_emailPlaceholder = signUp_emailPlaceholderElt.innerHTML;
+					setSignUp_emailPlaceholder( signUp_emailPlaceholder );
 				}
 				
-				const signup_passwordPlaceholderElt  = document.getElementsByClassName( "signup_passwordPlaceholder" )[0];
-				if( signup_passwordPlaceholderElt ){
-					const signup_passwordPlaceholder = signup_passwordPlaceholderElt.innerHTML;
-					setSignup_passwordPlaceholder( signup_passwordPlaceholder );
+				const signUp_passwordPlaceholderElt  = document.getElementsByClassName( "signUp_passwordPlaceholder" )[0];
+				if( signUp_passwordPlaceholderElt ){
+					const signUp_passwordPlaceholder = signUp_passwordPlaceholderElt.innerHTML;
+					setSignUp_passwordPlaceholder( signUp_passwordPlaceholder );
 				} 
 		
-				const signup_passwordRepeatPlaceholderElt  = document.getElementsByClassName( "signup_passwordRepeatPlaceholder" )[0];
-				if( signup_passwordRepeatPlaceholderElt ){
-					const signup_passwordRepeatPlaceholder = signup_passwordRepeatPlaceholderElt.innerHTML;
-					setSignup_passwordRepeatPlaceholder( signup_passwordRepeatPlaceholder );
+				const signUp_passwordRepeatPlaceholderElt  = document.getElementsByClassName( "signUp_passwordRepeatPlaceholder" )[0];
+				if( signUp_passwordRepeatPlaceholderElt ){
+					const signUp_passwordRepeatPlaceholder = signUp_passwordRepeatPlaceholderElt.innerHTML;
+					setSignUp_passwordRepeatPlaceholder( signUp_passwordRepeatPlaceholder );
 				} 
 				
-				const signup_namePlaceholderElt  = document.getElementsByClassName( "signup_namePlaceholder" )[0];
-				if( signup_namePlaceholderElt ){
-					const signup_namePlaceholder = signup_namePlaceholderElt.innerHTML;
-					setSignup_namePlaceholder( signup_namePlaceholder );
+				const signUp_namePlaceholderElt  = document.getElementsByClassName( "signUp_namePlaceholder" )[0];
+				if( signUp_namePlaceholderElt ){
+					const signUp_namePlaceholder = signUp_namePlaceholderElt.innerHTML;
+					setSignUp_namePlaceholder( signUp_namePlaceholder );
 				} 
+
+				const signUp_formOption1ErrorTextElt  = document.getElementsByClassName( "signUp_formOption1ErrorText" )[0];
+				if( signUp_formOption1ErrorTextElt ){				
+					const signUp_formOption1ErrorText = signUp_formOption1ErrorTextElt.innerHTML;
+					setSignUp_formOption1ErrorText( signUp_formOption1ErrorText );
+				} 
+
+				const signUp_formOption2ErrorTextElt  = document.getElementsByClassName( "signUp_formOption2ErrorText" )[0];
+				if( signUp_formOption2ErrorTextElt ){
+					const signUp_formOption2ErrorText = signUp_formOption2ErrorTextElt.innerHTML;
+					setSignUp_formOption2ErrorText( signUp_formOption2ErrorText );
+				} 
+
+				const signUp_passwordRepeatEmptyElt  = document.getElementsByClassName( "signUp_passwordRepeatEmpty" )[0];
+				if( signUp_passwordRepeatEmptyElt ){
+					const signUp_passwordRepeatEmpty = signUp_passwordRepeatEmptyElt.innerHTML;
+					setSignUp_passwordRepeatEmpty( signUp_passwordRepeatEmpty );
+				} 
+
+				const signUp_codeCorrectElt  = document.getElementsByClassName( "signUp_codeCorrect" )[0];
+				if( signUp_codeCorrectElt ){
+					const signUp_codeCorrect = signUp_codeCorrectElt.innerHTML;
+
+					setSignUp_codeCorrect( signUp_codeCorrect );
+				}
+				
+				const signUp_codeTitleElt  = document.getElementsByClassName( "signUp_codeTitle" )[0];
+				if( signUp_codeTitleElt ){
+					const signUp_codeTitle = signUp_codeTitleElt.innerHTML;				
+					setSignUp_codeTitle( signUp_codeTitle );
+				} 
+				
+				const signUp_codeIncorrectElt  = document.getElementsByClassName( "signUp_codeIncorrect" )[0];
+				if( signUp_codeIncorrectElt ){
+					const signUp_codeIncorrect = signUp_codeIncorrectElt.innerHTML;
+					setSignUp_codeIncorrect( signUp_codeIncorrect );
+				}
+
+				const signUp_codeIntroElt  = document.getElementsByClassName( "signUp_codeIntro" )[0];
+				if( signUp_codeIntroElt ){
+					const signUp_codeIntro = signUp_codeIntroElt.innerHTML;
+					setSignUp_codeIntro( signUp_codeIntro );
+				}
+				
+				const signUp_codeResendElt  = document.getElementsByClassName( "signUp_codeResend" )[0];
+				if( signUp_codeResendElt ){
+					const signUp_codeResend = signUp_codeResendElt.innerHTML;
+					setSignUp_codeResend( signUp_codeResend );
+				}
+
+				const signUp_popConfirmVetTitleElt  = document.getElementsByClassName( "signUp_popConfirmVetTitle" )[0];
+				if( signUp_popConfirmVetTitleElt ){
+					const signUp_popConfirmVetTitle = signUp_popConfirmVetTitleElt.innerHTML;
+					setSignUp_popConfirmVetTitle( signUp_popConfirmVetTitle );
+				}
+				
+				const signUp_popConfirmPetTitleElt  = document.getElementsByClassName( "signUp_popConfirmPetTitle" )[0];
+				if( signUp_popConfirmPetTitleElt ){
+					const signUp_popConfirmPetTitle = signUp_popConfirmPetTitleElt.innerHTML;
+					setSignUp_popConfirmPetTitle( signUp_popConfirmPetTitle );
+				}
+
+				const signUp_popConfirmVetDescriptionElt  = document.getElementsByClassName( "signUp_popConfirmVetDescription" )[0];
+				if( signUp_popConfirmVetDescriptionElt ){
+					const signUp_popConfirmVetDescription = signUp_popConfirmVetDescriptionElt.innerHTML;
+					setSignUp_popConfirmVetDescription( signUp_popConfirmVetDescription );
+				}
+
+				const signUp_popConfirmPetDescriptionElt  = document.getElementsByClassName( "signUp_popConfirmPetDescription" )[0];
+				if( signUp_popConfirmPetDescriptionElt ){
+					const signUp_popConfirmPetDescription = signUp_popConfirmPetDescriptionElt.innerHTML;
+					setSignUp_popConfirmPetDescription( signUp_popConfirmPetDescription );
+				}
+
+				const signUp_popConfirmYesElt  = document.getElementsByClassName( "signUp_popConfirmYes" )[0];
+				if( signUp_popConfirmYesElt ){
+					const signUp_popConfirmYes = signUp_popConfirmYesElt.innerHTML;
+					setSignUp_popConfirmYes( signUp_popConfirmYes );
+				}
+
+				const signUp_popConfirmNoElt  = document.getElementsByClassName( "signUp_popConfirmNo" )[0];
+				if( signUp_popConfirmNoElt ){
+					const signUp_popConfirmNo = signUp_popConfirmNoElt.innerHTML;
+					setSignUp_popConfirmNo( signUp_popConfirmNo );
+				}
+				
+				const signUp_popConfirmDeleteBtnElt  = document.getElementsByClassName( "signUp_popConfirmDeleteBtn" )[0];
+				if( signUp_popConfirmDeleteBtnElt ){
+					const signUp_popConfirmDeleteBtn = signUp_popConfirmDeleteBtnElt.innerHTML;
+					setSignUp_popConfirmDeleteBtn( signUp_popConfirmDeleteBtn );
+				}
+				
+				const signUp_accountCreationSuccessElt  = document.getElementsByClassName( "signUp_accountCreationSuccess" )[0];
+				if( signUp_accountCreationSuccessElt ){
+					const signUp_accountCreationSuccess = signUp_accountCreationSuccessElt.innerHTML;
+					setSignUp_accountCreationSuccess( signUp_accountCreationSuccess );
+				}
+				
+				const signUp_titleElt  = document.getElementsByClassName( "signUp_title" )[0];
+				if( signUp_titleElt ){
+					const signUp_title = signUp_titleElt.innerHTML;
+					setSignUp_title( signUp_title );
+				}
+				
+				const signUp_btnSubmitElt  = document.getElementsByClassName( "signUp_btnSubmit" )[0];
+				if( signUp_btnSubmitElt ){
+					const signUp_btnSubmit = signUp_btnSubmitElt.innerHTML;
+					setSignUp_btnSubmit( signUp_btnSubmit );
+				}
+				
+				const signUp_termsUsageElt  = document.getElementsByClassName( "signUp_termsUsage" )[0];
+				if( signUp_termsUsageElt ){
+					const signUp_termsUsage = signUp_termsUsageElt.innerHTML;
+					setSignUp_termsUsage( signUp_termsUsage );
+				}
+				
+				const signUp_accountCreationFailsElt  = document.getElementsByClassName( "signUp_accountCreationFails" )[0];
+				if( signUp_accountCreationFailsElt ){
+					const signUp_accountCreationFails = signUp_accountCreationFailsElt.innerHTML;
+					setSignUp_accountCreationFails( signUp_accountCreationFails );
+				}
+				
+				const signIn_passwordForgotElt  = document.getElementsByClassName( "signIn_passwordForgot" )[0];
+				if( signIn_passwordForgotElt ){
+					const signIn_passwordForgot = signIn_passwordForgotElt.innerHTML;
+					setSignIn_passwordForgot( signIn_passwordForgot );
+				}
+				
+				const signIn_titleElt  = document.getElementsByClassName( "signIn_title" )[0];
+				if( signIn_titleElt ){
+					const signIn_title = signIn_titleElt.innerHTML;
+					setSignIn_title( signIn_title );
+				}
+
+				const passwordForgot_updateSuccessElt  = document.getElementsByClassName( "passwordForgot_updateSuccess" )[0];
+				if( passwordForgot_updateSuccessElt ){
+					const passwordForgot_updateSuccess = passwordForgot_updateSuccessElt.innerHTML;
+					setPasswordForgot_updateSuccess( passwordForgot_updateSuccess );
+				}
+				
+				const passwordForgotReset_titleElt  = document.getElementsByClassName( "passwordForgotReset_title" )[0];
+				if( passwordForgotReset_titleElt ){
+					const passwordForgotReset_title = passwordForgotReset_titleElt.innerHTML;
+					setPasswordForgotReset_title( passwordForgotReset_title );
+				}
 				
 			}
 		}

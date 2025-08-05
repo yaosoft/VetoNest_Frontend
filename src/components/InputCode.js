@@ -1,6 +1,13 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
+
+import { SiteContext } from "../context/site";
 
 const InputCode = ({ length, label, loading, onComplete }) => {
+	
+	const { 
+		signeUp_codeLabel,
+	}	= useContext( SiteContext );
+
   const [code, setCode] = useState([...Array(length)].map(() => ""));
   const inputs = useRef([]);
   // Typescript
@@ -31,7 +38,7 @@ const InputCode = ({ length, label, loading, onComplete }) => {
 
   return (
     <div className="code-input">
-      <label className="code-label">{label}</label>
+      <label className="code-label">{ signeUp_codeLabel }</label>
       <div className="code-inputs">
         {code.map((num, idx) => {
           return (

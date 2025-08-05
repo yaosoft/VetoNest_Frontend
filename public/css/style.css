@@ -201,7 +201,6 @@ h6 {
 .smallBlack18px{
 	color: #000000 !important;
 	font-size: 18px !important;
-	font-family: 'Verdana', 'Tahoma' !important;
 	font-weight: normal !important;
 	text-align: justify !important;
 }
@@ -248,7 +247,7 @@ h6 {
 }
 
 .paddingTop4px{
-	padding-top: 0px;
+	padding-top: 4px;
 }
 
 .ant-select-selector {
@@ -266,11 +265,11 @@ input:-webkit-autofill:active {
 }
 
 input::-webkit-input-placeholder{
-    color:#8C8C8C !important;
+    color:#3C3C3C !important;
 }
 
 input::-moz-placeholder {
-    color:#8C8C8C !important;
+    color:#3C3C3C !important;
 }
 
 input[type=text]:hover {
@@ -883,7 +882,7 @@ button {
 
 .headerSlogan{
 	color: #000000 !important;
-	font-size: 14px;
+	font-size: 12px;
 	font-family: 'Verdana', 'Tahoma';
 }
 
