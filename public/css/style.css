@@ -332,6 +332,11 @@ input[type=password]:hover {
 	font-weight: bold
 }
 
+.marginLeftRight2percent{
+	margin-left: 2%;
+	margin-right: 2%;
+}
+
 button[disabled]{
   border: 1px solid #999999;
   background-color: none;
