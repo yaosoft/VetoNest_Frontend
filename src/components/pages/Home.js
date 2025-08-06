@@ -76,7 +76,7 @@ const Home = () => {
 			<span id='cmp_vetonest.com_y50xzTXzES'>Bienvenue sur Veto Nest</span>
 		</div>
 		<div 
-			className = 'row marginBottom30 justify-content-center' 
+			className = 'row marginBottom30 justify-content-center marginLeftRight2percent' 
 		>
 			<div className='col-md-4'>
 				<Slider />
