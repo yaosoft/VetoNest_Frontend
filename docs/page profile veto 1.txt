@@ -1,0 +1,46 @@
+// Preference
+$langue;
+$langueDefault
+
+// Payment
+$paymentMethod;
+
+// Profile
+$user;		
+$nom;
+$prenom;
+$sexe;
+$picture;	
+$biography;
+$dateNaissance;
+$dateCreated;
+
+// Contact
+$phone;
+$phonePro;
+$phoneUrgence;
+$codePostal;
+
+// Activity
+$siret;
+$rpps;
+$lieu;
+$zoneActivite;
+$vetoSpecialite;
+$timeSlotClosedDay;
+$timeSlotClosedDate;
+
+// Consultation
+$consultation;
+$videoAllowed;
+$tarifConsultation;
+$tarifConsultationVideo;
+$messageAllowed;
+$fileGallery;
+
+// Etablissement
+$vetoEtablissementStatus;
+
+
+						
+

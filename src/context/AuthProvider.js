@@ -97,6 +97,15 @@ export const AuthProvider = ({ children }) => {
 		return rep;
 	}
 
+	// profile type ID
+	const [ profileTypeId, setProfileTypeId ] = useState( user.profileTypeId );
+	
+	// profile  ID
+	const [ profileId, setProfileId ] = useState( user.profileId );
+
+	// user  ID
+	const [ userId, setUserId ] = useState( user.userId );
+
 	useEffect (() => {
 		setUser( null );
 		const data = localStorage.getItem( 'user' );
@@ -114,10 +123,14 @@ export const AuthProvider = ({ children }) => {
 			value={{ 
 				logIn, 
 				getUser,
+				user,
 				setUser,
 				isAuthenticated,
 				isValidPassword,
-				passwordReplace
+				passwordReplace,
+				profileTypeId,
+				profileId,
+				userId
 			}}
 		>
 			{children}
