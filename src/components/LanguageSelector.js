@@ -14,7 +14,7 @@ const LanguageSelector = ( params ) => {
 		setUser,
 	} = useContext( AuthContext );
 	const { 
-		listLanguages,
+		languageList,
 		getProfile,
 		updateLanguagePreference,
 		defaultLanguageId,
@@ -91,7 +91,7 @@ console.log(languageId);
 	useEffect( () => {
 		// get all language
 		const getAllLanguage = async() => {
-			const languages = await listLanguages();
+			const languages = await languageList();
 			setLanguages( languages );
 		}
 		getAllLanguage();
@@ -105,12 +105,12 @@ console.log(languageId);
 	}, [user] );
 	 
 	 return (
-		<>
+		<div className="languageSelector">
 			{ flag === true &&
 				<img src= { languageFlag } className='flag'/> 
 			}
 			<BuildLanguagesList/>
-		</>
+		</div>
 	);
 };
 

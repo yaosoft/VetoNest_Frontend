@@ -50,9 +50,13 @@ export const SiteProvider = ({ children }) => {
 	// User Id
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
-	// Backend url 
-	// const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	const base_api_url	= 'https://backend.vetonest.com/api/'// prod 
+	// Backend api url 
+	const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+
+	// Backend public url 
+	const base_url = 'http://localhost/vetonest_backend/public/'; // dev
+	// const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -142,7 +146,7 @@ export const SiteProvider = ({ children }) => {
 	}
 
 	// List all languages
-	const listLanguages = async () => {
+	const languageList = async () => {
 		const url		= base_api_url + 'langue/list';
 		const data 		= '';
 		const method 	= 'GET';
@@ -152,22 +156,12 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// get a user profile
-	const getAProfile = async ( profileId ) => {
-		const url		= base_api_url + 'profileUser/show';
-		const data 		= profileId;
-		const method 	= 'GET';
-		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		return rep;
-	}
 
-	// set a user profile
-	const saveAProfile = async ( profileId ) => {
-		const url		= base_api_url + 'profileUser/edit';
-		const data 		= profileId;
-		const method 	= 'POST';
+	// list all payment's method
+	const paymentMethodList = async () => {
+		const url		= base_api_url + 'paymentMethod/list';
+		const data 		= '';
+		const method 	= 'GET';
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
@@ -191,7 +185,7 @@ export const SiteProvider = ({ children }) => {
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
-		const languages = await listLanguages();
+		const languages = await languageList();
 // console.log( languageId );		
 		const language = await languages.filter( e => e.id == languageId )[0];
 // console.log( language );
@@ -225,9 +219,9 @@ export const SiteProvider = ({ children }) => {
 	  // If the string is not longer than maxLength, return it as is
 	  return str;
 	}
-	
-	// const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
-	const base_cmp_Url = "https://cmp.diamta.com/api/"; // dev
+
+	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
+	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // dev
 	const [ siteContent, setSiteContent ] = useState( '' );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
@@ -259,6 +253,90 @@ export const SiteProvider = ({ children }) => {
 // console.log(part1 + " " + part2);
 	  return part1 + " " + part2;
 	}
+
+	// get a user profile
+	const profileGet = async ( profileId, profileTypeId ) => {
+		const type = profileTypeId == 1 ? 'profileUser' : 'profileVeto';
+		const url		= base_api_url + type + '/show/?' + type + 'Id=' + profileId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// update profile
+	const profileUpdate = async ( dataObj, picture, profileTypeId ) => {
+		const type 	= profileTypeId == 1 ? 'profileUser' : 'profileVeto';
+		const url	= base_api_url + type + '/edit';
+		const method 	= 'POST';
+		// const resp 		= await fetchData( url, data, method );
+
+		const formData = new FormData();
+		
+		// Append file
+		if( picture )
+			formData.append('files[]', picture.originFileObj)
+
+		// Append data
+		for ( var key in dataObj ) 
+			formData.append( key, dataObj[key] );
+
+		// You can use any AJAX library you like
+		setSpiner( 'block' );
+		const resp = await fetch( url, {
+			method: 'POST',
+			body: formData,
+		})
+		setSpiner( 'none' );
+		
+		return resp;
+	}
+
+	// profile modals
+	const [ modalPaymentMethodPaypalOpen, setModalPaymentMethodPaypalOpen ] = useState( false );
+	const [ isNew, setIsNew ] = useState( false ) 
+
+	// profile - get user payment methods
+	const userPaymentMethodList = async ( userId ) => {
+		const url		= base_api_url + 'user/payment-method/list/?userId=' + userId;
+		const data 		= "";
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// profile - add / update payment methods
+	const userPaymentMethodEdit = async ( userPaymentMethodObj ) => {
+		const url		= base_api_url + 'user/payment-method/edit';
+		const data 		= userPaymentMethodObj;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// profile remove payment method modal
+	const [ selectedPaymentMethod, setSelectedPaymentMethod ] = useState( '' );
+	const [ modalRemovePaymentMethodOpen, setModalRemovePaymentMethodOpen ] = useState( false );
+
+	// profile - remove payment methods
+	const userPaymentMethodRemove = async ( userPaymentMethodObj ) => {
+		const url		= base_api_url + 'user/payment-method/remove';
+		const data 		= userPaymentMethodObj;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+	// user payment method
+	const [ userPaymentMethods, setUserPaymentMethods ] = useState( [] );
 
 	// placeholder translate for indirect translation cases
 	const [ searchInputVeto, setSearchInputVeto ] = useState( '' );
@@ -337,11 +415,14 @@ export const SiteProvider = ({ children }) => {
 				siteName,
 				siteEmail,
 				siteDomainName,
+				base_url,
 				signUp,
 				signIn,
 				checkEmail,
 				insertSpaceAtPosition,
 				sendEmail,
+				userPaymentMethods, 
+				setUserPaymentMethods,
 				getReferrer,
 				setReferrer,
 				generateRandomDigits,
@@ -350,9 +431,23 @@ export const SiteProvider = ({ children }) => {
 				verificationUserId,
 				setVerificationUserId,
 				updatePassword,
-				listLanguages,
+				profileUpdate,
+				userPaymentMethodList,
+				userPaymentMethodEdit,
+				userPaymentMethodRemove,
+				modalPaymentMethodPaypalOpen,
+				setModalPaymentMethodPaypalOpen,
+				modalRemovePaymentMethodOpen, 
+				setModalRemovePaymentMethodOpen,
+				setSelectedPaymentMethod,
+				selectedPaymentMethod,
+				languageList,
+				paymentMethodList,
+				isNew, 
+				setIsNew,
 				updateLanguagePreference,
 				getLanguagePreference,
+				profileGet,
 				defaultLanguageId,
 				siteLanguage,
 				setSiteLanguage,
@@ -491,7 +586,7 @@ export const SiteProvider = ({ children }) => {
 				passwordForgot_updateSuccess,
 				setPasswordForgot_updateSuccess,
 				passwordForgotReset_title, 
-				setPasswordForgotReset_title
+				setPasswordForgotReset_title,
 				
 			}}
 		>
@@ -505,7 +600,8 @@ export const SiteProvider = ({ children }) => {
 							style={{
 									display:		spiner,
 									fontSize: 		60,
-									color: 			'#fcb800'
+									color: 			'#fcb800',
+									zIndex: 		9000,
 								}}
 							spin
 						/>

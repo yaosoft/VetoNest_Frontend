@@ -135,6 +135,37 @@ h6 {
 	background-color: #000;
 }
 
+.profilePhotoContainer{
+	width: 150px;
+	height: 150px;
+	border-radius: 10%; /* Makes a circular image */
+	display: block;
+	margin: 10px auto;
+	object-fit: cover;
+	border: 3px solid #eee;
+	/* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+	transition: transform 0.3s ease;
+	transform: scale(1.05);
+	max-width: 150px;
+	height: auto;
+}
+
+.profilePhotoContainerModal{
+	/* width: 150px; */
+	/* height: 150px; */
+	/* border-radius: 30%; Makes a circular image */
+	display: block;
+	margin: 5% auto;
+	object-fit: cover;
+	border: 3px solid #eee;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s ease;
+	transform: scale(1.05);
+	max-width: 90%;
+	max-height: 350px;
+	height: auto;
+}
+
 .searchButtonDiv {
 	padding-top: 0.7%;
     cursor: pointer;
@@ -151,6 +182,18 @@ h6 {
 
 .marginLeft20 {
 	margin-left: 20px;
+}
+
+.padding20px{
+	padding: 20px;
+}
+
+.paddingLeft20px{
+	padding-left: 20px;
+}
+
+.paddingLeft30px{
+	padding-left: 30px;
 }
 
 .width100per100{
@@ -250,10 +293,22 @@ h6 {
 	padding-top: 4px;
 }
 
-.ant-select-selector {
+.languageSelector .ant-select-selector {
 	background-color: #FFDE59 !important;
 	height: 25px !important;
-	border: none;
+	border: none !important;
+}
+
+.profileLanguageSelector .ant-select-selector {
+    background-color: initial !important;
+    width: 250px !important;
+	height: 40px !important;
+	border: 1px solid !important;
+	border-color: #FFDE59 !important;
+}
+
+.profilePaymentMethodIcon{
+	height: 50px !important;
 }
 
 input:-webkit-autofill,
@@ -306,6 +361,9 @@ input[type=password]:hover {
 	-webkit-text-fill-color: #000000 !important; 
 }
 
+.marginTop5px{
+	margin-top: 5px;
+}
 
 .visibleNone{
 	visibility: none;
@@ -1203,7 +1261,7 @@ ul.social_icon li a:hover {
 
 /**  inner page css **/
 .back_re {
-     background-color: #C1FF72;
+     background-color: #FFDE59;
 	 color: #000;
 }
 .back_re .title {
