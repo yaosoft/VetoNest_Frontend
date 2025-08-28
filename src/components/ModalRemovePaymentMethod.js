@@ -21,6 +21,8 @@ const ModalRemovePaymentMethod = ( params ) => {
 		userPaymentMethods,
 	} = useContext( SiteContext );
 
+	// title
+	const [ title, setTitle ] = useState( '' );
 
 	// modal
 	const[ openModal, setOpenModal ] = useState( false )
@@ -30,9 +32,7 @@ const ModalRemovePaymentMethod = ( params ) => {
 		const rep = userPaymentMethods.filter( 
 			e => e.paymentMethodId == selectedPaymentMethod.id 
 		);
-console.log( 'selectedPaymentMethod', selectedPaymentMethod );
-console.log( 'userPaymentMethods', userPaymentMethods );
-console.log( 'rep', rep );
+
 		const userPaymentMethodId = rep[0].id;
 
 		const data = { userPaymentMethodId : userPaymentMethodId }
@@ -63,8 +63,23 @@ console.log( 'rep', rep );
 	}
 
 	useEffect(() => {
+		// reset the form
+		form.resetFields()
+		// get user's PayPal data
+		const a = async() => {
 
-	}, [  ]); // Dependency array ensures effect runs when isModalOpen changes
+			// Title
+			const titleText = 'Remove your ' + ( selectedPaymentMethod.name == 'PayPal' ? 'PayPal' : 'Bank' ) + ' payment method';
+			// alert( selectedPaymentMethod.name );
+			const atitle = () => {
+				return <><img style={{ marginLeft: '10px', height: '25px', width: '25px' }} src={ '/img/paymentMethod/' + selectedPaymentMethod.image } />&nbsp; { titleText } </>
+			}
+			setTitle( atitle );
+
+		}
+		a();
+	}, [ userPaymentMethods, modalRemovePaymentMethodOpen, selectedPaymentMethod ]); 
+
 
 
 
@@ -74,7 +89,7 @@ console.log( 'rep', rep );
 	 return (
 		 <>
 			<Modal
-				title		= "Remove Paypal"
+				title		= { title }
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
 				open		= { modalRemovePaymentMethodOpen }
 				onOk		= { modalRemoveMethodHandleOk }

@@ -118,6 +118,10 @@ h6 {
 	background-color: #FFDE59;
 }
 
+.borderYellow{
+	border: 1px solid #FFDE59;
+}
+
 .backgroundGreen01{
 	background-color: #2eb34c;
 	padding-top: 5px !important;
@@ -131,13 +135,33 @@ h6 {
 	background-color: #C1FF72;
 }
 
-.backgroundBlack{
-	background-color: #000;
+
+.birthdateField{
+	margin-left: 0%;
+}
+
+.birthdateField > div {
+    padding-top: 2%;
+}
+
+.birthdateField .dateField{
+    padding-top: 1%;
+}
+
+.ant-picker{
+	width: 98%;
+}
+
+/* You might also need to target the panel itself */
+.ant-picker {
+	background: #FFDE59;
+	border-bottom: #FFDE59 solid 1px;
+    color: black;
 }
 
 .profilePhotoContainer{
 	width: 150px;
-	height: 150px;
+	height: 180px;
 	border-radius: 10%; /* Makes a circular image */
 	display: block;
 	margin: 10px auto;
@@ -147,7 +171,7 @@ h6 {
 	transition: transform 0.3s ease;
 	transform: scale(1.05);
 	max-width: 150px;
-	height: auto;
+	max-height: 180px;
 }
 
 .profilePhotoContainerModal{
@@ -307,6 +331,10 @@ h6 {
 	border-color: #FFDE59 !important;
 }
 
+.singleFieldManager{
+  
+}
+
 .profilePaymentMethodIcon{
 	height: 50px !important;
 }
@@ -339,6 +367,28 @@ input[type=password]:hover {
 	text-align: center;
 }
 
+.singleFieldManager .dataDiv{
+	width: 10em;
+	border-color: #FFDE59 !important;
+}
+
+.singleFieldManager .buttonDiv{
+	width: 6em;
+	border-color: #FFDE59 !important;
+	cursor: pointer;
+}
+
+.singleFieldManager .buttonDiv:hover{
+	background-color: #FFC71C;
+}
+
+.singleFieldManager > div{
+    height: 35px;
+    padding-left: 5%;
+    padding-top: 3%;
+	margin-bottom: 10px;
+}
+
 .myh2{
 	font-size: 16px;
 }
@@ -353,7 +403,7 @@ input[type=password]:hover {
 }
 
 .btn-warning {
-  background-color: ##C1FF72; /* Your desired hover color */
+  background-color: #C1FF72; /* Your desired hover color */
   border-color: #00FF00; /* Optional: Match border color */
 }
 

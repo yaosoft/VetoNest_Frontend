@@ -18,12 +18,13 @@ import InputCode from "../InputCode";
 
 import Header from '../Header';
 import Footer from '../Footer';
-import ModalPaymentMethodPaypal from '../ModalPaymentMethodPaypal';
+import ModalPaymentMethod from '../ModalPaymentMethod';
 import ModalRemovePaymentMethod from '../ModalRemovePaymentMethod';
-
+import SingleFieldManager from '../SingleFieldManager';
 // import ModalEmailValidate from '../ModalEmailValidate';
 
-import LanguageSelector from '../LanguageSelector';
+import LanguageSelector from '../LanguageSelector.js';
+import CurrencySelector from '../CurrencySelector.js';
 import Title from '../Title';
 
 
@@ -52,8 +53,8 @@ const Profile = ( params ) => {
 		base_url,
 		generateRandomDigits,
 		paymentMethodList,
-		setModalPaymentMethodPaypalOpen,
-		modalPaymentMethodPaypalOpen,
+		setModalPaymentMethodOpen,
+		modalPaymentMethodOpen,
 		setModalRemovePaymentMethodOpen,
 		modalRemovePaymentMethodOpen,
 		userPaymentMethodList,
@@ -66,6 +67,16 @@ const Profile = ( params ) => {
 		// setSelectedUserPaymentMethodId
 		setSelectedPaymentMethod,
 		// selectedPaymentMethod,
+		setUserProfile,
+		userProfile,
+		setVisibleModalName,
+		visibleModalName,
+		profile_sexe_male,
+		profile_sexe_female,
+		siteLanguage,
+		profileFormUpdated,
+		profileIdentityOpen,
+		dateFormater
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -82,19 +93,19 @@ const Profile = ( params ) => {
 		// get all paymentMethodList
 		const getPaymentMethods = async() => {
 			const paymentMethods = await paymentMethodList();
-console.log( 'getPaymentMethods', paymentMethods );			
 			setPaymentMethods( paymentMethods );
 		}
 		
 		// get user paymentMethod
 		const getUserPaymentMethods = async() => {
 			const paymentMethods = await userPaymentMethodList( userId );
-console.log( 'userPaymentMethodList', paymentMethods );			
+
 			setUserPaymentMethods( paymentMethods );
 		}
 		getUserPaymentMethods();
 		getPaymentMethods();
-	 }, [user, modalPaymentMethodPaypalOpen, modalRemovePaymentMethodOpen] );
+
+	 }, [user, modalPaymentMethodOpen, modalRemovePaymentMethodOpen] );
 
 	// check if user have this payment method. If true, return user paiment method object
 	const isUserMethod = ( paymentMethodId ) => {
@@ -202,35 +213,47 @@ console.log( 'userPaymentMethodList', paymentMethods );
 	const BuildPaymentList = () => {
 		return(
 			paymentMethods.map(( paymentMethod, index ) => 
+				<div style= {{ margin: '1%' }}>
 				<div key = { index } className= "row">
+				
 					<img 
 						src={ '/img/paymentMethod/' + paymentMethod.image } 
 						className="profilePaymentMethodIcon"
 					/>
-					&nbsp;<span>{ paymentMethod.name }</span>&nbsp;
+				</div>
+				<div className= "row">
 					<span>
 						{ isUserMethod( paymentMethod.id ) === false ?
 							<a 
 								onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, false ) }
 							>
-								setting
+								<i className="fa fa-edit"></i>Add { paymentMethod.name }
 							</a>
 							:
 							<>
+								<i className="fa fa-check text-success"></i>added
+								{ 	paymentMethod.id == 1 &&
+									<a>
+										&nbsp;<i className="fa fa-star text-warning"></i>prefered 
+									</a>
+								}
+								&nbsp;&nbsp;
 								<a 
 									onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, true ) }
 								>
-									Edit 
+									<i className="fa fa-edit text-info"></i>edit 
 								</a>
-
+								&nbsp;
 								<a 
 									onClick={ ( e ) => handleClickRemoveUserPaymentMethod( paymentMethod ) }
 								>
-									&nbsp;remove 
+									&nbsp;<i className="fa fa-trash text-danger"></i>remove 
 								</a>
 							</>
 						}
 					</span>
+				</div>
+				<br/>
 				</div>
 			)
 		)
@@ -239,15 +262,14 @@ console.log( 'userPaymentMethodList', paymentMethods );
 
 	// payment method setting button
 	const handleClickSettingPaymentMethod = ( paymentMethod, isUserHave )  => { 
-
+// console.log( 'paymentMethod', paymentMethod );
 		setIsNew( !isUserHave ); // is user have this payment method
-		if( paymentMethod.name == "PayPal" ){	// to do:		
-			setModalPaymentMethodPaypalOpen( true )
-		}
-		setModalPaymentMethodPaypalOpen( true );
+		// if( paymentMethod.name == "PayPal" ){	// to do:		
+			// setModalPaymentMethodOpen( true )
+		// }
 		setSelectedPaymentMethod( paymentMethod );
+		setModalPaymentMethodOpen( true );
 	} 
-
 
 	const handleClickRemoveUserPaymentMethod = ( paymentMethod )  => {
 		// get user payment method
@@ -255,19 +277,40 @@ console.log( 'userPaymentMethodList', paymentMethods );
 		setModalRemovePaymentMethodOpen( true )
 		// removePaymentMethodOpen( userPaymentMethodId )
 	}
-
+	
+	// date formater
+	// const [ siteLocale, setSiteLocale ] = useState( 'en-EN' );
+	
+	const [ name, setName ] 			= useState( '' );
+	const [ firstName, setFirstName ] 	= useState( '' );
+	const [ dateNaissance, setDateNaissance ] = useState( '' );
+	const [ biography, setBiography ] = useState( '' );
 	useEffect(() => {
 		// get user profile info
 		const a = async () => {
 			const profile = await profileGet( profileId, profileTypeId );
-			
-			setProfile( profile );
 console.log( 'profile', profile );
-console.log( 'userId', userId );
+			setUserProfile( profile );
+			// setSiteLocale( siteLocale );
+			// name
+			const name = profile.nom;
+			setName( name );
+			// first name
+			const firstName = profile.prenom;
+			setFirstName( firstName );
+			// siteLocale
+			// const siteLocale = siteLanguage ? siteLanguage + '-' + siteLanguage.toUpperCase() : 'en-EN';
+			// birth date
+			const birthDate = profile.dateNaissance ? profile.dateNaissance.date : ''; 
+			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
+			setDateNaissance( dateNaissance );
+			// biography
+			const biography = profile.biography
+			setBiography( biography );
+
 		}
 		a();
-	}, [ formUpdated ] ); // Dependency array ensures effect runs when isModalOpen changes
-
+	}, [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
 
 	function getBase64(file) {
@@ -287,7 +330,7 @@ console.log( 'userId', userId );
 				title={
 				  <>
 					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
-					<span>Modifier voter photo</span> 
+					<span>Modifier votre photo</span> 
 				  </>
 				}
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
@@ -311,7 +354,7 @@ console.log( 'userId', userId );
 					/>
 				</div>
 			</Modal>
-			<ModalPaymentMethodPaypal />
+			<ModalPaymentMethod />
 			<ModalRemovePaymentMethod />
 			<Header />
 			
@@ -333,8 +376,8 @@ console.log( 'userId', userId );
 							<div className="row">
 									<img 
 										className="marginTop10px profilePhotoContainer"
-										src={ profile.picture ? 
-											base_url + 'uploads/files/profile/' + profile.picture: 
+										src={ userProfile.picture ? 
+											base_url + 'uploads/files/profile/' + userProfile.picture: 
 											photoDefaultSrc 
 										} 
 										style={{ width: '95%' }} 
@@ -351,9 +394,22 @@ console.log( 'userId', userId );
 							<div className="row">
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Preference</b>
+										<b>Mon compte</b>
 									</div>
 									<div className="col-md-9">
+										<div className="row">
+											Identité
+										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Profile',
+													title:		'Modifier mon profile',
+													placeholder: 'Nom, age, address ...',
+													value: 'Modify my profile',
+												}}
+											/>
+										</div>
+										
 										<div className="row">
 											Langue
 										</div>
@@ -364,6 +420,13 @@ console.log( 'userId', userId );
 												context		= { false }
 											/>
 										</div>
+										<p>&nbsp;</p>
+										<div className="row">
+											Devise
+										</div>
+										<div className="row profileLanguageSelector">
+											<CurrencySelector />
+										</div>
 									</div>
 								</div>
 								<div className="col-md-6 row">
@@ -372,7 +435,7 @@ console.log( 'userId', userId );
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Payment Method
+											Payment Methods
 										</div>
 										<div className="row">
 											<div className="col-md-9">
@@ -382,45 +445,79 @@ console.log( 'userId', userId );
 									</div>
 								</div>
 							</div>
-							<div className="row backgroundYellow">&nbsp;</div>
-								<div className="profilePhotoId">
+							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
+							</div>
+							<div className="row">
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										Preference.
+										<b>Identité</b>
 									</div>
 									<div className="col-md-9">
-										<div className="col-md-3">
-											Langue.
+										<div className="row">
+											User identification
 										</div>
-										<div className="col-md-9">
-											user.languageId
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Name',
+													title:		'Update user name',
+													placeholder: 'No name',
+													value: name,
+												}}
+											/>
 										</div>
-										<div className="col-md-3">
-											Foo.
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'FirstName',
+													title:		'Update user first name',
+													placeholder: 'No firstname',
+													value: firstName,
+												}}
+											/>
 										</div>
-										<div className="col-md-9">
-											bar<br/>
-											baz<br/>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Sexes',
+													title:		'Your genre',
+													placeholder: 'Please Select sexe',
+													value: eval(userProfile.userSexeTagClass),
+												}}
+											/>
 										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'BirthDate',
+													title:		'Update the date',
+													placeholder: 'Your birth date',
+													value: dateNaissance,
+												}}
+											/>
+										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Biography',
+													title:		'Something about you',
+													placeholder: 'Biographie',
+													value: biography,
+												}}
+											/>
+										</div>
+										<p>&nbsp;</p>
 									</div>
 								</div>
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										Preference.
+										<b>Address</b>
 									</div>
 									<div className="col-md-9">
-										<div className="col-md-3">
-											Langue.
+										<div className="row">
+											User address
 										</div>
-										<div className="col-md-9">
-											user.languageId
-										</div>
-										<div className="col-md-3">
-											Foo.
-										</div>
-										<div className="col-md-9">
-											bar<br/>
-											baz<br/>
+										<div className="row">
+											<div className="col-md-9">
+												<div className="row profileLanguageSelector">
+													Import user's address component
+												</div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -428,6 +525,20 @@ console.log( 'userId', userId );
 						</div>
 					</div>
 				</Form>
+				<div className="displayNone">
+					<span 
+						id = "cmp_vetonest.com_XdIUc8X4MG"
+						className ="profile_sexe_male" 
+					>
+						Homme
+					</span>
+					<span 
+						id = "cmp_vetonest.com_PuaOtP8HrQ"
+						className ="profile_sexe_female" 
+					>
+						Femme
+					</span>
+				</div>							
 			<div>&nbsp;</div>
 			<Footer />
 		</>
