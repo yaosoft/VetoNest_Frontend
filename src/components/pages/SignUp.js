@@ -901,7 +901,7 @@ console.log( 'signUpType: ' + signUpType );
 											<span 
 												id = "cmp_vetonest.com_P5crAMBBiW"
 												className ="signUp_firstNameErrorText" 
-											>signUp_firstNameErrorText
+											>
 												Your first name seems incorect
 											</span>
 											<span 

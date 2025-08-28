@@ -88,7 +88,23 @@ const Footer = () => {
 		setPasswordForgot_updateSuccess,
 		setPasswordForgotReset_title, 
 		passwordForgotReset_title,
-		flag
+		flag,
+		setPaymentMethod_paypalEmail,
+		setPaymentMethod_bankAddressErrorText,
+		setPaymentMethod_ibanErrorText,
+		setPaymentMethod_fullNameEmpty,
+		setPaymentMethod_bankNameEmpty,
+		setPaymentMethod_bankAddressEmpty,
+		setPaymentMethod_ibanEmpty,
+		setPaymentMethod_bankNamePlaceholder,
+		setPaymentMethod_bankAddressPlaceholder,
+		setPaymentMethod_ibanPlaceholder,
+		setPaymentMethod_fullNamePlaceholder,
+		setPaymentMethod_bankNameErrorText,
+		setPaymentMethod_descriptionPaypal,
+		setPaymentMethod_descriptionBank,
+		setProfile_sexe_male,
+		setProfile_sexe_female,
 	} = useContext( SiteContext );
 
 	const navigate = useNavigate();
@@ -648,6 +664,101 @@ const Footer = () => {
 					setPasswordForgotReset_title( passwordForgotReset_title );
 				}
 				
+				const paymentMethod_paypalEmailElt  = document.getElementsByClassName( "paymentMethod_paypalEmail" )[0];
+				if( paymentMethod_paypalEmailElt ){
+					const paymentMethod_paypalEmail = paymentMethod_paypalEmailElt.innerHTML;
+					setPaymentMethod_paypalEmail( paymentMethod_paypalEmail );
+				}
+				
+				const paymentMethod_bankAddressErrorTextElt  = document.getElementsByClassName( "paymentMethod_bankAddressErrorText" )[0];
+				if( paymentMethod_bankAddressErrorTextElt ){
+					const paymentMethod_bankAddressErrorText = paymentMethod_bankAddressErrorTextElt.innerHTML;
+					setPaymentMethod_bankAddressErrorText( paymentMethod_bankAddressErrorText );
+				}
+				
+				const paymentMethod_ibanErrorTextElt  = document.getElementsByClassName( "paymentMethod_ibanErrorText" )[0];
+				if( paymentMethod_ibanErrorTextElt ){
+					const paymentMethod_ibanErrorText = paymentMethod_ibanErrorTextElt.innerHTML;
+					setPaymentMethod_ibanErrorText( paymentMethod_ibanErrorText );
+				}
+				
+				const paymentMethod_fullNameEmptyElt  = document.getElementsByClassName( "paymentMethod_fullNameEmpty" )[0];
+				if( paymentMethod_fullNameEmptyElt ){
+					const paymentMethod_fullNameEmpty = paymentMethod_fullNameEmptyElt.innerHTML;
+					setPaymentMethod_fullNameEmpty( paymentMethod_fullNameEmpty );
+				}
+
+				const paymentMethod_bankNameEmptyElt  = document.getElementsByClassName( "paymentMethod_bankNameEmpty" )[0];
+				if( paymentMethod_bankNameEmptyElt ){
+					const paymentMethod_bankNameEmpty = paymentMethod_bankNameEmptyElt.innerHTML;
+					setPaymentMethod_bankNameEmpty( paymentMethod_bankNameEmpty );
+				}
+
+				const paymentMethod_bankAddressEmptyElt  = document.getElementsByClassName( "paymentMethod_bankAddressEmpty" )[0];
+				if( paymentMethod_bankAddressEmptyElt ){
+					const paymentMethod_bankAddressEmpty = paymentMethod_bankAddressEmptyElt.innerHTML;
+					setPaymentMethod_bankAddressEmpty( paymentMethod_bankAddressEmpty );
+				}
+
+				const paymentMethod_ibanEmptyElt  = document.getElementsByClassName( "paymentMethod_ibanEmpty" )[0];
+				if( paymentMethod_ibanEmptyElt ){
+					const paymentMethod_ibanEmpty = paymentMethod_ibanEmptyElt.innerHTML;
+					setPaymentMethod_ibanEmpty( paymentMethod_ibanEmpty );
+				}
+
+				const paymentMethod_bankNamePlaceholderElt  = document.getElementsByClassName( "paymentMethod_bankNamePlaceholder" )[0];
+				if( paymentMethod_bankNamePlaceholderElt ){
+					const paymentMethod_bankNamePlaceholder = paymentMethod_bankNamePlaceholderElt.innerHTML;
+					setPaymentMethod_bankNamePlaceholder( paymentMethod_bankNamePlaceholder );
+				}
+
+				const paymentMethod_bankAddressPlaceholderElt  = document.getElementsByClassName( "paymentMethod_bankAddressPlaceholder" )[0];
+				if( paymentMethod_bankAddressPlaceholderElt ){
+					const paymentMethod_bankAddressPlaceholder = paymentMethod_bankAddressPlaceholderElt.innerHTML;
+					setPaymentMethod_bankAddressPlaceholder( paymentMethod_bankAddressPlaceholder );
+				}
+
+				const paymentMethod_ibanPlaceholderElt  = document.getElementsByClassName( "paymentMethod_ibanPlaceholder" )[0];
+				if( paymentMethod_ibanPlaceholderElt ){
+					const paymentMethod_ibanPlaceholder = paymentMethod_ibanPlaceholderElt.innerHTML;
+					setPaymentMethod_ibanPlaceholder( paymentMethod_ibanPlaceholder );
+				}
+				
+				const paymentMethod_fullNamePlaceholderElt  = document.getElementsByClassName( "paymentMethod_fullNamePlaceholder" )[0];
+				if( paymentMethod_fullNamePlaceholderElt ){
+					const paymentMethod_fullNamePlaceholder = paymentMethod_fullNamePlaceholderElt.innerHTML;
+					setPaymentMethod_fullNamePlaceholder( paymentMethod_fullNamePlaceholder );
+				}
+				
+				const paymentMethod_bankNameErrorTextElt  = document.getElementsByClassName( "paymentMethod_bankNameErrorText" )[0];
+				if( paymentMethod_bankNameErrorTextElt ){
+					const paymentMethod_bankNameErrorText = paymentMethod_bankNameErrorTextElt.innerHTML;
+					setPaymentMethod_bankNameErrorText( paymentMethod_bankNameErrorText );
+				}
+
+				const paymentMethod_descriptionPaypalElt  = document.getElementsByClassName("paymentMethod_descriptionPaypal")[0];
+				if( paymentMethod_descriptionPaypalElt ){
+					const paymentMethod_descriptionPaypal = paymentMethod_descriptionPaypalElt.innerHTML;
+					setPaymentMethod_descriptionPaypal( paymentMethod_descriptionPaypal );
+				}
+
+				const paymentMethod_descriptionBankElt  = document.getElementsByClassName("paymentMethod_descriptionBank")[0];
+				if( paymentMethod_descriptionBankElt ){
+					const paymentMethod_descriptionBank = paymentMethod_descriptionBankElt.innerHTML;
+					setPaymentMethod_descriptionBank( paymentMethod_descriptionBank );
+				}
+
+				const profile_sexe_femaleElt  = document.getElementsByClassName("profile_sexe_female")[0];
+				if( profile_sexe_femaleElt ){
+					const profile_sexe_female = profile_sexe_femaleElt.innerHTML;
+					setProfile_sexe_female( profile_sexe_female );
+				}
+
+				const profile_sexe_maleElt  = document.getElementsByClassName("profile_sexe_male")[0];
+				if( profile_sexe_maleElt ){
+					const profile_sexe_male = profile_sexe_maleElt.innerHTML;
+					setProfile_sexe_male( profile_sexe_male );
+				}
 			}
 		}
 		updatePageContent();

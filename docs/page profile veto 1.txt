@@ -16,6 +16,7 @@ $dateNaissance;
 $dateCreated;
 
 // Contact
+$email;
 $phone;
 $phonePro;
 $phoneUrgence;
@@ -41,6 +42,9 @@ $fileGallery;
 // Etablissement
 $vetoEtablissementStatus;
 
+
+MTCN 874-922-9322
+10 912 PKR
 
 						
 

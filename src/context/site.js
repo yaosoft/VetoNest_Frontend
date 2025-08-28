@@ -145,6 +145,8 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	const [ profileFormUpdated, setProfileFormUpdated ] = useState( '' );
+
 	// List all languages
 	const languageList = async () => {
 		const url		= base_api_url + 'langue/list';
@@ -155,7 +157,6 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
-
 
 	// list all payment's method
 	const paymentMethodList = async () => {
@@ -180,8 +181,8 @@ export const SiteProvider = ({ children }) => {
 		return result;
 	}
 
-	const defaultLanguageId = 1; // fr
-
+	const defaultLanguageId   = 1; // fr
+	const defaultLanguageCode = 'fr'; // fr
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
@@ -189,12 +190,13 @@ export const SiteProvider = ({ children }) => {
 // console.log( languageId );		
 		const language = await languages.filter( e => e.id == languageId )[0];
 // console.log( language );
-		const languageCode = language.languageCode;
+		const languageCode = language ? language.languageCode : defaultLanguageCode;
 		const flag = '/img/flags/' + languageCode + '.svg';
 // console.log( 'Flag, ' + flag );	
 
 		setLanguageFlag( flag );
-		setSiteLanguage( languageCode )
+		setSiteLanguage( languageCode );
+		setSiteLocale( languageCode ? languageCode + '-' + languageCode.toUpperCase() : 'fr-FR' ); // en-En
 	}
 
 	const getLanguagePreference = async ( userData ) => {
@@ -209,15 +211,34 @@ export const SiteProvider = ({ children }) => {
 
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( defaultLanguageId ); 
 
+	// Format date
+	const [siteLocale, setSiteLocale] = useState( defaultLanguageCode + '-' + defaultLanguageCode.toUpperCase() );
+	const formatter = new Intl.DateTimeFormat( siteLocale, {
+		/*weekday: 'long',*/
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		/*hour: 'numeric',*/
+		/*minute: 'numeric',*/
+		/*second: 'numeric'*/
+	});
+	const dateFormater = async( rawDate ) => {
+		const formatedDate = await formatter.format( new Date( rawDate ));
+		return formatedDate;
+	}
+
 	const truncateString = (str, maxLength) => {
-	  if (str.length > maxLength) {
-		// If the string is longer than maxLength,
-		// slice it to maxLength - 3 characters
-		// and append '...'
-		return str.slice(0, maxLength - 3) + '...';
-	  }
-	  // If the string is not longer than maxLength, return it as is
-	  return str;
+		if( !str )
+			return
+
+		if (str.length > maxLength) {
+			// If the string is longer than maxLength,
+			// slice it to maxLength - 3 characters
+			// and append '...'
+			return str.slice(0, maxLength - 3) + '...';
+		}
+		// If the string is not longer than maxLength, return it as is
+		return str;
 	}
 
 	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
@@ -265,7 +286,9 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
-
+	
+	const [ userProfile, setUserProfile ] = useState( '' );
+	
 	// update profile
 	const profileUpdate = async ( dataObj, picture, profileTypeId ) => {
 		const type 	= profileTypeId == 1 ? 'profileUser' : 'profileVeto';
@@ -294,8 +317,16 @@ export const SiteProvider = ({ children }) => {
 		return resp;
 	}
 
-	// profile modals
-	const [ modalPaymentMethodPaypalOpen, setModalPaymentMethodPaypalOpen ] = useState( false );
+	// profile - active modal
+	const [ visibleModalName, setVisibleModalName ] = useState( false );
+
+	// profile payment modals
+	const [ modalPaymentMethodOpen, setModalPaymentMethodOpen ] = useState( false );
+
+	// profile payment modals
+	const [ modalProfileIdentityOpen, setModalProfileIdentityOpen ] = useState( false );
+	
+	
 	const [ isNew, setIsNew ] = useState( false ) 
 
 	// profile - get user payment methods
@@ -402,11 +433,26 @@ export const SiteProvider = ({ children }) => {
 	const [ signUp_btnSubmit, setSignUp_btnSubmit ] = useState( '' );
 	const [ signUp_termsUsage, setSignUp_termsUsage ] = useState( '' );
 	const [ signUp_accountCreationFails, setSignUp_accountCreationFails ] = useState( '' );
-
 	const [ signIn_passwordForgot, setSignIn_passwordForgot ] = useState( '' );
 	const [ passwordForgot_updateSuccess, setPasswordForgot_updateSuccess ] = useState( '' );
 	const [ passwordForgotReset_title, setPasswordForgotReset_title ] = useState( '' );
-
+	const [ paymentMethod_bankNamePlaceholder, setPaymentMethod_bankNamePlaceholder ] = useState( '' );
+	const [ paymentMethod_bankAddressPlaceholder, setPaymentMethod_bankAddressPlaceholder ] = useState( '' );
+	const [ paymentMethod_ibanPlaceholder, setPaymentMethod_ibanPlaceholder ] = useState( '' );
+	const [ paymentMethod_fullNamePlaceholder, setPaymentMethod_fullNamePlaceholder ] = useState( '' );
+	const [ paymentMethod_bankNameErrorText, setPaymentMethod_bankNameErrorText ] = useState( '' );
+	const [ paymentMethod_paypalEmail, setPaymentMethod_paypalEmail ] = useState( '' );
+	const [ paymentMethod_bankAddressErrorText, setPaymentMethod_bankAddressErrorText ] = useState( '' );
+	const [ paymentMethod_ibanErrorText, setPaymentMethod_ibanErrorText ] = useState( '' );
+	const [ paymentMethod_fullNameEmpty, setPaymentMethod_fullNameEmpty ] = useState( '' );
+	const [ paymentMethod_bankNameEmpty, setPaymentMethod_bankNameEmpty ] = useState( '' );
+	const [ paymentMethod_bankAddressEmpty, setPaymentMethod_bankAddressEmpty ] = useState( '' );
+	const [ paymentMethod_ibanEmpty, setPaymentMethod_ibanEmpty ] = useState( '' );
+	const [ paymentMethod_descriptionPaypal, setPaymentMethod_descriptionPaypal ] = useState( '' );
+	const [ paymentMethod_descriptionBank, setPaymentMethod_descriptionBank ] = useState( '' );
+	const currency = 'EUR';
+	const [ profile_sexe_male, setProfile_sexe_male ] = useState( '' );
+	const [ profile_sexe_female, setProfile_sexe_female ] = useState( '' );
 
 	return (	
 	
@@ -435,12 +481,14 @@ export const SiteProvider = ({ children }) => {
 				userPaymentMethodList,
 				userPaymentMethodEdit,
 				userPaymentMethodRemove,
-				modalPaymentMethodPaypalOpen,
-				setModalPaymentMethodPaypalOpen,
+				modalPaymentMethodOpen,
+				setModalPaymentMethodOpen,
 				modalRemovePaymentMethodOpen, 
 				setModalRemovePaymentMethodOpen,
 				setSelectedPaymentMethod,
 				selectedPaymentMethod,
+				visibleModalName, 
+				setVisibleModalName,
 				languageList,
 				paymentMethodList,
 				isNew, 
@@ -448,6 +496,8 @@ export const SiteProvider = ({ children }) => {
 				updateLanguagePreference,
 				getLanguagePreference,
 				profileGet,
+				userProfile, 
+				setUserProfile,
 				defaultLanguageId,
 				siteLanguage,
 				setSiteLanguage,
@@ -587,7 +637,45 @@ export const SiteProvider = ({ children }) => {
 				setPasswordForgot_updateSuccess,
 				passwordForgotReset_title, 
 				setPasswordForgotReset_title,
-				
+				paymentMethod_bankNamePlaceholder,
+				setPaymentMethod_bankNamePlaceholder,
+				paymentMethod_bankAddressPlaceholder,
+				setPaymentMethod_bankAddressPlaceholder,
+				paymentMethod_ibanPlaceholder,
+				setPaymentMethod_ibanPlaceholder,
+				paymentMethod_fullNamePlaceholder,
+				setPaymentMethod_fullNamePlaceholder,
+				paymentMethod_bankNameErrorText,
+				setPaymentMethod_bankNameErrorText,
+				paymentMethod_paypalEmail,
+				setPaymentMethod_paypalEmail,
+				paymentMethod_bankAddressErrorText,
+				setPaymentMethod_bankAddressErrorText,
+				paymentMethod_ibanErrorText,
+				setPaymentMethod_ibanErrorText,
+				paymentMethod_fullNameEmpty,
+				setPaymentMethod_fullNameEmpty,
+				paymentMethod_bankNameEmpty,
+				setPaymentMethod_bankNameEmpty,
+				paymentMethod_bankAddressEmpty,
+				setPaymentMethod_bankAddressEmpty,
+				paymentMethod_ibanEmpty,
+				setPaymentMethod_ibanEmpty,
+				paymentMethod_descriptionPaypal,
+				setPaymentMethod_descriptionPaypal,
+				paymentMethod_descriptionBank,
+				setPaymentMethod_descriptionBank,
+				currency,
+				modalProfileIdentityOpen,
+				setModalProfileIdentityOpen,
+				profile_sexe_male,
+				setProfile_sexe_male,
+				profile_sexe_female,
+				setProfile_sexe_female,
+				profileFormUpdated, 
+				setProfileFormUpdated,
+				dateFormater,
+				siteLocale,
 			}}
 		>
 
