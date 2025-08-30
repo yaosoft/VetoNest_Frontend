@@ -454,6 +454,13 @@ export const SiteProvider = ({ children }) => {
 	const [ profile_sexe_male, setProfile_sexe_male ] = useState( '' );
 	const [ profile_sexe_female, setProfile_sexe_female ] = useState( '' );
 
+	const [ language_french, setLanguage_french ] = useState( '' );
+	const [ language_english, setLanguage_english ] = useState( '' );
+	const [ language_spanish, setLanguage_spanish ] = useState( '' );
+	const [ language_german, setLanguage_german ] = useState( '' );
+	const [ language_italian, setLanguage_italian ] = useState( '' );
+	const [ language_estonian, setLanguage_estonian ] = useState( '' );
+
 	return (	
 	
 		<SiteContext.Provider 
@@ -676,6 +683,18 @@ export const SiteProvider = ({ children }) => {
 				setProfileFormUpdated,
 				dateFormater,
 				siteLocale,
+				language_french,
+				setLanguage_french,
+				language_english,
+				setLanguage_english,
+				language_spanish,
+				setLanguage_spanish,
+				language_german,
+				setLanguage_german,
+				language_italian,
+				setLanguage_italian,
+				language_estonian,
+				setLanguage_estonian,
 			}}
 		>
 

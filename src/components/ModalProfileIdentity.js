@@ -8,10 +8,13 @@ import locale_en from 'antd/locale/en_US';
 import locale_es from 'antd/locale/es_ES';
 import locale_de from 'antd/locale/de_DE';
 import locale_it from 'antd/locale/it_IT';
+import { Country, State, City }  from 'country-state-city';
 import { Form, Input, Select, Checkbox, List } from 'antd';
 import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
-
+import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
+
+
 const ModalProfileIdentity = ( params ) => {
 	
 	const { 
@@ -41,7 +44,23 @@ const ModalProfileIdentity = ( params ) => {
 		generateRandomDigits,
 		siteLanguage,
 		dateFormater,
-		siteLocale
+		siteLocale,
+		languageList,
+		language_french,
+		language_english,
+		language_spanish,
+		language_german,
+		language_italian,
+		language_estonian,
+		profileIdentity_addressPlaceholder,
+		profileIdentity_addressErrorText,
+		profileIdentity_codePostalErrorText,
+		profileIdentity_codePostalPlaceholder,
+		profileIdentity_villePlaceholder,
+		profileIdentity_villeErrorText,
+		profileIdentity_countryDefault,
+		profileIdentity_stateDefault,
+		profileIdentity_cityDefault,
 	} = useContext( SiteContext );
 
 	// title
@@ -165,21 +184,70 @@ const ModalProfileIdentity = ( params ) => {
 			return true
 	}
 
-	// user language
-	const data = [
-		{
-			title: "Ant Design Title 1"
-		},
-		{
-			title: "Ant Design Title 2"
-		},
-		{
-			title: "Ant Design Title 3"
-		},
-		{
-			title: "Ant Design Title 4"
+	// address
+	const [ address, setAddress ] = useState( '' );
+	const [ addressError, setAddressError ] = useState( '' );
+	const handleChangeAddress = ( e ) => {
+		const data = e.target.value;
+		setAddress( data );
+
+		var addressErrorText = '';
+		const test = addressValidator( data )
+
+		if( data && test === false ){
+		
+			addressErrorText = profileIdentity_addressErrorText
 		}
-	];
+		// signUpAddressErrorText = 'Your address seems incorect'
+		setAddressError( addressErrorText );
+	}
+	const addressValidator = ( address ) => {
+		const rep = /^[a-zA-Z0-9,.'-]*$/.test( address );
+		return rep
+	}
+
+	// codePostal
+	const [ codePostal, setCodePostal ] = useState( '' );
+	const [ codePostalError, setCodePostalError ] = useState( '' );
+	const handleChangeCodePostal = ( e ) => {
+		const data = e.target.value;
+		setCodePostal( data );
+
+		var codePostalErrorText = '';
+		const test = codePostalValidator( data )
+
+		if( data && test === false ){
+		
+			codePostalErrorText = 'foo'; // profileIdentity_codePostalErrorText;
+		}
+		// signUpCodePostalErrorText = 'Your codePostal seems incorect'
+		setCodePostalError( codePostalErrorText );
+	}
+	const codePostalValidator = ( codePostal ) => {
+		const rep = /^[a-zA-Z0-9\.\s,.'-:]*$/.test( codePostal );
+		return rep
+	}
+
+	// ville
+	const [ ville, setVille ] = useState( '' );
+	const [ villeError, setVilleError ] = useState( '' );
+	const handleChangeVille = ( e ) => {
+		const data = e.target.value;
+		setVille( data );
+
+		var villeErrorText = '';
+		const test = villeValidator( data )
+
+		if( data && test === false ){
+			villeErrorText = profileIdentity_villeErrorText
+		}
+		// signUpVilleErrorText = 'Your ville seems incorect'
+		setVilleError( villeErrorText );
+	}
+	const villeValidator = ( ville ) => {
+		const rep = /^[a-zA-Z0-9\s,.'-]*$/.test( ville );
+		return rep
+	}
 
 	// get datePicker local
 	const getDatePickerlocale = () =>{
@@ -194,7 +262,43 @@ const ModalProfileIdentity = ( params ) => {
 		
 		return locale_en // falback
 	}
-	
+
+	// Build countries options
+	const BuildCountriesOptions = () => {
+		return(
+			countries.map( ( country, index ) => 
+				({
+					value: country.isoCode,
+					label: country.name,
+				})
+			)
+		)
+	}
+
+	// Build states options
+	const BuildStatesOptions = () => {
+		return(
+			states.map( ( state, index ) => 
+				({
+					value: state.isoCode,
+					label: state.name,
+				})
+			)
+		)
+	}
+
+	// Build cities options
+	const BuildCitiesOptions = () => {
+		return(
+			cities.map( ( city, index ) => 
+				({
+					value: city.name,
+					label: city.name,
+				})
+			)
+		)
+	}
+
 	// save
 	const handleClickSave = async () => {
 
@@ -220,12 +324,6 @@ const ModalProfileIdentity = ( params ) => {
 			// setSendingDisabled( false );
 			return
 		}
-
-		// an update
-		// if( !isNew ){
-			
-		// }
-// {"id":9,"langue":[],"nom":null,"prenom":null,"sexe":null,"phone":null,"picture":"68a8d36cc7728.jpg","biography":null,"codePostal":null,"adresse":null,"dateNaissance":null,"dateCreated":{"date":"2025-08-04 02:23:42.000000","timezone_type":3,"timezone":"UTC"}}
 		
 		const sendData = {
 			nom: 				name,
@@ -233,7 +331,12 @@ const ModalProfileIdentity = ( params ) => {
 			sexeId:				sexe ? sexe : userProfile.userSexeId,
 			profileUserId: 		profileId,
 			dateDeNaissance: 	dateDeNaissance,
-			biographie: 		biography
+			langues: 			selectedLanguages.join( ',' ),
+			adresse:			address,
+			codePostal:			codePostal,
+			country:	countrySelected,
+			state:		stateSelected,
+			city:		citySelected,
 		}
 
 		const rep = await profileUpdate( sendData, null, profileTypeId );	// save
@@ -296,25 +399,96 @@ const ModalProfileIdentity = ( params ) => {
 		form.resetFields();
 	}
 
+	// birth date
+	const [ datePickerDefaultValue, setDatePickerDefaultValue ] = useState( '' ); 
 	const [ fieldName, setFieldName ] = useState( '' );
 	const [ dateNaissance, setDateNaissance ] = useState( '' );
 	
 	// user language selector
-	const [checked, setChecked] = useState([]);
-	const [indeterminate, setIndeterminate] = useState(false);
-	const [checkAll, setCheckAll] = useState(false);
-	const onCheckAllChange = (e) => {
-		setChecked(e.target.checked ? data.map((item) => item.title) : []);
-		setCheckAll(e.target.checked);
-	};
+	const { Option } = Select;
+	const [ selectedLanguages, setSelectedLanguages ] = useState([]);
+	const [ languageOptions, setLanguageOptions ] = useState([]);
+	const MAX_LANGUAGES = 2; // Define your maximum limit
+	const handleChangeLanguage = (value) => {
+		if (value.length > MAX_LANGUAGES) {
+		  // If the new selection exceeds the limit, take only the allowed number
+		  setSelectedLanguages( value.slice(0, MAX_LANGUAGES) );
+		} 
+		else {
+		  setSelectedLanguages(value);
+		}
+	}
+
+// countries
+	const [ countryError, setCountryError ] = useState( '' );
+	const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
+	const [ countrySelected, setCountrySelected ] = useState( '' );
+	const [ countries, setCountries ]  = useState( [] ); 
+	const [ countryCode, setCountryCode ] = useState( '' );	
+	const [ flagCode, setFlagCode ] = useState( '' );
+	const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
+
+	const handleChangeCountrySelected = ( countryCode ) => {
+		setCountrySelected( countryCode );
+		const countryStates = State.getStatesOfCountry( countryCode );
+		setCountryCode( countryCode );
+		// const flagCode = countryPhoneCode.toLowerCase();
+		setFlagCode( flagCode );
+		setStates( countryStates );			
+		const country = countries.filter( country => country.isoCode == countryCode );
+		// const countryPhoneCode = country[0].phonecode;
+	
+		setCountryError( '' );
+
+		// setCountryPhoneCode( countryPhoneCode );
+		setShowStatesCities( '' );
+		setStateSelected( '' );
+		setCitySelected( '' );
+	}
+	
+	// states
+	const [ stateError, setStateError ] = useState( '' );
+	const [ stateDefault, setStateDefault ] = useState( 'Select a state' );
+	const [ stateNotFound, setStateNotFound ] = useState( 'Select a country first' );
+	const [ stateSelected, setStateSelected ] = useState( '' );
+	const [ states, setStates ]  = useState( [] );
+	const handleChangeStateSelected = ( stateCode ) => {
+		setStateSelected( stateCode );
+		const stateCities = City.getCitiesOfState( countryCode, stateCode );
+
+		setStateError( '' );
+
+		setCities( stateCities );
+		
+		setCitySelected( '' );
+	}
+
+	// cities
+	const [ cityError, setCityError ] = useState( '' );
+	const [ cityDefault, setCityDefault ] = useState( 'Select a city' );
+	const [ cityNotFound, setCityNotFound ] = useState( 'Select a state first' );
+	const [ citySelected, setCitySelected ] = useState( '' );
+	const [ cities, setCities ]  = useState( [] ); 
+	const handleChangeCitySelected = ( value ) => {
+		setCitySelected( value );
+		setCityError();
+	}
+	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' ); 
 	useEffect(() => {
 
 		// reset the form
 		form.resetFields();
-		// user language selection
-		setIndeterminate(checked.length && checked.length !== data.length);
-		setCheckAll(checked.length === data.length);
-
+		
+		// set the countries
+		const allCountries = Country.getAllCountries();
+		var countries = Array();
+		// Add an id property to the countries array for and Select to work
+		for( const country of allCountries ){ 
+			country.id = country.isoCode;
+			countries.push( country );
+		}
+		setCountries( countries );
+		
 		const a = async () => {
 			const fieldName = await params.params.fieldName;
 			setFieldName( fieldName );
@@ -332,15 +506,55 @@ const ModalProfileIdentity = ( params ) => {
 			const birthDate = userProfile.dateNaissance ? userProfile.dateNaissance.date : '';
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
-			// const sexe = userProfile.sexe;
-			// const elt = await window.document.getElementById( 'sexeType' + sexe );
-			// if( elt )
-				// elt.click()
-
+			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs()  );
+			// site languages
+			const siteLanguages = await languageList();
+			const languages 	= await siteLanguages.map( ( v, k ) => ( { label: eval( v.tagClass ), value: v.id } ) );
+			setLanguageOptions( languages );
+			// user language
+			const userLanguages = userProfile.langue ? userProfile.langue : [];
+			const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
+			setSelectedLanguages( userLanguagesId );
+			// address
+			const address = userProfile.adresse ? userProfile.adresse : '';
+			setAddress( address );
+			// code postalCode
+			const codePostal = userProfile.codePostal ? userProfile.codePostal : '';
+			setCodePostal( codePostal );
+			// Country
+			if( userProfile.country ){
+				const countryObj = await countries.filter( country => 
+					country.id == userProfile.country
+				)[0];
+				setCountrySelected( userProfile.country );
+				// setCountryDefault( userProfile.country );
+				const countryStates = await State.getStatesOfCountry( countryObj.isoCode )
+				setStates( countryStates );
+				// Country States
+				if( countryObj ){ 
+					setShowStatesCities( '' );
+					setStateSelected( userProfile.state );
+					// setStateDefault( userProfile.state );
+					const stateCities = City.getCitiesOfState( countryObj.isoCode, userProfile.state );
+					// console.log( 'stateCities', stateCities );
+					setCities( stateCities );
+				}
+				// State cities
+				if( countryObj ){ 
+					setCitySelected( userProfile.city )
+					// setCityDefault( userProfile.city );
+				}
+			}
+			if( !countrySelected )
+				setCountryDefault( profileIdentity_countryDefault )
+			if( !stateSelected )
+				setStateDefault( profileIdentity_stateDefault )
+			if( !citySelected )
+				setCityDefault( profileIdentity_cityDefault )
 		}
 		a()
 
-	}, [ visibleModalName, userProfile, checked ]); // Dependency array ensures effect runs when isModalOpen changes
+	}, [ visibleModalName, userProfile ]); // Dependency array ensures effect runs when isModalOpen changes
 
 	// form
 	 const [form] = Form.useForm();
@@ -368,11 +582,7 @@ const ModalProfileIdentity = ( params ) => {
 				cancelText	= { 'Cancel' }
 				styles 		= {{
 					body: {
-						/* maxHeight: '400px', */
-						/* overflowY: 'auto', */
-						width: '98%',
-						paddingLeft: '5%',
-						paddingRight: '5%',
+						
 					},
 				}}
 			>
@@ -382,9 +592,8 @@ const ModalProfileIdentity = ( params ) => {
 					form = {form}
 					/* initialValues={{ PaypalEmail: 'john.doe@example.com' }} */
 				>
-					<div className="row">
 					{ fieldName == "Profile" &&
-					<div className="row">	
+					<>	
 						<div className="row">
 							<div className="col-6">
 								<Form.Item
@@ -402,7 +611,7 @@ const ModalProfileIdentity = ( params ) => {
 											}
 										}
 									]}
-									initialValue  = { userProfile.nom }
+									initialValue  = { name }
 								>
 									<Input 
 										name  = "nameInput"
@@ -431,7 +640,7 @@ const ModalProfileIdentity = ( params ) => {
 											}
 										}
 									]}
-									initialValue  = { userProfile.prenom }
+									initialValue  = { firstName }
 								>
 									<Input 
 										name  = "firstNameInput"
@@ -443,6 +652,8 @@ const ModalProfileIdentity = ( params ) => {
 									/>
 								</Form.Item>
 							</div>
+						</div>
+						<div className="row">
 							<div className="col-6">
 								<Form.Item
 									className = "backgroundYellow borderRadius18 height40"
@@ -493,51 +704,199 @@ const ModalProfileIdentity = ( params ) => {
 						</div>
 						<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField">
 							<div className="col-6">
-								<span>Birth date: &nbsp; { dateNaissance }</span>
+								<span>Birth date &nbsp; { dateNaissance }</span>
 							</div>
 							<div className="col-6 justify-content-end dateField">
 								<ConfigProvider locale={ getDatePickerlocale() }>
 									<DatePicker 
+										defaultValue={ datePickerDefaultValue }
 										onChange={ (e) => handleBirthDateChange(e) }
 									/>
 								</ConfigProvider>
 							</div>
 						</div>
-						<div className="row">
-							  <Checkbox
-								indeterminate={indeterminate}
-								onChange={onCheckAllChange}
-								checked={checkAll}
-							  >
-								Check all
-							  </Checkbox>
-							  <Checkbox.Group
-								style={{ width: "100%" }}
-								value={checked}
-								onChange={(checkedValues) => {
-								  setChecked(checkedValues);
-								}}
-							  >
-								<List
-								  itemLayout="horizontal"
-								  dataSource={data}
-								  renderItem={(item) => (
-									<List.Item>
-									  <List.Item.Meta
-										avatar={<Checkbox value={item.title} />}
-										title={<a href="https://ant.design">{item.title}</a>}
-										description="Ant Design, a design language for background applications, is refined by Ant UED Team"
-									  />
-									</List.Item>
-								  )}
-								/>
-							  </Checkbox.Group>
-							  <div style={{ marginTop: 20 }}>
-								<b>Selecting:</b> {checked.join(", ")}
-							  </div>
-
+						<div className="row height40 width100per100 selectLanguage">
+							<div className="col-3">
+								Language
+							</div>
+							<div className="col-9">
+								<Select
+									mode="multiple"
+									style={{ width: '100%' }}
+									placeholder="Select languages"
+									value={selectedLanguages}
+									onChange={handleChangeLanguage}
+								>
+									{ languageOptions.map((option) => (
+										<Option key={option.value} value={option.value}>
+										  <Checkbox checked={selectedLanguages.includes(option.value)}>
+											{option.label}
+										  </Checkbox>
+										</Option>
+									 ))}
+								</Select>
+							</div>
 						</div>
-					</div>
+						<div className="row backgroundYellow borderRadius18 height40 width100per100 profilIdentityField">
+							<Form.Item
+								name  = "address"
+								rules = {[
+									{
+										message: addressError,
+										validator: ( value ) => {
+											if ( addressError ) {
+												return Promise.reject( addressError );
+											} 
+											else {
+												return Promise.resolve();
+											}
+										}
+									}
+								]}
+								initialValue  = { address }
+							>
+								<Input 
+									name= "addressInput"
+									className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+									placeholder={ profileIdentity_addressPlaceholder }
+									type="text" 
+									value={ address }
+									onChange = { e => handleChangeAddress(e) }
+								/>
+							</Form.Item>
+						</div>
+						<div className="row marginTop2percent">
+							<div className="col-6">
+								<Form.Item
+									name  = "CodePostal"
+									rules = {[
+										{
+											message: codePostalError,
+											validator: ( value ) => {
+												if ( codePostalError ) {
+													return Promise.reject( codePostalError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									initialValue  = { codePostal }
+								>
+									<Input 
+										name  = "codePostalInput"
+										className="backgroundYellow  borderRadius18 width100per100 borderNone height40"  
+										placeholder={ profileIdentity_codePostalPlaceholder }
+										type="text" 
+										value={ codePostal }
+										onChange = { e => handleChangeCodePostal(e) }
+									/>
+								</Form.Item>
+							</div>
+							<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+								<Form.Item
+											
+											name  = "country"
+											rules = {[
+												{
+													message: countryError,
+													validator: ( value ) => {
+														if ( countryError ) {
+															return Promise.reject( countryError );
+														} 
+														else {
+															return Promise.resolve();
+														}
+													}
+												}
+											]}
+											initialValue  = { countrySelected ? countrySelected : countryDefault }
+										>
+											<Select
+												bordered={false}
+												value			= { countrySelected }
+												onChange		= { e => handleChangeCountrySelected( e ) }
+												showSearch
+												optionFilterProp="label"
+												filterSort={(optionA, optionB) =>
+												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+												}
+												options = { BuildCountriesOptions() }
+												notFoundContent = { countryDefault }
+											/>
+										</Form.Item>
+								</div>
+							</div>
+							<div style={{ display: showStatesCities }} className="row marginTop2percent">
+								<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+									<Form.Item
+											name  = "state"
+											rules = {[
+												{
+													message: stateError,
+													validator: ( value ) => {
+														if ( stateError ) {
+															return Promise.reject( stateError );
+														} 
+														else {
+															return Promise.resolve();
+														}
+													}
+												}
+											]}
+											initialValue  = { stateSelected ? stateSelected : stateDefault }
+										>
+											<Select
+												bordered={false}
+												value			= { stateSelected }
+												onChange		= { e => handleChangeStateSelected( e ) }
+												showSearch
+												optionFilterProp="label"
+												filterSort={(optionA, optionB) =>
+												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+												}
+												options = { BuildStatesOptions() }
+												notFoundContent = { stateNotFound }
+											/>
+										</Form.Item>
+								</div>
+								<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+									<Form.Item
+											name  = "city"
+											rules = {[
+												{
+													message: cityError,
+													validator: ( value ) => {
+														if ( cityError ) {
+															return Promise.reject( cityError );
+														} 
+														else {
+															return Promise.resolve();
+														}
+													}
+												}
+											]}
+											initialValue  = { citySelected ? citySelected : cityDefault }
+										>
+											<Select
+												bordered={false}
+												size 		 	= 'middle'
+												value			= { citySelected }
+												onChange		= { e => handleChangeCitySelected( e ) }
+												showSearch
+												optionFilterProp="label"
+												filterSort={(optionA, optionB) =>
+												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+												}
+												options = { BuildCitiesOptions() }
+												notFoundContent = { cityNotFound }
+											/>
+										</Form.Item>
+								</div>
+							</div>
+						</>
+					
 					}
 					
 					
@@ -682,11 +1041,10 @@ const ModalProfileIdentity = ( params ) => {
 								style		= {{
 												width: '100%', 
 												height: '90px'
-											}}
+								}}
 							/>
 						</Form.Item>
 					}
-					</div>
 				</Form>
 			
 			</Modal>

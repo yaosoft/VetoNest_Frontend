@@ -105,6 +105,12 @@ const Footer = () => {
 		setPaymentMethod_descriptionBank,
 		setProfile_sexe_male,
 		setProfile_sexe_female,
+		setLanguage_french,
+		setLanguage_english,
+		setLanguage_spanish,
+		setLanguage_german,
+		setLanguage_italian,
+		setLanguage_estonian,
 	} = useContext( SiteContext );
 
 	const navigate = useNavigate();
@@ -759,10 +765,45 @@ const Footer = () => {
 					const profile_sexe_male = profile_sexe_maleElt.innerHTML;
 					setProfile_sexe_male( profile_sexe_male );
 				}
+				
+				const language_frenchElt  = document.getElementsByClassName("language_french")[0];
+				if( language_frenchElt ){
+					const language_french = language_frenchElt.innerHTML;
+					setLanguage_french( language_french );
+				}
+				
+				const language_englishElt  = document.getElementsByClassName("language_english")[0];
+				if( language_englishElt ){
+					const language_english = language_englishElt.innerHTML;
+					setLanguage_english( language_english );
+				}
+
+				const language_spanishElt  = document.getElementsByClassName("language_spanish")[0];
+				if( language_spanishElt ){
+					const language_spanish = language_spanishElt.innerHTML;
+					setLanguage_spanish( language_spanish );
+				}
+				
+				const language_germanElt  = document.getElementsByClassName("language_german")[0];
+				if( language_germanElt ){
+					const language_german = language_germanElt.innerHTML;
+					setLanguage_german( language_german );
+				}
+
+				const language_italianElt  = document.getElementsByClassName("language_italian")[0];
+				if( language_italianElt ){
+					const language_italian = language_italianElt.innerHTML;
+					setLanguage_italian( language_italian );
+				}
+				
+				const language_estonianElt  = document.getElementsByClassName("language_estonian")[0];
+				if( language_estonianElt ){
+					const language_estonian = language_estonianElt.innerHTML;
+					setLanguage_estonian( language_estonian );
+				}
 			}
 		}
 		updatePageContent();
-
 
 	}, [siteLanguage] );
 	

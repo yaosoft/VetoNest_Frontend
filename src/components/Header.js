@@ -216,6 +216,44 @@ const Header = () => {
 					</div>
 				</div>
 			</header>
+			<div className="displayNone" >
+					<span 
+						id="cmp_vetonest.com_JLQuQUHS9n"
+						className ="language_french" 
+					>
+						Français
+					</span>
+					<span 
+						id="cmp_vetonest.com_wyemTkNBRm"
+						className ="language_english" 
+					>
+						Anglais
+					</span>
+					<span 
+						id="cmp_vetonest.com_EJtVTUW6Bh"
+						className ="language_spanish" 
+					>
+						Espagnol
+					</span>
+					<span 
+						id="cmp_vetonest.com_pxa8xJMVaM"
+						className ="language_german" 
+					>
+						Allemand
+					</span>
+					<span 
+						id="cmp_vetonest.com_9tmtPx9JYg"
+						className ="language_italian" 
+					>
+						Italien
+					</span>
+					<span 
+						id="cmp_vetonest.com_0pM9CADe5s"
+						className ="language_estonian" 
+					>
+						Estonien
+					</span>
+			</div>
 		</>
 	);
 };
