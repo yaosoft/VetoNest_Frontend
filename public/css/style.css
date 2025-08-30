@@ -115,7 +115,20 @@ h6 {
 }
 
 .backgroundYellow{
-	background-color: #FFDE59;
+	background-color: #FFDE59 !important;
+}
+
+.ant-select-selector{
+	background-color: #FFDE59 !important;
+}
+
+.ant-modal-content{
+	background-color: #C1FF72 !important;
+}
+
+.ant-modal-header p {
+	background-color: #C1FF72 !important;
+	font-size: 22px !important;
 }
 
 .borderYellow{
@@ -135,6 +148,15 @@ h6 {
 	background-color: #C1FF72;
 }
 
+.rounded-select {
+	border-radius: 30px !important; /* Adjust value as needed */
+    background-color: white; /* Example background color */
+    border: #FFDE59 !important; /* Example border */
+ }
+
+.rounded-select:hover {
+	border-color: #FFDE59 !important; /* Example hover effect */
+}
 
 .birthdateField{
 	margin-left: 0%;
@@ -144,12 +166,35 @@ h6 {
     padding-top: 2%;
 }
 
+.marginTop2percent {
+    padding-top: 2%;
+}
+
 .birthdateField .dateField{
     padding-top: 1%;
 }
 
+.profilIdentityField{
+    margin-top: 2%;
+	margin-left: 0%;
+}
+
 .ant-picker{
 	width: 98%;
+}
+
+.selectLanguage {
+    margin-left: 0%;
+    margin-top: 3%;
+    border-radius: 30px;
+    border-bottom: #FFDE59 solid 1px;
+    background-color: #ffde59;
+    /* padding-left: 3%; */
+    padding-top: 1.5%;
+}
+
+.ant-modal{
+
 }
 
 /* You might also need to target the panel itself */
@@ -221,7 +266,7 @@ h6 {
 }
 
 .width100per100{
-	width: 100%;
+	width: 100% !important;
 }
 
 .colorWhite{

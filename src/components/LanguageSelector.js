@@ -22,7 +22,13 @@ const LanguageSelector = ( params ) => {
 		languageSetup,
 		languageFlag,
 		selectedLanguageId, 
-		setSelectedLanguageId
+		setSelectedLanguageId,
+		language_french,
+		language_english,
+		language_spanish,
+		language_german,
+		language_italian,
+		language_estonian,
 	} = useContext( SiteContext );
 
 	// params
@@ -81,7 +87,7 @@ console.log(languageId);
 						key		= { option.id } 
 						value	= { option.id }
 					>
-						{option.name}
+						{ eval( option.tagClass ) }
 					</Select.Option>
 				))}
           </Select>
