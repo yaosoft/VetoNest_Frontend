@@ -20,6 +20,7 @@ import Header from '../Header';
 import Footer from '../Footer';
 import ModalPaymentMethod from '../ModalPaymentMethod';
 import ModalRemovePaymentMethod from '../ModalRemovePaymentMethod';
+import ModalRemoveAnimal from '../ModalRemoveAnimal';
 import SingleFieldManager from '../SingleFieldManager';
 // import ModalEmailValidate from '../ModalEmailValidate';
 
@@ -75,15 +76,25 @@ const Profile = ( params ) => {
 		profile_sexe_female,
 		siteLanguage,
 		profileFormUpdated,
+		setProfileFormUpdated,
 		profileIdentityOpen,
-		dateFormater
+		dateFormater,
+		getUserPets,
+		userPets,
+		setUserPets,
+		getBase64,
+		setSelectedAnimal,
+		setModalRemoveAnimalOpen,
+		removeAnimalOpen,
+		photoAnimalDefaultSrc,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
 	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
-	const [ formUpdated, setFormUpdated ] = useState( '' );
-	const [ paymentMethods, setPaymentMethods ] = useState( [] );
 	
+	// const [ formUpdated, setFormUpdated ] = useState( '' );
+	const [ paymentMethods, setPaymentMethods ] = useState( [] );
+	const [ userTotalAnimal, setUserTotalAnimal ] = useState( 0 );
 	
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
 	
@@ -104,7 +115,6 @@ const Profile = ( params ) => {
 		}
 		getUserPaymentMethods();
 		getPaymentMethods();
-
 	 }, [user, modalPaymentMethodOpen, modalRemovePaymentMethodOpen] );
 
 	// check if user have this payment method. If true, return user paiment method object
@@ -128,9 +138,7 @@ const Profile = ( params ) => {
 	const [ photoError, setPhotoError ] = useState( '' );
 	const [ profilePhoto, setProfilePhoto ] = useState('');
 	const [ fileList, setFileList ] = useState([]);
-	const [ fileListToPost, setFileListToPost ] = useState( [] );
 	const [ showUploadList, setShowUploadList ] = useState( false );
-	const [ photoUri, setPhotoUri ] = useState('');
 	const handleBeforeUpload = ( file ) => {
         // You can perform validation or other logic here
         // Store the file in state to upload manually later
@@ -180,15 +188,15 @@ const Profile = ( params ) => {
 
 
 	const modalPhotoHandleOk = async() => {
-		const profileIdType = profileTypeId == 1 ? 'profileUserId' : 'profileVetoId';
 		var data = {};
-		data[ profileIdType ] = profileId;
+		data[ 'profileId' ] = profileId;
 		const rep = await profileUpdate ( data, profilePhoto, profileTypeId );
 		
 		if( rep ){
 			message.success( 'Updated!' );
 			const random = generateRandomDigits(3);
-			setFormUpdated( random );
+			// setFormUpdated( random );
+			setProfileFormUpdated( random );
 		}
 		else{
 			message.error( 'not Updated!' )
@@ -277,7 +285,19 @@ const Profile = ( params ) => {
 		setModalRemovePaymentMethodOpen( true )
 		// removePaymentMethodOpen( userPaymentMethodId )
 	}
-	
+
+	const handleClickRemoveAnimal = ( animalId )  => {
+console.log( 'animalId', animalId );
+console.log( 'userPets', userPets );		
+
+		// get user payment method
+		const animal = userPets.filter( e => e.id == animalId )[ 0 ];
+		setSelectedAnimal( animal );
+		setModalRemoveAnimalOpen( true )
+		// removeAnimalOpen( userPaymentMethodId )
+	}
+
+
 	// date formater
 	// const [ siteLocale, setSiteLocale ] = useState( 'en-EN' );
 	
@@ -289,7 +309,7 @@ const Profile = ( params ) => {
 		// get user profile info
 		const a = async () => {
 			const profile = await profileGet( profileId, profileTypeId );
-console.log( 'profile', profile );
+// console.log( 'profile', profile );
 			setUserProfile( profile );
 			// setSiteLocale( siteLocale );
 			// name
@@ -310,16 +330,66 @@ console.log( 'profile', profile );
 
 		}
 		a();
-	}, [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
+	}, [ visibleModalName, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
+//  [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
-	function getBase64(file) {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader();
-			reader.readAsDataURL(file);
-			reader.onload = () => resolve(reader.result);
-			reader.onerror = (error) => reject(error);
-		});
+	useEffect(() => {
+		// get user pet'
+		const a = async() => {
+			const userPets = await getUserPets( profileId );
+// console.log( '>>>>>>>>>> profile', profile );
+			if( userPets.length ){
+				// profile.userPets = userPets;
+				setUserPets( userPets );
+				// count user animal
+				const countUserAnimal = userPets.length;
+				setUserTotalAnimal( countUserAnimal );
+			}
+		}
+		a()
+	}, [profileFormUpdated] );
+
+	// build pets list
+	const BuildUserPetsList = () =>{
+		if( !userPets.length ) 
+			return
+		
+		return(
+			<p>
+				{
+					userPets.map( e => 
+						<div className='row' style={{marginBottom:'15px'}}>
+							<div className='col-md-3'>
+								<img  
+									className='photoAnimalThumbnail'
+									src = { e.picture ? 
+											base_url + 'uploads/files/pets/' + e.picture: 
+											photoAnimalDefaultSrc 
+									}
+								/>
+								<a 
+									onClick={ ( ev ) => handleClickRemoveAnimal( e.id ) }
+								>
+									<i className="fa fa-trash text-danger">&nbsp;<span className='text-info'>delete</span></i> 
+								</a>
+							</div>
+							
+							<div className='col-md-9'>
+								<SingleFieldManager params={{
+										fieldName: 	'Animaux',
+										title:		'Update ' + e.nom + ' info',
+										placeholder: 'Edit pet data',
+										selectedPetId: e.id,
+										value: e.nom,
+									}}
+								/>
+							</div>
+						</div>
+					)
+				}		
+			</p>
+		)
 	}
 
 	// form
@@ -356,6 +426,7 @@ console.log( 'profile', profile );
 			</Modal>
 			<ModalPaymentMethod />
 			<ModalRemovePaymentMethod />
+			<ModalRemoveAnimal />
 			<Header />
 			
 			<p>&nbsp;</p>
@@ -398,7 +469,7 @@ console.log( 'profile', profile );
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Identité
+											Profile
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
@@ -409,37 +480,59 @@ console.log( 'profile', profile );
 												}}
 											/>
 										</div>
-										
+										<br/>
 										<div className="row">
-											Langue
+											Connexion
 										</div>
-										<div className="row profileLanguageSelector">
-											<LanguageSelector 
-												toPersist 	= { true } 
-												flag 		= { false }
-												context		= { false }
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Email',
+													title:		'Modifier mon email',
+													placeholder: 'Email ...',
+													value: 'Modify my email',
+												}}
+											/>
+										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'PasswordReset',
+													title:		'Modifier mon mot de passe',
+													placeholder: 'Password reset',
+													value: 'Modify my password',
+												}}
 											/>
 										</div>
 										<p>&nbsp;</p>
-										<div className="row">
-											Devise
-										</div>
-										<div className="row profileLanguageSelector">
-											<CurrencySelector />
-										</div>
 									</div>
 								</div>
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Payment</b>
+										<b>Mes animaux</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Payment Methods
+											Carnet de santé
 										</div>
 										<div className="row">
 											<div className="col-md-9">
-												<BuildPaymentList/>
+												<div className="row singleFieldManager">
+													<SingleFieldManager params={{
+															fieldName: 	'Animaux',
+															title:		'Ajouter un animal',
+															placeholder: 'Animal ...',
+															value: 'Ajouter un animal',
+														}}
+													/>
+												</div>
+											</div>
+											<div className="col-md-9">
+												<br/>
+												<div className="row">
+													Vous avez { userTotalAnimal } animaux<br/>
+												</div>
+												<div className="row singleFieldManager">
+													<BuildUserPetsList />
+												</div>
 											</div>
 										</div>
 									</div>
@@ -501,22 +594,34 @@ console.log( 'profile', profile );
 												}}
 											/>
 										</div>
+										<div className="row profileLanguageSelector">
+											<LanguageSelector 
+												toPersist 	= { true } 
+												flag 		= { false }
+												context		= { false }
+											/>
+										</div>
+										<p>&nbsp;</p>
+										<div className="row">
+											Devise
+										</div>
+										<div className="row profileLanguageSelector">
+											<CurrencySelector />
+										</div>
 										<p>&nbsp;</p>
 									</div>
 								</div>
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Address</b>
+										<b>Payment</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											User address
+											Payment Methods
 										</div>
 										<div className="row">
 											<div className="col-md-9">
-												<div className="row profileLanguageSelector">
-													Import user's address component
-												</div>
+												<BuildPaymentList/>
 											</div>
 										</div>
 									</div>

@@ -16,6 +16,7 @@ const SingleFieldManager = ( params ) => {
 		userProfile,
 		setVisibleModalName,
 		visibleModalName,
+		setSelectedPetId,
 	} = useContext( SiteContext );
 
 	
@@ -35,9 +36,16 @@ const SingleFieldManager = ( params ) => {
 		setFieldName( fieldName );
 		setValue( params.params.value );
 		
+		
+		
 	}, [userProfile] );
-	 
+
+
 	const handleClickField = () => {
+		// selected pet's book ID
+		const selectedPetId = params.params.selectedPetId && params.params.selectedPetId;
+		setSelectedPetId( selectedPetId );
+		
 		// title
 		const title = params.params.title;
 		setTitle( title );
@@ -55,11 +63,11 @@ const SingleFieldManager = ( params ) => {
 		}}
 		/>
 		<div className='row singleFieldManager'>
-			<div className='dataDiv backgroundOlive' >
+			<div className='dataDiv backgroundOlive' style={{ textAlign: 'left' }} >
 				<span>{ value ? value : placeholder }</span>
 			</div> 
 			<div 
-				className='buttonDiv backgroundYellow borderRightRadius25'
+				className='buttonDiv borderRightRadius25'
 				role={'button'}
 				tabIndex={0}
 				onClick={ (e) => handleClickField() }

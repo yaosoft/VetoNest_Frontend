@@ -112,6 +112,19 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// update email address
+	const updateEmail = async ( emailData ) => {
+		const url	= base_api_url + 'user/update/email';
+
+		const data 		= emailData;
+		const method	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	
 	// signin
 	const signIn = async ( signinData ) => {
 		const url		= base_api_url + 'user/login';
@@ -289,8 +302,9 @@ export const SiteProvider = ({ children }) => {
 	
 	const [ userProfile, setUserProfile ] = useState( '' );
 	
-	// update profile
+	// update user / veto profile
 	const profileUpdate = async ( dataObj, picture, profileTypeId ) => {
+
 		const type 	= profileTypeId == 1 ? 'profileUser' : 'profileVeto';
 		const url	= base_api_url + type + '/edit';
 		const method 	= 'POST';
@@ -340,7 +354,7 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// profile - add / update payment methods
+	// User payment methods
 	const userPaymentMethodEdit = async ( userPaymentMethodObj ) => {
 		const url		= base_api_url + 'user/payment-method/edit';
 		const data 		= userPaymentMethodObj;
@@ -355,6 +369,11 @@ export const SiteProvider = ({ children }) => {
 	const [ selectedPaymentMethod, setSelectedPaymentMethod ] = useState( '' );
 	const [ modalRemovePaymentMethodOpen, setModalRemovePaymentMethodOpen ] = useState( false );
 
+	// profile remove animal modal
+	const [ selectedAnimal, setSelectedAnimal ] = useState( '' );
+	const [ modalRemoveAnimalOpen, setModalRemoveAnimalOpen ] = useState( false );
+	const [ photoAnimalDefaultSrc, setPhotoAnimalDefaultSrc ] = useState( '/img/user/paw.png' );
+
 	// profile - remove payment methods
 	const userPaymentMethodRemove = async ( userPaymentMethodObj ) => {
 		const url		= base_api_url + 'user/payment-method/remove';
@@ -366,9 +385,119 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 	
+	// Carnet animal - remove
+	const carnetAnimalRemove = async ( carnetAnimal ) => {
+		const url		= base_api_url + 'carnetAnimal/delete';
+		const data 		= carnetAnimal;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Carnet animal modals
+	const [ removeAnimalOpen, setRemoveAnimalOpen ] = useState( false );
+
+
 	// user payment method
 	const [ userPaymentMethods, setUserPaymentMethods ] = useState( [] );
 
+	// list all animals species
+	const speciesList = async () => {
+		const url		= base_api_url + 'espece/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a specie's breed
+	const speciesBreedList = async ( especeId ) => { 
+		const url		= base_api_url + "especeRace/list/?especeId=" + especeId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a user pets book
+	const getUserPets = async ( userProfileId ) => { 
+		const url		= base_api_url + "carnetAnimal/user?profileUserId=" + userProfileId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+	// edit a user pets book
+	const editUserPets = async ( animalBook, animalPhoto ) => {
+		const url		= base_api_url + 'carnetAnimal/edit';
+		const data 		= animalBook;
+		const method 	= 'POST';
+
+		const formData = new FormData();
+
+		// Append file
+		if( animalPhoto )
+			formData.append('files[]', animalPhoto )
+
+		// Append data
+		for ( var key in data ) 
+			formData.append( key, data[key] );
+
+		// Post data
+		setSpiner( 'block' );
+		const resp = await fetch( url, {
+			method: 'POST',
+			body: formData,
+		})
+		setSpiner( 'none' );
+
+		return resp;
+	}
+	
+	// selected ( active ) pets
+	const [ userPets, setUserPets ] = useState( [] );
+	const [ selectedPetId, setSelectedPetId ] = useState( '' );
+	
+	const [ especes, setEspeces ] = useState( [] );
+	const [ languages, setLanguages ] = useState( [] );
+	useEffect(() => {
+		const a = async () =>{
+			// Languages
+			const getLanguages = async () => {
+				const languages = await languageList();
+				return languages
+			}
+			const languages = await getLanguages();
+			setLanguages( languages );
+	
+			// Espece
+			const getEspeces = async () => {
+				const species = await speciesList();
+				return species
+			} 
+			const especes = await getEspeces();
+			setEspeces( especes )
+					
+		}
+		
+		a()
+	}, []);
+	
+
+	
+	// language Options
+	
+	
+	
 	// placeholder translate for indirect translation cases
 	const [ searchInputVeto, setSearchInputVeto ] = useState( '' );
 	const [ searchInputVetoType, setSearchInputVetoType ] = useState( '' );
@@ -461,10 +590,20 @@ export const SiteProvider = ({ children }) => {
 	const [ language_italian, setLanguage_italian ] = useState( '' );
 	const [ language_estonian, setLanguage_estonian ] = useState( '' );
 
+	const getBase64 = async (file) => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = (error) => reject(error);
+		})
+	}
+
 	return (	
 	
 		<SiteContext.Provider 
 			value={{
+				getBase64,
 				siteName,
 				siteEmail,
 				siteDomainName,
@@ -695,6 +834,23 @@ export const SiteProvider = ({ children }) => {
 				setLanguage_italian,
 				language_estonian,
 				setLanguage_estonian,
+				updateEmail,
+				speciesList,
+				speciesBreedList,
+				getUserPets,
+				selectedPetId,
+				setSelectedPetId,
+				editUserPets,
+				userPets, 
+				setUserPets,
+				languages,
+				especes,
+				selectedAnimal, 
+				setSelectedAnimal,
+				modalRemoveAnimalOpen, 
+				setModalRemoveAnimalOpen,
+				photoAnimalDefaultSrc,
+				carnetAnimalRemove,
 			}}
 		>
 
