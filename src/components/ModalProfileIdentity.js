@@ -14,7 +14,8 @@ import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconf
 import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
 
-
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+import InputCode from "./InputCode";
 const ModalProfileIdentity = ( params ) => {
 	
 	const { 
@@ -23,9 +24,26 @@ const ModalProfileIdentity = ( params ) => {
 		profileId,
 		userId,
 		user,
+		isValidPassword
 	} = useContext( AuthContext );
 
 	const { 
+		siteName,
+		siteEmail,
+		siteUrl,
+		siteDomain,
+		siteDomainName,
+		signUp_popConfirmPetDescription,
+		signUp_codeTitle,
+		signUp_popConfirmVetDescriptionn,
+		signUp_codeIntro,
+		signUp_codeLabel,
+		signUp_codeCorrect,
+		signUp_codeIncorrect,
+		signUp_codeResend,
+		checkEmail, 
+		sendEmail,
+		insertSpaceAtPosition,
 		modalProfileIdentityOpen,
 		setModalProfileIdentityOpen,
 		signUp_firstNameErrorText,
@@ -39,6 +57,8 @@ const ModalProfileIdentity = ( params ) => {
 		setVisibleModalName,
 		signUp_firstNamePlaceholder,
 		signUp_namePlaceholder,
+		signUp_verifyEmailSubjet,
+		signUp_popConfirmPetTitle,
 		profileIdentity_sexeErrorText,
 		setProfileFormUpdated,
 		generateRandomDigits,
@@ -60,9 +80,135 @@ const ModalProfileIdentity = ( params ) => {
 		profileIdentity_villeErrorText,
 		profileIdentity_countryDefault,
 		profileIdentity_stateDefault,
+		profileIdentity_updateEmailError,
+		profileIdentity_updateEmailSuccess,
 		profileIdentity_cityDefault,
-	} = useContext( SiteContext );
+		signUp_emailErrorText,
+		signUp_emailPlaceholder,
+		signUp_popConfirmVetTitle,
+		signUp_popConfirmYes,
+		signUp_popConfirmDeleteBtn,
+		signUp_popConfirmVetDescription,
+		updateEmail,
+		signUp_accountCreationFails,
+		signUp_accountCreationSuccess,
+		verificationCode,
+		verificationUserId,
+		setVerificationCode,
+		setVerificationUserId,
+		updatePassword,
+		signUp_passwordErrorText,
+		signUp_passwordRepeatErrorText,
+		passwordForgot_updateSuccess,
+		signUp_passwordPlaceholder,
+		signUp_passwordRepeatPlaceholder,
+		signUpPasswordRepeat,
+		signUp_termsUsage,
+		passwordForgotReset_title,
+		profileAnimal_animalNameErrorText,
+		profileAnimal_animalNamePlaceHolder,
+		profileAnimal_animalEspeceErrorText,
+		profileAnimal_animalRaceErrorText,
+		speciesList,
+		speciesBreedList,
+		selectedPetId,
+		editUserPets,
+		userPets,
+		languages,
+		especes,
+		getBase64,
+	} = useContext( SiteContext )
 
+	// Animal photo
+	const [ animalPhotoDefaultSrc, setAnimalPhotoPhotoDefaultSrc ] = useState( '/img/user/2.jpg' );
+	// File upload
+	const { Dragger } = Upload;
+	const [ uploading, setUploading ] = useState(false);
+	const [ animalPhotoError, setAnimalPhotoError ] = useState( '' );
+	const [ animalPhoto, setAnimalPhoto ] = useState('');
+	const [ fileList, setFileList ] = useState([]);
+	const [ showUploadList, setShowUploadList ] = useState( false );
+	const handleBeforeUpload = ( file ) => {
+        // You can perform validation or other logic here
+        // Store the file in state to upload manually later
+        setFileList([...fileList, file]);
+        return true; // Prevents automatic upload
+    };
+	const props = {
+		accept: '.png,.jpg,.jpeg',
+		listType: 'picture',
+		fileList: fileList,
+		multiple: false,
+		maxCount: 1,
+		showUploadList: showUploadList,
+		className: 'avatar-uploader',
+		/* beforeUpload: handleBeforeUpload, */
+		onChange(info) {
+			const a = async() => {
+
+				let newFileList = [...info.fileList];
+				setFileList( newFileList );
+				setAnimalPhoto( info.file );
+
+// console.log( 'info.file', info.file );
+
+				// open the modal
+				// await setIsModalPhotoOpen(true);
+			}
+			a()
+		},
+		onDrop(e) {
+			console.log('Dropped files', e.dataTransfer.files);
+		},
+	};
+	
+	// modal photo
+	const [ isModalPhotoOpen, setIsModalPhotoOpen ] = useState(false);
+	useEffect(() => {
+		if( !animalPhoto.originFileObj )
+			return 
+		
+		const a = async() => {
+			const dataUri = await getBase64( animalPhoto.originFileObj );
+			const elt = document.getElementById( "animalPhotoId" );
+			elt.src = dataUri;
+		}
+		a();
+	}, [fileList]); // Dependency array ensures effect runs when isModalOpen changes
+
+
+	// const modalPhotoHandleOk = async() => {
+		// const profileIdType = profileTypeId == 1 ? 'profileUserId' : 'profileVetoId';
+		// var data = {};
+		// data[ profileIdType ] = profileId;
+		// const rep = await profileUpdate ( data, profilePhoto, profileTypeId );
+		
+		// if( rep ){
+			// message.success( 'Updated!' );
+			// const random = generateRandomDigits(3);
+			// setFormUpdated( random );
+		// }
+		// else{
+			// message.error( 'not Updated!' )
+		// }
+		// setIsModalPhotoOpen( false );
+	// }
+	
+	const modalPhotoCancel = () => {
+		setIsModalPhotoOpen( false );
+	}
+	const modalPhotoHandleOkClosed = () => {
+		console.log( 'modalPhotoHandleOkClosed' )
+	}
+	const modalPhotoConfirmText = () => {
+		return "D'accord"
+	}
+	const modalPhotoCancelText = () => {
+		return "Annuler"
+	}
+	
+	
+	
 	// title
 	const [ title, setTitle ] = useState( '' );
 
@@ -86,9 +232,181 @@ const ModalProfileIdentity = ( params ) => {
 		// signUpNameErrorText = 'Your name seems incorect'
 		setNameError( nameErrorText );
 	}
+
+	// animal name
+	const [ animalName, setAnimalName ] = useState( '' );
+	const [ animalNameError, setAnimalNameError ] = useState( '' );
+	const handleChangeAnimalName = ( e ) => {
+		const data = e.target.value;
+		setAnimalName( data );
+
+		var animalNameErrorText = '';
+		const test = nameValidator( data )
+
+		if( data && test === false ){
+		
+			animalNameErrorText = profileAnimal_animalNameErrorText
+		}
+		// signUpAnimalNameErrorText = 'Your animalName seems incorect'
+		setAnimalNameError( animalNameErrorText );
+	}
+
+	// animal espece
+	const [ animalEspece, setAnimalEspece ] = useState( '' );
+	const [ animalEspeceError, setAnimalEspeceError ] = useState( '' );
+	const handleChangeAnimalEspece = async ( specieId ) => {
+		// set selcted specie
+		setAnimalEspece( specieId );
+		// get specie's breeds		
+		const breeds = await speciesBreedList( specieId );
+		setRaces( breeds );
+		// display breed Select
+		setShowBreeds( '' )
+	}
+
+	// animal race
+	const [ animalRace, setAnimalRace ] = useState( '' );
+	const [ animalRaceError, setAnimalRaceError ] = useState( '' );
+	const handleChangeAnimalRace = ( raceId ) => {
+		setAnimalRace( raceId );
+	}
+
+	// name validator
 	const nameValidator = ( name ) => {
-		const rep = /^(([A-Za-z]+[\-\']?)*([A-Za-z]+)?(\s)?)+([A-Za-z]+[\-\']?)*([A-Za-z]+)?$/.test( name );
+		const rep = /^(([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?(\s)?)+([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?$/.test( name );
 		return rep
+	}
+
+	// signUp email
+	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
+	const isValidEmail = ( email ) => {
+		if( !regexEmailValidation.test( email ) )
+			return false;
+
+		return true;
+	}
+	const [ signUpEmail, setSignUpEmail ] = useState();
+	const [ signUpEmailDefault, setEmailDefault ] = useState( 'Email' );
+	const [ signUpEmailError, setSignUpEmailError ] = useState( '' );
+	const handleChangeEmail = ( e ) => {
+		const data = e.target.value;
+		setSignUpEmail( data );
+
+		var signUpEmailErrorText = '';
+		if( data && !isValidEmail( data ) )
+			signUpEmailErrorText = signUp_emailErrorText
+
+// signUpEmailErrorText = 'Your email is not correct'
+
+		setSignUpEmailError ( signUpEmailErrorText );
+	}
+	// verification code modal
+	const [ code, setCode ] = useState( '' );
+	const [ formError01, setFormError01 ] = useState( 'none' );
+	const [ formError02, setFormError02 ] = useState( 'none' );
+	const [ formError03, setFormError03 ] = useState( 'none' );
+	const [ formError04, setFormError04 ] = useState( 'none' );
+	const [ formError05, setFormError05 ] = useState( 'none' );
+	const [ formError06, setFormError06 ] = useState( 'none' );
+	const [ formError07, setFormError07 ] = useState( 'none' );
+	const [ formError08, setFormError08 ] = useState( 'none' );
+	const [ formError09, setFormError09 ] = useState( 'none' );
+	const [ formError10, setFormError10 ] = useState( 'none' );
+	const [ isModalOpen, setIsModalOpen ] = useState(false);
+	const [ isModalOptionTypeOpen, setIsModalOptionTypeOpen ] = useState(false);
+	const [ emailVerificationResult, setEmailVerificationResult ] = useState( false );
+	const [ displayCodeCorrect, setDisplayCodeCorrect ] = useState( 'none' );
+	const [ displayCodeIncorrect, setDisplayCodeIncorrect ] = useState( 'none' );
+	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
+	const handleChangeCode = ( e ) => {
+		const typedCode 	= e.target.value;
+		const countLetters 	= typedCode.length
+		if( countLetters > maxCodeLength )
+			return
+
+		setVerificationCode( typedCode );
+// console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
+		if( countLetters == maxCodeLength ){
+			if( code != typedCode ){
+				message.error( 'Your code is not correct. Try again.' );
+				setDisplayCodeIncorrect( 'block' );
+				setEmailVerificationResult( false );
+			}
+			else{
+				message.success( 'Your code is correct' );
+				setEmailVerificationResult( true );
+				setDisplayCodeCorrect( 'block' );
+				setTimeout( setIsModalOpen, 2000, false );
+			}
+		}
+		else {
+			setDisplayCodeIncorrect( 'none' );
+		}
+		
+	}
+	
+	const handleCompletedCode = ( typedCode ) => {
+		
+		if( code != typedCode ){
+				// message.error( { signUp_codeIncorrect } );
+// message.error( 'Your code is not correct. Try again.' );
+				setDisplayCodeIncorrect( 'block' );
+				setEmailVerificationResult( false );
+		}
+		else{
+			message.success( signUp_codeCorrect );
+// message.success( 'Your code is correct' );
+			setDisplayCodeIncorrect( 'none' );
+			setEmailVerificationResult( true );
+			setDisplayCodeCorrect( 'block' );
+			setTimeout( setIsModalOpen, 2000, false );
+		}
+	}
+	const [ loading, setLoading] = useState(false);
+	const [ signUpSpin, setSignUpSpin ] = useState( 'none' );
+	const [ sendingDisabled, setSendingDisabled ] = useState( false );
+	// type checkbox Modal
+	const showModalOptionType = () => {
+		setIsModalOptionTypeOpen(true);
+	};
+	const modalOptionTypeHandleOk = () => {
+		setIsModalOptionTypeOpen(false);
+	};
+	const modalOptionTypeHandleCancel = () => {
+		document.getElementById( 'signUpType1' ).checked = false;
+		document.getElementById( 'signUpType2' ).checked = false;
+		setIsModalOptionTypeOpen(false); // close modal 
+	}
+	const modalOptionTypeClosed = () => {
+		console.log( 'modalClosed' );
+	}
+	const modalClosed = async () => {
+		if( emailVerificationResult === false ){
+			setSendingDisabled( false );
+			return
+		}
+//setSignUpFirstNameError( "signUpFirstNameErrorText" );
+
+		const emailData = {
+			email: signUpEmail,
+			userId: userId
+		}
+		const rep = await updateEmail( emailData );
+
+// console.log( 'signUp rep: ' + rep );
+		setSignUpSpin( 'none' );
+		setSendingDisabled( false );
+		if( rep === false ){
+			message.error( profileIdentity_updateEmailError )
+		}
+		else{
+			message.success( profileIdentity_updateEmailSuccess );
+			
+			const random = generateRandomDigits(3);
+			setProfileFormUpdated( random );
+			message.success( 'Profile updated' );
+			setModalProfileIdentityOpen( false );
+		}
 	}
 
 	// first name
@@ -144,10 +462,74 @@ const ModalProfileIdentity = ( params ) => {
 		}
 	}
 
+	// animal sexe
+	const [ animalSexes, setAnimalSexes ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
+	const [ animalSexe, setAnimalSexe ] = useState( userProfile.userAnimalSexeId );// 1 for male, 2 for female
+	const [ animalSexeError, setAnimalSexeError ] 	= useState( '' );
+	const handleChangeAnimalSexes = async ( animalSexeType ) => {
+		const elt01 = document.getElementById( 'animalSexeType' + animalSexeType ); // current elt
+		const elt02 = animalSexeType == 1 ? document.getElementById( 'animalSexeType' + 2) :   document.getElementById( 'animalSexeType' + 1 );
+
+		//setAnimalSexe_formOption1Error( '' );
+		//setAnimalSexe_formOption2Error( '' );
+	
+		if( elt01.checked ){ // chackboxes inverser
+			elt02.checked = false;
+		}
+		
+		if( elt01.checked == true && animalSexeType == 1 ){
+			// message.info( animalSexe_type1 );
+			setAnimalSexe( 1 );
+			// showModalOptionType();
+		}
+		else if( elt01.checked == true && animalSexeType == 2 ){
+			// message.info( animalSexe_type2 );
+			setAnimalSexe( 2 );
+			// showModalOptionType();
+		}
+		else if( elt01.checked == false && elt02.checked == false ){
+			setAnimalSexe( '' );
+			//setAnimalSexe_formOption1Error( animalSexe_formOption1ErrorText );
+			//setAnimalSexe_formOption2Error( animalSexe_formOption2ErrorText );
+		}
+	}
+
+	// animalInsurance
+	const [ animalInsurances, setAnimalInsurances ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
+	const [ animalInsurance, setAnimalInsurance ] = useState( userProfile.userAnimalInsuranceId );// 1 for male, 2 for female
+	const [ animalInsuranceError, setAnimalInsuranceError ] 	= useState( '' );
+	const handleChangeAnimalInsurances = async ( animalInsuranceType ) => {
+		const elt01 = document.getElementById( 'animalInsuranceType' + animalInsuranceType ); // current elt
+		const elt02 = animalInsuranceType == 1 ? document.getElementById( 'animalInsuranceType' + 2) :   document.getElementById( 'animalInsuranceType' + 1 );
+
+		//setAnimalInsurance_formOption1Error( '' );
+		//setAnimalInsurance_formOption2Error( '' );
+	
+		if( elt01.checked ){ // chackboxes inverser
+			elt02.checked = false;
+		}
+		
+		if( elt01.checked == true && animalInsuranceType == 1 ){
+			// message.info( animalInsurance_type1 );
+			setAnimalInsurance( 1 );
+			// showModalOptionType();
+		}
+		else if( elt01.checked == true && animalInsuranceType == 2 ){
+			// message.info( animalInsurance_type2 );
+			setAnimalInsurance( 2 );
+			// showModalOptionType();
+		}
+		else if( elt01.checked == false && elt02.checked == false ){
+			setAnimalInsurance( '' );
+			//setAnimalInsurance_formOption1Error( animalInsurance_formOption1ErrorText );
+			//setAnimalInsurance_formOption2Error( animalInsurance_formOption2ErrorText );
+		}
+	}
+
 	// Birth date
 	const [ dateDeNaissance, setDateDeNaissance ] = useState( '' );
 	const handleBirthDateChange = ( date, dateString ) => {
-		console.log( 'date', date.format('YYYY-MM-DD') );
+// console.log( 'date', date.format('YYYY-MM-DD') );
 		// const day 	= dateString.$D;
 		// const month = dateString.$M;
 		// const year 	= dateString.$y;
@@ -156,6 +538,17 @@ const ModalProfileIdentity = ( params ) => {
 			setDateDeNaissance( dateStr )
 		else
 			message.error( 'Age limit of 10 is not reached' )	// todo
+	}
+
+	// Animal Birth date
+	const [ animalDateNaissance, setAnimalDateNaissance ] = useState( '' );
+	const handleAnimalBirthDateChange = ( date, dateString ) => {
+// console.log( 'date', date.format('YYYY-MM-DD') );
+		// const day 	= dateString.$D;
+		// const month = dateString.$M;
+		// const year 	= dateString.$y;
+		const dateStr = date.format('YYYY-MM-DD');
+		setAnimalDateNaissance( dateStr )
 	}
 
 	// Biography
@@ -218,7 +611,7 @@ const ModalProfileIdentity = ( params ) => {
 
 		if( data && test === false ){
 		
-			codePostalErrorText = 'foo'; // profileIdentity_codePostalErrorText;
+			codePostalErrorText = 'Code postal Error'; // profileIdentity_codePostalErrorText;
 		}
 		// signUpCodePostalErrorText = 'Your codePostal seems incorect'
 		setCodePostalError( codePostalErrorText );
@@ -299,57 +692,373 @@ const ModalProfileIdentity = ( params ) => {
 		)
 	}
 
+
+	// Build races
+	const BuildRacesOptions = async () => {
+		return(
+			await races.map( ( race, index ) => 
+				({
+					value: race.id,
+					label: race.nom,
+				})
+			)
+		)
+	}
+
+	// clear form error
+	const clearFormErrors = () => {
+		setFormError01( 'none' );
+		setFormError02( 'none' );
+		setFormError03( 'none' );
+		setFormError04( 'none' );
+		setFormError05( 'none' );
+		setFormError06( 'none' );
+		setFormError07( 'none' );
+		setFormError08( 'none' );
+		setFormError09( 'none' );
+		setFormError10( 'none' );
+	}
+
+	// email code check modal
+	const showModal = () => {
+		setIsModalOpen(true);
+	};
+	const handleOk = () => {
+		setIsModalOpen(false);
+	};
+	const handleCancel = () => {
+		setIsModalOpen(false);
+	}
+
+	// password reset
+	const [ pwResetSpin, setPwResetSpin ] = useState( 'none' );
+// password
+	const [ pwResetPassword, setPwResetPassword ] = useState( '' );
+	const [ pwResetPasswordError, setPwResetPasswordError ] = useState( '' );
+	const handleChangePwResetPassword = ( e ) => {
+		const data = e.target.value;
+		setPwResetPassword( data );
+		
+		var pwResetPasswordErrorText = '';
+		if( data && isValidPassword( data ) !== true )
+			pwResetPasswordErrorText = signUp_passwordErrorText
+
+		setPwResetPasswordError( pwResetPasswordErrorText );
+	}
+
+	// password repeat
+	const [ pwResetPasswordRepeat, setPwResetPasswordRepeat ] = useState( '' );
+	const [ pwResetPasswordRepeatError, setPwResetPasswordRepeatError ] = useState( '' );
+	const handleChangePwResetPasswordRepeat = ( e ) => {
+		const data = e.target.value;
+		setPwResetPasswordRepeat( data );
+		
+		var pwResetPasswordRepeatErrorText = '';
+		if( data && isValidPasswordRepeat( data ) === false )
+			pwResetPasswordRepeatErrorText = signUp_passwordRepeatErrorText;
+			setPwResetPasswordRepeatError( pwResetPasswordRepeatErrorText );
+	}
+	const isValidPasswordRepeat = ( pwResetPasswordRepeat ) => {
+		if( pwResetPassword == pwResetPasswordRepeat )
+			return true
+		else
+			return false
+	}
+
+	// display a form error
+	const showAFormError = ( className ) => {
+		const errorTxt = document.getElementsByClassName( className )[0].innerText;
+		return errorTxt;
+	}
+
 	// save
 	const handleClickSave = async () => {
+		
+		if( fieldName == 'Animaux'){
+			// check the form errors
+			const checkFormErrors = async( ) => {
+				var errorsExist = false;
+				if( animalNameError != '' )
+					errorsExist = true
+				return errorsExist
+			}
+			
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				setPwResetSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
 
-		// setSignUpSpin( 'block' );
+			// check empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = async( ) => {
+				
 
-		// check form erors
-		const formHasErrors = await checkFormErrors();
+				if( ! animalSexe ){
+					setFormError06( 'block'  );
+					const error = showAFormError( 'formError06' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+				if( !animalDateNaissance ){
+					setFormError07( 'block'  );
+					const error = showAFormError( 'formError07' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+				if( !animalEspece ){
+					setFormError08( 'block'  );
+					const error = showAFormError( 'formError08' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+				if( !animalRace ){
+					setFormError09( 'block'  );
+					const error = showAFormError( 'formError09' ); // return error's tag inner text
+					formHasEmpty = error
+				}	
+				if( !animalInsurance ){
+					setFormError10( 'block'  );
+					const error = showAFormError( 'formError10' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+			}
+			
+			await checkFormEmpty();
+			// check form empty fields
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setPwResetSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+			const date = dayjs(); // Creates a Day.js object for the current date and time
 
-		if( formHasErrors ){
-			message.error( signUp_correctErrors );
-// message.error( 'Please correct the errors before continuing.' );
-			// setSignUpSpin( 'none' );
-			// setSendingDisabled( false );
+			const animalData = {
+                nomAnimal: animalName,
+                sexeId: animalSexe,
+                dateDeNaissance: dayjs( animalDateNaissance, "YYYY-MM-DD+h:mm").format('YYYY-MM-DD') ,
+                especeId: animalEspece,
+				raceId: animalRace,
+                profileUserId: profileId,
+                assurance: animalInsurance, 
+                active: 1,
+				...( selectedPetId && { carnetAnimalId: selectedPetId, } )
+			}
+			
+			const resp = await editUserPets( animalData, animalPhoto.originFileObj );
+			if( resp === false ){ //
+				message.error( 'Pet book cannot be updated' );
+				return;
+			}
+			else{
+				//const random = generateRandomDigits(3);
+				//setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+				const random = generateRandomDigits(3);
+				// setFormUpdated( random );
+				setProfileFormUpdated( random );
+				return;
+			}
+		}
+
+		if( fieldName == 'PasswordReset' ){
+
+			// Password reset
+			// check the form errors
+			const checkFormErrors = async( ) => {
+				var errorsExist = false;
+				if( pwResetPasswordError != '' )
+					errorsExist = true
+				else if( pwResetPasswordRepeatError != '' )
+					errorsExist = true
+
+				return errorsExist
+			}
+
+			// check the form empty fields
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = '';
+
+				if( pwResetPassword == '' ){
+					setFormError01( 'block'  );
+					const error = showAFormError( 'formError01' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+				else if( pwResetPasswordRepeat == '' ){
+					setFormError02( 'block'  );
+					const error = showAFormError( 'formError02' ); // return error's tag inner text
+					formHasEmpty = error
+				}
+
+				return formHasEmpty
+			}
+			
+			// check form erors
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				setPwResetSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
+
+
+			// check form empty fields
+			const formHasEmpty = await checkFormEmpty();
+		
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				setPwResetSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
+
+			const pwResetData = {
+				userId: 	    userId,
+				password: 		pwResetPassword,
+			}
+			const resp = await updatePassword( pwResetData );
+			setPwResetSpin( 'none' );
+			setSendingDisabled( false );
+			
+			if( !resp ){
+				setFormError05( 'block' );
+				message.error( showAFormError( formError05 ) )
+			}
+			else{									// check email account
+				message.success( passwordForgot_updateSuccess );
+	// message.success( 'Votre mot de passe a été mis a jour.' );
+				setVerificationCode( '' );
+				setVerificationUserId( '' );
+			}
+		}
+		
+		// Email
+		if( fieldName == 'Email' ){	
+
+			clearFormErrors()
+			// check if email already exists
+			const checkEmailData = {
+				email: signUpEmail
+			}
+
+			// check the form errors
+			const checkFormErrors = async( ) => {
+				if( signUpEmailError != '' )
+					return true
+
+			}
+			// check form erors
+			const formHasErrors = await checkFormErrors();
+
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				// message.error( 'Please correct the errors before continuing.' );
+				setSignUpSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
+			
+			const checkEmailExist = await checkEmail( checkEmailData );
+			if(checkEmailExist){
+				setFormError02( 'block' );	// display form error
+				message.error( showAFormError( 'formError02' ) );	// display ant error
+				setSignUpSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
+
+			// email verification
+			// setOpenModalEmailValidate( true );
+
+			const code = await generateRandomDigits( maxCodeLength );
+			setCode( code );
+	// console.log( 'genCode: ' + genCode );
+			const domainName 	= signUpEmail.split( '@' )[1];
+			const subject 		= signUp_verifyEmailSubjet + siteName;
+	// const subject 		= 'Verify your email address for ' + siteName;
+			const userName 		= user.nom;
+			
+			const sendEmailData = {
+				to_email 		: signUpEmail,
+				to_domain		: domainName,
+				subject			: subject,
+				userName    	: userName,
+				siteName    	: siteName,
+				siteDomain  	: siteDomain,
+				siteEmail		: siteEmail,
+				siteUrl     	: siteUrl,
+				code  			: insertSpaceAtPosition ( code, 3 ),
+				emailTemplate	: 'email_verification'
+			}
+	// console.log( 'sendEmailData', sendEmailData );
+
+			const rep = await sendEmail( sendEmailData );	// send the code by email
+			
+			if( rep === false ){ // email address not found
+				setFormError01( 'block' );	// display form error
+				message.error( showAFormError( 'formError01' ) );	// display ant error
+				setSignUpSpin( 'none' );
+				setSendingDisabled( false );
+				return;
+			}
+	// console.log( 'Check email', rep );
+			setSignUpSpin( 'none' );
+			setIsModalOpen(true);
+			
 			return
 		}
 
-		// check form empty fields
-		const formHasEmpty = await checkFormEmpty();
+		// Email
+		if( fieldName == 'Profile' ){	
+			// check form erors
+			const formHasErrors = await checkFormErrors();
 
-		if( formHasEmpty ){
-			message.error( formHasEmpty );
-			// setSignUpSpin( 'none' );
-			// setSendingDisabled( false );
-			return
-		}
-		
-		const sendData = {
-			nom: 				name,
-			prenom:				firstName,
-			sexeId:				sexe ? sexe : userProfile.userSexeId,
-			profileUserId: 		profileId,
-			dateDeNaissance: 	dateDeNaissance,
-			langues: 			selectedLanguages.join( ',' ),
-			adresse:			address,
-			codePostal:			codePostal,
-			country:	countrySelected,
-			state:		stateSelected,
-			city:		citySelected,
-		}
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+	// message.error( 'Please correct the errors before continuing.' );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
 
-		const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-		
-		if( rep === false ){ //
-			message.error( 'Profile cannot be updated' );
-			return;
-		}
-		else{
-			const random = generateRandomDigits(3);
-			setProfileFormUpdated( random );
-			message.success( 'Profile updated' );
-			setModalProfileIdentityOpen( false );
+			// check form empty fields
+			const formHasEmpty = await checkFormEmpty();
+
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+			
+			const sendData = {
+				nom: 				name,
+				prenom:				firstName,
+				sexeId:				sexe ? sexe : userProfile.userSexeId,
+				profileId: 			profileId,
+				dateDeNaissance: 	dateDeNaissance,
+				langues: 			selectedLanguages.join( ',' ),
+				adresse:			address,
+				codePostal:			codePostal,
+				country:	countrySelected,
+				state:		stateSelected,
+				city:		citySelected,
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+			
+			if( rep === false ){ //
+				message.error( 'Profile cannot be updated' );
+				return;
+			}
+			else{
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+			}
 		}
 	}
 
@@ -407,7 +1116,7 @@ const ModalProfileIdentity = ( params ) => {
 	// user language selector
 	const { Option } = Select;
 	const [ selectedLanguages, setSelectedLanguages ] = useState([]);
-	const [ languageOptions, setLanguageOptions ] = useState([]);
+
 	const MAX_LANGUAGES = 2; // Define your maximum limit
 	const handleChangeLanguage = (value) => {
 		if (value.length > MAX_LANGUAGES) {
@@ -419,7 +1128,7 @@ const ModalProfileIdentity = ( params ) => {
 		}
 	}
 
-// countries
+	// countries
 	const [ countryError, setCountryError ] = useState( '' );
 	const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
 	const [ countrySelected, setCountrySelected ] = useState( '' );
@@ -473,11 +1182,23 @@ const ModalProfileIdentity = ( params ) => {
 		setCitySelected( value );
 		setCityError();
 	}
-	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' ); 
-	useEffect(() => {
+	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' );
 
+	// Espece
+	const [ especeSelectedId, setEspeceSelectedId ] = useState( '' );
+
+	// Race
+	const [ races, setRaces ] = useState( [] ); 
+	const [ raceSelectedId, setRaceSelectedId ] = useState( '' );
+
+	// Animal
+	const [ animal, setAnimal ] = useState( '' );
+	const [ showBreeds, setShowBreeds ]  = useState( 'none' );
+
+	useEffect(() => {
 		// reset the form
 		form.resetFields();
+		clearFormErrors();
 		
 		// set the countries
 		const allCountries = Country.getAllCountries();
@@ -507,11 +1228,7 @@ const ModalProfileIdentity = ( params ) => {
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
 			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs()  );
-			// site languages
-			const siteLanguages = await languageList();
-			const languages 	= await siteLanguages.map( ( v, k ) => ( { label: eval( v.tagClass ), value: v.id } ) );
-			setLanguageOptions( languages );
-			// user language
+			
 			const userLanguages = userProfile.langue ? userProfile.langue : [];
 			const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
 			setSelectedLanguages( userLanguagesId );
@@ -551,11 +1268,60 @@ const ModalProfileIdentity = ( params ) => {
 				setStateDefault( profileIdentity_stateDefault )
 			if( !citySelected )
 				setCityDefault( profileIdentity_cityDefault )
+			// email
+			// if( signUpEmail == '' )
+			//	setSignUpEmail( user.email )
+			
+
+			
+			// animal edit ( carnets animal )
+
+			if( selectedPetId ){
+				const pets = userPets;
+// console.log( 'pets', pets );
+				const pet = pets.filter( e => e.id == selectedPetId )[0];
+				setAnimalName( pet.nom );
+				setEspeceSelectedId( pet.especeId );
+				setRaceSelectedId( pet.especeId );
+				const dateStr = pet.dateNaissance.date;
+				setAnimalDateNaissance( dateStr )
+				if( pet.assurance )
+					setAnimalInsurance(1)
+				else
+					setAnimalInsurance(2)
+				
+				if( pet.sexe == 1 )
+					setAnimalSexe(1)
+				else
+					setAnimalSexe(2)
+			}
 		}
 		a()
 
 	}, [ visibleModalName, userProfile ]); // Dependency array ensures effect runs when isModalOpen changes
 
+
+
+	// Build especes
+	const BuildEspecesOptions = async () => {
+		if( especes.length ){
+console.log( 'Fooo bar' );
+			return(
+				([])
+			)
+		}
+		return(
+			especes.map( ( espece, index ) => 
+				({
+					value: espece.id,
+					label: espece.nom,
+				})
+			)
+		)
+	}
+
+
+	
 	// form
 	 const [form] = Form.useForm();
 
@@ -573,11 +1339,15 @@ const ModalProfileIdentity = ( params ) => {
 				onCancel	= { () => modalProfileIdentityCancel( false ) }
 				afterClose	= { modalProfileIdentityClosed }
 				// zIndex={1005} // Custom z-index
-				// footer={[
-				  // <Button key="submit" type="primary" onClick={ handleClickSave }>
-					// Submit
-				  // </Button>,
-				// ]}
+				
+				footer={
+				  <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+					
+					<Button key="submit" type="success" onClick={handleClickSave} className="btnModalProfileIdentity">
+					  Confirmer
+					</Button>
+				  </div>
+				}
 				okText		= { 'Ok' }
 				cancelText	= { 'Cancel' }
 				styles 		= {{
@@ -702,12 +1472,15 @@ const ModalProfileIdentity = ( params ) => {
 								</Form.Item>
 							</div>
 						</div>
-						<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+						<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField dateSelector">
 							<div className="col-6">
 								<span>Birth date &nbsp; { dateNaissance }</span>
 							</div>
 							<div className="col-6 justify-content-end dateField">
-								<ConfigProvider locale={ getDatePickerlocale() }>
+								<ConfigProvider 
+									locale={ getDatePickerlocale() }
+									theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
+								>
 									<DatePicker 
 										defaultValue={ datePickerDefaultValue }
 										onChange={ (e) => handleBirthDateChange(e) }
@@ -720,21 +1493,34 @@ const ModalProfileIdentity = ( params ) => {
 								Language
 							</div>
 							<div className="col-9">
-								<Select
-									mode="multiple"
-									style={{ width: '100%' }}
-									placeholder="Select languages"
-									value={selectedLanguages}
-									onChange={handleChangeLanguage}
+								
+								<ConfigProvider 
+									locale={ getDatePickerlocale() }
+									theme={{ token: { colorPrimary: '#FFDE59' } }} 
 								>
-									{ languageOptions.map((option) => (
-										<Option key={option.value} value={option.value}>
-										  <Checkbox checked={selectedLanguages.includes(option.value)}>
-											{option.label}
-										  </Checkbox>
-										</Option>
-									 ))}
-								</Select>
+								
+									<Select 
+										mode="multiple"
+										placeholder="Select languages"
+										variant="borderless"
+										className="custom-select"
+										value={selectedLanguages}
+										onChange={handleChangeLanguage}
+										style={{ width: '100%' }}
+										suffixIcon={null} // This hides the arrow
+									>
+										{ 
+											languages.map(( v, k ) => (
+												<Option key={v.id} value={v.id}>
+												  <Checkbox checked={selectedLanguages.includes(v.id)}>
+													{eval( v.tagClass )}
+												  </Checkbox>
+												</Option>
+											))
+										}
+									</Select>
+									</ConfigProvider>
+								 
 							</div>
 						</div>
 						<div className="row backgroundYellow borderRadius18 height40 width100per100 profilIdentityField">
@@ -794,7 +1580,7 @@ const ModalProfileIdentity = ( params ) => {
 									/>
 								</Form.Item>
 							</div>
-							<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+							<div className="col-6">
 								<Form.Item
 											
 											name  = "country"
@@ -814,6 +1600,9 @@ const ModalProfileIdentity = ( params ) => {
 											initialValue  = { countrySelected ? countrySelected : countryDefault }
 										>
 											<Select
+												variant="borderless"
+												className="custom-select-rounded"
+												style={{ width: '100%' }}
 												bordered={false}
 												value			= { countrySelected }
 												onChange		= { e => handleChangeCountrySelected( e ) }
@@ -826,10 +1615,10 @@ const ModalProfileIdentity = ( params ) => {
 												notFoundContent = { countryDefault }
 											/>
 										</Form.Item>
-								</div>
 							</div>
-							<div style={{ display: showStatesCities }} className="row marginTop2percent">
-								<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+						</div>
+						<div style={{ display: showStatesCities }} className="row marginTop2percent">
+								<div className="col-6">
 									<Form.Item
 											name  = "state"
 											rules = {[
@@ -848,7 +1637,9 @@ const ModalProfileIdentity = ( params ) => {
 											initialValue  = { stateSelected ? stateSelected : stateDefault }
 										>
 											<Select
-												bordered={false}
+												variant="borderless"
+												className="custom-select-rounded"
+												style={{ width: '100%' }}
 												value			= { stateSelected }
 												onChange		= { e => handleChangeStateSelected( e ) }
 												showSearch
@@ -861,7 +1652,7 @@ const ModalProfileIdentity = ( params ) => {
 											/>
 										</Form.Item>
 								</div>
-								<div className="col-6 backgroundYellow borderRadius18 height40 width100per100 birthdateField">
+								<div className="col-6">
 									<Form.Item
 											name  = "city"
 											rules = {[
@@ -880,7 +1671,8 @@ const ModalProfileIdentity = ( params ) => {
 											initialValue  = { citySelected ? citySelected : cityDefault }
 										>
 											<Select
-												bordered={false}
+												variant="borderless"
+												className="custom-select-rounded"
 												size 		 	= 'middle'
 												value			= { citySelected }
 												onChange		= { e => handleChangeCitySelected( e ) }
@@ -894,41 +1686,427 @@ const ModalProfileIdentity = ( params ) => {
 											/>
 										</Form.Item>
 								</div>
+						</div>
+					</>
+					
+					}
+
+					{ 
+						fieldName == "Animaux" &&
+						<>	
+							
+							<Form.Item
+								
+										name  = "AnimalName"
+										rules = {[
+											{
+												message: animalNameError,
+												validator: ( value ) => {
+													if ( animalNameError ) {
+														return Promise.reject( animalNameError );
+													} 
+													else {
+														return Promise.resolve();
+													}
+												}
+											}
+										]}
+										initialValue  = { animalName }
+									>
+										<Input 
+											name  = "animalNameInput"
+											className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField borderNone" 
+											placeholder={ profileAnimal_animalNamePlaceHolder }
+											type="text" 
+											value={ animalName }
+											onChange = { e => handleChangeAnimalName(e) }
+										/>
+							</Form.Item>
+							
+							<div className="row marginTop5px">
+								<div className="col-6">
+									<Form.Item
+										className = "backgroundYellow borderRadius18 height40"
+										name  = "animalMale"
+									>
+										<div className='row'>
+											<div className='col-1' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+													<label className='custom-checkbox-container'>
+													<Input
+														className='custom-checkbox'
+														type="checkbox" 
+														name="animalSexeType02"
+														id="animalSexeType1"
+														value={ 1 }
+														defaultChecked= { animal.sexeId == 1 ? true : false }
+														onChange = { e => handleChangeAnimalSexes(1) }
+													 />
+													 </label> 
+											</div>
+											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '4%'}}>
+													Male
+											</div>
+										
+										</div>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item
+										className = "backgroundYellow borderRadius18 height40"
+										name  = "animalFemale"
+									>
+										<div className='row'>
+											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+													<label className='custom-checkbox-container'>
+													<Input
+														className='custom-checkbox'
+														type="checkbox" 
+														name="animalSexeType02"
+														id="animalSexeType2"
+														value={ 2 }
+														defaultChecked= { animal.sexeId == 2 ? true : false }
+														onChange = { e => handleChangeAnimalSexes(2) }
+													 />
+													 </label> 
+											</div>
+											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '5%'}}>
+													Female
+											</div>
+										
+										</div>
+									</Form.Item>
+								</div>
+								<div style={{ display: formError06 }} className="row formError formError06">
+										<span id="cmp_vetonest">
+											Choose a sex for your animal
+										</span> 
+								</div>
 							</div>
+							<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField dateSelector">
+								<div className="col-6">
+									<span id="cmp_vetonest.com_Eou9HL3uHS">Animal Birth date &nbsp; { animalDateNaissance }</span>
+								</div>
+								<div className="col-6 justify-content-end dateField">
+									<ConfigProvider 
+										locale={ getDatePickerlocale() }
+										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
+									>
+										<DatePicker 
+											defaultValue={ datePickerDefaultValue }
+											onChange={ (e) => handleAnimalBirthDateChange(e) }
+										/>
+									</ConfigProvider>
+								</div>
+								<div style={{ display: formError07 }} className="row formError formError07">
+										<span id="cmp_vetonest">
+											Choose a birth date for your animal
+										</span> 
+								</div>
+							</div>
+							<div className="marginTop2percent birthdateField">
+								<Form.Item
+												name  = "Espece"
+												rules = {[
+													{
+														message: animalEspeceError,
+														validator: ( value ) => {
+															if ( animalEspeceError ) {
+																return Promise.reject( animalEspeceError );
+															} 
+															else {
+																return Promise.resolve();
+															}
+														}
+													}
+												]}
+												/* initialValue  = { especeSelectedId ? especeSelectedId : especeDefault } */
+											>
+												<Select
+													variant="borderless"
+													className="custom-select-rounded backgroundYellow height40 birthdateField borderNone" 
+													bordered={false}
+													value			= { especeSelectedId }
+													onChange		= { e => handleChangeAnimalEspece( e ) }
+													showSearch
+													optionFilterProp="label"
+													filterSort={(optionA, optionB) =>
+													  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+													}
+												>
+													{
+														especes.map(( v, k ) => (
+															<Option key={v.id} value={v.id}>
+																{v.nom}
+															</Option>
+														))
+													}
+												</Select>
+											</Form.Item>
+							</div>
+							<div style={{ display: formError08 }} className="row formError formError08">
+										<span id="cmp_vetonest">
+											Select your animal specie
+										</span> 
+							</div>
+							
+							<div style={{ display: showBreeds }} className="marginTop2percent">
+									<Form.Item
+												name  = "Race"
+												rules = {[
+													{
+														message: animalRaceError,
+														validator: ( value ) => {
+															if ( animalRaceError ) {
+																return Promise.reject( animalRaceError );
+															} 
+															else {
+																return Promise.resolve();
+															}
+														}
+													}
+												]}
+												/* initialValue  = { raceSelectedId ? raceSelectedId : raceDefault } */
+											>
+												<Select
+													variant="borderless"
+													className="custom-select-rounded backgroundYellow height40 birthdateField borderNone" 
+													bordered={false}
+													value			= { raceSelectedId }
+													onChange		= { e => handleChangeAnimalRace( e ) }
+													showSearch
+													optionFilterProp="label"
+													filterSort={(optionA, optionB) =>
+													  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+													}
+												>
+													{
+														races.map(( v, k ) => (
+															<Option key={v.id} value={v.id}>
+																{v.nom}
+															</Option>
+														))
+													}
+													
+												</Select>
+											</Form.Item>
+								
+								</div>
+							
+								<div style={{ display: formError09 }} className="row formError formError09">
+										<span id="cmp_vetonest">
+											Select your animal breed
+										</span> 
+								</div>
+								<div className="row marginTop2percent">
+								<div className="col-6">
+									<Form.Item
+										className = "backgroundYellow borderRadius18 height40"
+										name  = "haveNoInsurance"
+									>
+										<div className='row' >
+											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+												<label className='custom-checkbox-container'>
+												<Input
+													className='custom-checkbox'
+													type="checkbox" 
+													name="animalInsuranceType01"
+													id="animalInsuranceType1"
+													value={ 1 }
+													defaultChecked= { animal.insuranceId == 1 ? true : false }
+													onChange = { e => handleChangeAnimalInsurances(1) }
+													style={{ outline: 'none' }}
+												 />
+												 </label> 
+											</div>
+											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>			
+												Mon animal ne possede pas une assurance
+											</div>
+										</div>
+									</Form.Item>
+								</div>
+								
+								<div className="col-6">
+									<Form.Item
+										className = "backgroundYellow borderRadius18 height40"
+										name  = "haveInsurance"
+									>
+										<div className='row' >
+											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+												<label className='custom-checkbox-container'>
+												<Input
+													className='custom-checkbox'
+													type="checkbox" 
+													name="animalInsuranceType02"
+													id="animalInsuranceType2"
+													value={ 2 }
+													defaultChecked= { animal.insuranceId == 1 ? true : false }
+													onChange = { e => handleChangeAnimalInsurances(2) }
+													style={{ outline: 'none' }}
+												 />
+												 </label> 
+											</div>
+											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>
+												Mon animal possede une assurance
+											</div>
+										</div>
+									</Form.Item>
+									<div style={{ display: formError10 }} className="row formError formError10">
+										<span id="cmp_vetonest">
+											Your animal insurance
+										</span> 
+									</div>
+								</div>
+							</div>
+							<Form.Item
+								
+										name  = "AnimalPhoto"
+										rules = {[
+											{
+												message: animalPhotoError,
+												validator: ( value ) => {
+													if ( animalPhotoError ) {
+														return Promise.reject( animalPhotoError );
+													} 
+													else {
+														return Promise.resolve();
+													}
+												}
+											}
+										]}
+										initialValue  = { animalPhoto }
+									>
+									<div className="row justify-content-center marginTop10px">
+										<Dragger {...props} > 
+											<i class="fa fa-camera" aria-hidden="true"></i> Modifier
+										</Dragger> 
+									</div>
+									<div className="align-items-center">
+										<img 
+											id="animalPhotoId" 
+											src={ animalPhoto } 
+										/>
+									</div>
+							</Form.Item>
 						</>
 					
 					}
-					
-					
-					{ fieldName == "Name" &&
-						<Form.Item
-							name  = "Name"
-							
-							rules = {[
-								{
-									message: nameError,
-									validator: ( value ) => {
-										if ( nameError ) {
-											return Promise.reject( nameError );
-										} 
-										else {
-											return Promise.resolve();
+
+					{ 
+						fieldName == "Email" &&
+							<Form.Item
+								name  = "email"
+								rules = {[
+									{
+										message: signUpEmailError,
+										validator: ( value ) => {
+											if ( signUpEmailError ) {
+												return Promise.reject( signUpEmailError );
+											} 
+											else {
+												return Promise.resolve();
+											}
 										}
 									}
-								}
-							]}
-							initialValue  = { userProfile.nom }
-						>
-							<Input 
-								name  = "nameInput"
-								className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-								placeholder={ signUp_namePlaceholder }
-								type="text" 
-								value={ name }
-								onChange = { e => handleChangeName(e) }
-							/>
-						</Form.Item>
+								]}
+								initialValue  = { '' }
+							>
+								<Input 
+									name  = "emailInput"
+									className="backgroundYellow borderRadius18 width100per100 borderNone height40" 
+									placeholder={ signUp_emailPlaceholder }
+									type="text" 
+									value={ signUpEmail }
+									onChange = { e => handleChangeEmail(e) }
+								/>
+							
+							</Form.Item>
+						
 					}
+					
+					{
+						fieldName == "PasswordReset" &&
+						<>
+							
+								<Form.Item
+												name  = "password"
+												rules = {[
+													{
+														message: pwResetPasswordError,
+														validator: ( value ) => {
+															if ( pwResetPasswordError ) {
+																return Promise.reject( pwResetPasswordError );
+															} 
+															else {
+																return Promise.resolve();
+															}
+														}
+													}
+												]}
+												/* initialValue  = '' */
+								>
+												<Input 
+													id="pwResetPasswordInput"
+													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													placeholder={ signUp_passwordPlaceholder }
+													type="password" 
+													name="password"
+													value={ pwResetPassword }
+													onChange = { e => handleChangePwResetPassword(e)}
+												/>
+								</Form.Item>
+
+								<Form.Item
+												name  = "passwordRepeat"
+												rules = {[
+													{
+														message: pwResetPasswordRepeatError,
+														validator: ( value ) => {
+															if ( pwResetPasswordRepeatError ) {
+																return Promise.reject( pwResetPasswordRepeatError );
+															} 
+															else {
+																return Promise.resolve();
+															}
+														}
+													}
+												]}
+												initialValue  = ''
+								>
+									<Input 
+													id="pwResetPasswordRepeatInput"
+													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													placeholder={ signUp_passwordRepeatPlaceholder 
+													} 
+													type="password" 
+													name={ signUpPasswordRepeat }
+													value={ pwResetPasswordRepeat }
+													onChange = { e => handleChangePwResetPasswordRepeat(e)}
+									/>
+												
+								</Form.Item>
+								
+								<div style={{ display: formError01 }} className="row formError formError02">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Password is empty
+											</span> 
+										</div>
+										<div style= {{ display: formError02 }}  className="row formError formError04">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Password repeat is empty
+											</span> 
+										</div>
+										<div style= {{ display: formError03 }}  className="row formError formError05">
+											<span id="cmp_vetonest.com_4LbLKwutmz">
+												Please check your network
+											</span> 
+							</div>
+						
+							</>
+						
+						
+						
+					}
+					
 					{ fieldName == "FirstName" &&
 						<Form.Item
 							name  = "firstName"
@@ -1046,45 +2224,268 @@ const ModalProfileIdentity = ( params ) => {
 						</Form.Item>
 					}
 				</Form>
-			
+				<div style={{ display: formError01 }} className="row formError formError01">
+					<span id="cmp_vetonest.com_4LbLKwutmz">
+						Email address
+					</span> 
+					&nbsp;{ signUpEmail }&nbsp;
+					<span id="cmp_vetonest.com_WbKGYyavtn">
+						not found or already exist.
+					</span>&nbsp;
+					<span id="cmp_vetonest.com_0lM8zJBsDN">
+						Please try another one.
+					</span>
+											
+				</div>				
+				<div style= {{ display: formError02 }}  className="row formError formError02">
+					<span className="cmp_vetonest.com_4LbLKwutmz">
+						Email address
+					</span> 
+					<span id="cmp_vetonest.com_071mCRIC59">
+						&nbsp;already exist.
+					</span>&nbsp;
+					<span className="cmp_vetonest.com_0lM8zJBsDN">
+						Please try another one.
+					</span>
+			</div>
 			</Modal>
+
+
+
+			<Modal
+							title={
+							  <p>
+								<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
+								<span>{ profileTypeId == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
+							  </p>
+							}
+							closable	= {{ 'aria-label': 'Custom Close Button' }}
+							open		= { isModalOptionTypeOpen }
+							onOk		= { modalOptionTypeHandleOk }
+							onCancel	= { () => modalOptionTypeHandleCancel( false ) }
+							afterClose	= { modalOptionTypeClosed }
+							okText		= { signUp_popConfirmYes }
+							cancelText	= { signUp_popConfirmDeleteBtn }
+						>
+							<>
+							{ user.profileTypeId == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
+							}
+							</>
+						</Modal>
+						
+						<Modal
+							title			= { <p>{signUp_codeTitle}</p> }
+							closable		= {{ 'aria-label': 'Custom Close Button' }}
+							open			= { isModalOpen }
+							onCancel		= { handleCancel }
+							afterClose		= { modalClosed }
+							footer			= { null }
+							maskClosable	= { false } // This prevents closing on mask click
+						>
+							<ExclamationCircleOutlined />
+							<div className="App">
+								<span>{ signUp_codeIntro } </span>&nbsp;
+								<span>{ signUpEmail }</span>
+							  <InputCode
+								length={6}
+								label={ signUp_codeLabel }
+								// label="Type your code"
+								loading={loading}
+								onComplete={code => {
+								  setLoading(true);
+								  setTimeout(() => setLoading(false), 10000);
+								  handleCompletedCode( code )
+								}}
+							  />
+							<div className = "row" >
+								<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
+								<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
+								<span className='text text-info' >{ signUp_codeResend }</span>
+							</div>
+							</div>		
+											<br/><br/>
+						</Modal>
+		
+
 			<div className="displayNone" >
-					<span 
-						className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors" 
-					>
-						Please correct the errors before continuing.
-					</span>
-					<span 
-						id = "cmp_vetonest.com_2Mtv5nj9JA"
-						className ="signUp_nameErrorText" 
-					>
-						Your name seems incorect
-					</span>
-					<span 
-						id = "cmp_vetonest.com_P5crAMBBiW"
-						className ="signUp_firstNameErrorText" 
-					>
-						Your first name seems incorect
-					</span>
-					<span 
-						id = "cmp_vetonest.com_rkqxGE9X35"
-						className ="signUp_nameEmpty" 
-					>
-						Name is empty.
-					</span>
+
 					<span 
 						id = "cmp_vetonest.com_03jgEtJiVa"
 						className ="signUp_firstNamePlaceholder" 
 					>
 						First name
 					</span>
+					
 					<span 
-						id = "cmp_vetonest.com_wc4hVvXB3N"
-						className ="signUp_namePlaceholder" 
+						className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
 					>
-						Name
+						Email
 					</span>
-			</div>
+			
+											<span 
+												id = "cmp_vetonest.com_2Mtv5nj9JA"
+												className ="signUp_nameErrorText" 
+											>
+												Your name seems incorect
+											</span>
+											<span 
+												id = "cmp_vetonest.com_P5crAMBBiW"
+												className ="signUp_firstNameErrorText" 
+											>
+												Your first name seems incorect
+											</span>
+											<span 
+												className ="cmp_vetonest.com_GomedYOvSx displayNone contactEmailError signUp_emailErrorText" 
+											>
+												Your email is not correct
+											</span>
+											<span 
+												id = "cmp_vetonest.com_UcvWQuFUwO"
+												className ="signUp_passwordErrorText" 
+											>
+												Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_BmYPSRuRRY"
+												className ="signUp_passwordRepeatErrorText" 
+											>
+												Password are different.
+											</span>
+											
+											<span 
+												id = "cmp_vetonest.com_rkqxGE9X35"
+												className ="signUp_nameEmpty" 
+											>
+												Name is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_7cAD5u6fyj"
+												className ="signUp_passwordEmpty" 
+											>
+												Password is empty.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_kc3hRmQL1X"
+												className ="signUp_passwordRepeatEmpty" 
+											>
+												Password repeat is empty.
+											</span>
+											<span 
+												className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors" 
+											>
+												Please correct the errors before continuing.
+											</span>
+											<span 
+												className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
+											>
+												Email
+											</span>
+											<span 
+												id = "cmp_vetonest.com_LXBYsFPl1b"
+												className ="signUp_passwordPlaceholder" 
+											>
+												Password
+											</span>
+											<span 
+												id = "cmp_vetonest.com_c6WAL3fo3k"
+												className ="signUp_passwordRepeatPlaceholder" 
+											>
+												Password repeat
+											</span>
+											<span 
+												id = "cmp_vetonest.com_wc4hVvXB3N"
+												className ="signUp_namePlaceholder" 
+											>
+												Name
+											</span>
+											<span 
+												id = "cmp_vetonest.com_EjMb0Ci9C6"
+												className ="signUp_emailEmpty" 
+											>
+												L'email est vide.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_WCfOc17hne"
+												className ="signUp_codeTitle" 
+											>
+												Email verification
+											</span>
+											<span 
+												id = "cmp_vetonest.com_MnveaCfq6X"
+												className ="signUp_codeCorrect" 
+											>
+												Your code is correct.
+											</span>
+											<span 
+												id = "cmp_vetonest.com_2NbkrLN1Nt"
+												className ="signUp_codeIncorrect" 
+											>
+												Your code is not correct. Try again.
+											</span>
+											<span
+												id = "cmp_vetonest.com_Xzm3u4t1uE"
+												className ="signUp_codeIntro" 
+											>
+												We sent a verification code to
+											</span>
+											<span
+												id = "cmp_vetonest.com_PlOAvkzjQx"
+												className ="signUp_codeResend" 
+											>
+												Resend the code
+											</span>
+
+											
+											
+											<span 
+								id = "cmp_vetonest.com_UcvWQuFUwO"
+								className ="signUp_passwordErrorText" 
+							>
+								Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_BmYPSRuRRY"
+								className ="signUp_passwordRepeatErrorText" 
+							>
+								Password are different.
+							</span>
+							<span 
+								className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors"
+							>
+								Please correct the errors before continuing.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_cFjGEBvej6"
+								className ="passwordForgot_updateSuccess"
+							>
+								Votre mot de passe a été mis a jour.
+							</span>
+							<span 
+								id = "cmp_vetonest.com_LXBYsFPl1b"
+								className ="signUp_passwordPlaceholder" 
+							>
+								Password
+							</span>
+							<span 
+								id = "cmp_vetonest.com_c6WAL3fo3k"
+								className ="signUp_passwordRepeatPlaceholder" 
+							>
+								Password repeat
+							</span>
+							<span 
+								id = "cmp_vetonest.com_JwgqTDF9g7"
+								className ="passwordForgotReset_title" 
+							>
+								Reset your password
+							</span>
+							<span
+								id = "cmp_vetonest"
+								className ="profileAnimal_animalNamePlaceHolder" 
+							>
+								Nom de l'animal
+							</span>
+							profileAnimal_animalNamePlaceHolder
+					</div>
 		</>
 	);
 };

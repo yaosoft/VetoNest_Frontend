@@ -119,16 +119,46 @@ h6 {
 }
 
 .ant-select-selector{
-	background-color: #FFDE59 !important;
+	border: none;
+	box-shadow: none !important;
+}
+
+.ant-select-selection {
+  background-color: #FFDE59 !important; 
+}
+
+ant-select-selection-wrap {
+  background-color: #FFDE59 !important; 
 }
 
 .ant-modal-content{
-	background-color: #C1FF72 !important;
+	background-color: #9ad253 !important;
 }
 
 .ant-modal-header p {
-	background-color: #C1FF72 !important;
+	background-color: #9ad253 !important;
 	font-size: 22px !important;
+	font-weight: bold;
+}
+
+.photoAnimalThumbnail{
+	max-height: 55%;
+	max-width: 100%;
+}
+
+.btnModalProfileIdentity{
+    width: 50%;
+    background-color: #00BF63;
+    font-size: 22px;
+    font-weight: bold;
+    height: 40px;
+    border-radius: 10px;
+}
+
+.btnModalProfileIdentity:hover {
+    width: 50%;
+    background-color: #008A48;
+	color: #fff
 }
 
 .borderYellow{
@@ -148,14 +178,65 @@ h6 {
 	background-color: #C1FF72;
 }
 
-.rounded-select {
-	border-radius: 30px !important; /* Adjust value as needed */
-    background-color: white; /* Example background color */
-    border: #FFDE59 !important; /* Example border */
- }
+.custom-select{
+	height: 20px;
+	background-color: #FFDE59 !important;
+	border: none;
+	margin-top: -20px;
+}
 
-.rounded-select:hover {
-	border-color: #FFDE59 !important; /* Example hover effect */
+.custom-select:hover {
+	background-color: #FFDE59 !important;
+}
+
+.custom-select-rounded {
+	border-radius: 10px !important; /* Adjust as needed */
+	height: 40px;
+	background-color: #FFDE59 !important;
+	border: none;
+}
+
+input[type="checkbox"] {
+  box-sizing: border-box;
+  padding: 0;
+  accent-color: #FFDE59;
+  background-color: #FFDE59 !important;
+}
+
+.custom-checkbox {
+  top: 0;
+  left: 0;
+  border: 1px solid #ccc !important;
+  border-color: #FFDE59 !important;
+  background-color: #FFDE59 !important;
+  width: 18px;
+  height: 18px;
+}
+
+.custom-checkbox-container input[type="checkbox"]:checked ~ .custom-checkbox {
+  background-color: green !important; /* Background for checked state */
+}
+
+.custom-checkbox-container input[type="checkbox"] ~ .custom-checkbox {
+  background-color: green !important; /* Background for checked state */
+}
+
+.custom-checkbox-container input[type="checkbox"] {
+  background-color: green !important; 
+}
+
+.custom-select-rounded:hover {
+	border-color: #FFDE59 !important; /* Adjust hover effect as needed */
+}
+
+
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-select-selector:active,
+.ant-select-open .ant-select-selector {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .birthdateField{
@@ -168,6 +249,7 @@ h6 {
 
 .marginTop2percent {
     padding-top: 2%;
+	margin-bottom: -10px;
 }
 
 .birthdateField .dateField{
@@ -246,7 +328,7 @@ h6 {
 }
 
 .borderRadius18 {
-	border-radius: 18px;
+	border-radius: 10px;
 }
 
 .marginLeft20 {
@@ -419,12 +501,13 @@ input[type=password]:hover {
 
 .singleFieldManager .buttonDiv{
 	width: 6em;
-	border-color: #FFDE59 !important;
+	border: none !important;
 	cursor: pointer;
+	background-color: #FFDE59 !important;
 }
 
 .singleFieldManager .buttonDiv:hover{
-	background-color: #FFC71C;
+	background-color: #FFD222 !important;
 }
 
 .singleFieldManager > div{
@@ -490,6 +573,10 @@ input[type=password]:hover {
 	margin-right: 2%;
 }
 
+#animalPhotoId{
+	max-width: 98%;
+	max-height: 100%;
+}
 
 button[disabled]{
   border: 1px solid #999999;

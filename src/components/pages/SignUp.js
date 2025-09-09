@@ -386,7 +386,7 @@ console.log( 'signUpType: ' + signUpType );
 			setSendingDisabled( false );
 			return;
 		}
-// console.log( 'Check email', rep );
+console.log( 'Check email', rep );
 		setSignUpSpin( 'none' );
 		if( emailVerificationResult === true ) // email account already checked
 			await signUp( signUpData )
@@ -405,7 +405,7 @@ console.log( 'signUpType: ' + signUpType );
 		setFormError01( 'none' );
 		setFormError02( 'none' );
 	}
-	
+
 	// signup
 	const signUpData = {
 		nom: 			signUpName.trim(),
@@ -441,7 +441,7 @@ console.log( 'signUpType: ' + signUpType );
 		}
 	}
 
-	// modal
+	// verification code modal
 	const [ isModalOpen, setIsModalOpen ] = useState(false);
 	const [ isModalOptionTypeOpen, setIsModalOptionTypeOpen ] = useState(false);
 	
@@ -456,7 +456,7 @@ console.log( 'signUpType: ' + signUpType );
 		if( countLetters > maxCodeLength )
 			return
 
-	setVerificationCode( typedCode );
+		setVerificationCode( typedCode );
 // console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
 		if( countLetters == maxCodeLength ){
 			if( code != typedCode ){
