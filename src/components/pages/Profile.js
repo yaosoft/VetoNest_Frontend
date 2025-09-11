@@ -18,7 +18,6 @@ import InputCode from "../InputCode";
 
 import Header from '../Header';
 import Footer from '../Footer';
-import ModalPaymentMethod from '../ModalPaymentMethod';
 import ModalRemovePaymentMethod from '../ModalRemovePaymentMethod';
 import ModalRemoveAnimal from '../ModalRemoveAnimal';
 import SingleFieldManager from '../SingleFieldManager';
@@ -53,16 +52,6 @@ const Profile = ( params ) => {
 		profileUpdate,
 		base_url,
 		generateRandomDigits,
-		paymentMethodList,
-		setModalPaymentMethodOpen,
-		modalPaymentMethodOpen,
-		setModalRemovePaymentMethodOpen,
-		modalRemovePaymentMethodOpen,
-		userPaymentMethodList,
-		userPaymentMethodEdit,
-		userPaymentMethodRemove,
-		userPaymentMethods,
-		setUserPaymentMethods,
 		setIsNew,
 		isNew,
 		// setSelectedUserPaymentMethodId
@@ -93,44 +82,44 @@ const Profile = ( params ) => {
 	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
 	
 	// const [ formUpdated, setFormUpdated ] = useState( '' );
-	const [ paymentMethods, setPaymentMethods ] = useState( [] );
+	// const [ paymentMethods, setPaymentMethods ] = useState( [] );
 	const [ userTotalAnimal, setUserTotalAnimal ] = useState( 0 );
 	
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
 	
 	const [ spin, setSpin ] = useState( 'none' );
 	
-	useEffect( () => {
-		// get all paymentMethodList
-		const getPaymentMethods = async() => {
-			const paymentMethods = await paymentMethodList();
-			setPaymentMethods( paymentMethods );
-		}
+	// useEffect( () => {
+		// // get all paymentMethodList
+		// const getPaymentMethods = async() => {
+			// const paymentMethods = await paymentMethodList();
+			// setPaymentMethods( paymentMethods );
+		// }
 		
-		// get user paymentMethod
-		const getUserPaymentMethods = async() => {
-			const paymentMethods = await userPaymentMethodList( userId );
+		// // get user paymentMethod
+		// const getUserPaymentMethods = async() => {
+			// const paymentMethods = await userPaymentMethodList( userId );
 
-			setUserPaymentMethods( paymentMethods );
-		}
-		getUserPaymentMethods();
-		getPaymentMethods();
-	 }, [user, modalPaymentMethodOpen, modalRemovePaymentMethodOpen] );
+			// setUserPaymentMethods( paymentMethods );
+		// }
+		// getUserPaymentMethods();
+		// getPaymentMethods();
+	// }, [user, modalPaymentMethodOpen, modalRemovePaymentMethodOpen] );
 
 	// check if user have this payment method. If true, return user paiment method object
-	const isUserMethod = ( paymentMethodId ) => {
+	// const isUserMethod = ( paymentMethodId ) => {
 
-		const rep = userPaymentMethods.filter( e => e.paymentMethodId == paymentMethodId )
+		// const rep = userPaymentMethods.filter( e => e.paymentMethodId == paymentMethodId )
 
-		if( rep.length ){
+		// if( rep.length ){
 
-			return rep[0]
-		}
-		else{	 	// new
+			// return rep[0]
+		// }
+		// else{	 	// new
 
-			return false
-		}
-	}
+			// return false
+		// }
+	// }
 
 	// File upload
 	const { Dragger } = Upload;
@@ -218,77 +207,75 @@ const Profile = ( params ) => {
 	}
 	
 	// Build paiement list
-	const BuildPaymentList = () => {
-		return(
-			paymentMethods.map(( paymentMethod, index ) => 
-				<div style= {{ margin: '1%' }}>
-				<div key = { index } className= "row">
+	// const BuildPaymentList = () => {
+		// return(
+			// paymentMethods.map(( paymentMethod, index ) => 
+				// <div style= {{ margin: '1%' }}>
+				// <div key = { index } className= "row">
 				
-					<img 
-						src={ '/img/paymentMethod/' + paymentMethod.image } 
-						className="profilePaymentMethodIcon"
-					/>
-				</div>
-				<div className= "row">
-					<span>
-						{ isUserMethod( paymentMethod.id ) === false ?
-							<a 
-								onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, false ) }
-							>
-								<i className="fa fa-edit"></i>Add { paymentMethod.name }
-							</a>
-							:
-							<>
-								<i className="fa fa-check text-success"></i>added
-								{ 	paymentMethod.id == 1 &&
-									<a>
-										&nbsp;<i className="fa fa-star text-warning"></i>prefered 
-									</a>
-								}
-								&nbsp;&nbsp;
-								<a 
-									onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, true ) }
-								>
-									<i className="fa fa-edit text-info"></i>edit 
-								</a>
-								&nbsp;
-								<a 
-									onClick={ ( e ) => handleClickRemoveUserPaymentMethod( paymentMethod ) }
-								>
-									&nbsp;<i className="fa fa-trash text-danger"></i>remove 
-								</a>
-							</>
-						}
-					</span>
-				</div>
-				<br/>
-				</div>
-			)
-		)
-	}
+					// <img 
+						// src={ '/img/paymentMethod/' + paymentMethod.image } 
+						// className="profilePaymentMethodIcon"
+					// />
+				// </div>
+				// <div className= "row">
+					// <span>
+						// { isUserMethod( paymentMethod.id ) === false ?
+							// <a 
+								// onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, false ) }
+							// >
+								// <i className="fa fa-edit"></i>Add { paymentMethod.name }
+							// </a>
+							// :
+							// <>
+								// <i className="fa fa-check text-success"></i>added
+								// { 	paymentMethod.id == 1 &&
+									// <a>
+										// &nbsp;<i className="fa fa-star text-warning"></i>prefered 
+									// </a>
+								// }
+								// &nbsp;&nbsp;
+								// <a 
+									// onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, true ) }
+								// >
+									// <i className="fa fa-edit text-info"></i>edit 
+								// </a>
+								// &nbsp;
+								// <a 
+									// onClick={ ( e ) => handleClickRemoveUserPaymentMethod( paymentMethod ) }
+								// >
+									// &nbsp;<i className="fa fa-trash text-danger"></i>remove 
+								// </a>
+							// </>
+						// }
+					// </span>
+				// </div>
+				// <br/>
+				// </div>
+			// )
+		// )
+	// }
 
 
 	// payment method setting button
-	const handleClickSettingPaymentMethod = ( paymentMethod, isUserHave )  => { 
-// console.log( 'paymentMethod', paymentMethod );
-		setIsNew( !isUserHave ); // is user have this payment method
-		// if( paymentMethod.name == "PayPal" ){	// to do:		
-			// setModalPaymentMethodOpen( true )
-		// }
-		setSelectedPaymentMethod( paymentMethod );
-		setModalPaymentMethodOpen( true );
-	} 
+	// const handleClickSettingPaymentMethod = ( paymentMethod, isUserHave )  => { 
+// // console.log( 'paymentMethod', paymentMethod );
+		// setIsNew( !isUserHave ); // is user have this payment method
+		// // if( paymentMethod.name == "PayPal" ){	// to do:		
+			// // setModalPaymentMethodOpen( true )
+		// // }
+		// setSelectedPaymentMethod( paymentMethod );
+		// setModalPaymentMethodOpen( true );
+	// } 
 
-	const handleClickRemoveUserPaymentMethod = ( paymentMethod )  => {
-		// get user payment method
-		setSelectedPaymentMethod( paymentMethod );
-		setModalRemovePaymentMethodOpen( true )
-		// removePaymentMethodOpen( userPaymentMethodId )
-	}
+	// const handleClickRemoveUserPaymentMethod = ( paymentMethod )  => {
+		// // get user payment method
+		// setSelectedPaymentMethod( paymentMethod );
+		// setModalRemovePaymentMethodOpen( true )
+		// // removePaymentMethodOpen( userPaymentMethodId )
+	// }
 
-	const handleClickRemoveAnimal = ( animalId )  => {
-console.log( 'animalId', animalId );
-console.log( 'userPets', userPets );		
+	const handleClickRemoveAnimal = ( animalId )  => {		
 
 		// get user payment method
 		const animal = userPets.filter( e => e.id == animalId )[ 0 ];
@@ -382,6 +369,7 @@ console.log( 'userPets', userPets );
 										placeholder: 'Edit pet data',
 										selectedPetId: e.id,
 										value: e.nom,
+										type: 2, // 2 = update
 									}}
 								/>
 							</div>
@@ -394,6 +382,7 @@ console.log( 'userPets', userPets );
 
 	// form
 	const [form] = Form.useForm();
+
 	return (
 		<>
 			<Modal
@@ -424,7 +413,6 @@ console.log( 'userPets', userPets );
 					/>
 				</div>
 			</Modal>
-			<ModalPaymentMethod />
 			<ModalRemovePaymentMethod />
 			<ModalRemoveAnimal />
 			<Header />
@@ -434,7 +422,7 @@ console.log( 'userPets', userPets );
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			
-			<Title title = { 'Profile - Travaux en cours' } />
+			<Title title = { 'Votre Profile' } />
 					<Form 
 						form = {form}
 					>
@@ -456,7 +444,7 @@ console.log( 'userPets', userPets );
 							</div>
 							<div className="row justify-content-center marginTop10px">
 								<Dragger {...props} > 
-									<i class="fa fa-camera" aria-hidden="true"></i> Modifier
+									<i className="fa fa-camera" aria-hidden="true"></i> Modifier
 								</Dragger> 
 							</div>
 						</div>
@@ -477,6 +465,7 @@ console.log( 'userPets', userPets );
 													title:		'Modifier mon profile',
 													placeholder: 'Nom, age, address ...',
 													value: 'Modify my profile',
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -490,6 +479,7 @@ console.log( 'userPets', userPets );
 													title:		'Modifier mon email',
 													placeholder: 'Email ...',
 													value: 'Modify my email',
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -499,6 +489,31 @@ console.log( 'userPets', userPets );
 													title:		'Modifier mon mot de passe',
 													placeholder: 'Password reset',
 													value: 'Modify my password',
+													type: 2, // 2 = update
+												}}
+											/>
+										</div>
+										<br/>
+										<div className="row">
+											Langue et pays
+										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Language',
+													title:		'Langue du compte',
+													placeholder: 'Langue du compte ...',
+													value: 'Langue du compte',
+													type: 1, // 2 = update
+												}}
+											/>
+										</div>
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
+													fieldName: 	'Country',
+													title:		'Pays du compte',
+													placeholder: 'Pays du compte',
+													value: 'Pays du compte',
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -521,6 +536,7 @@ console.log( 'userPets', userPets );
 															title:		'Ajouter un animal',
 															placeholder: 'Animal ...',
 															value: 'Ajouter un animal',
+															type: 1, // 1 = create
 														}}
 													/>
 												</div>
@@ -555,6 +571,7 @@ console.log( 'userPets', userPets );
 													title:		'Update user name',
 													placeholder: 'No name',
 													value: name,
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -564,6 +581,7 @@ console.log( 'userPets', userPets );
 													title:		'Update user first name',
 													placeholder: 'No firstname',
 													value: firstName,
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -573,6 +591,7 @@ console.log( 'userPets', userPets );
 													title:		'Your genre',
 													placeholder: 'Please Select sexe',
 													value: eval(userProfile.userSexeTagClass),
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -582,6 +601,7 @@ console.log( 'userPets', userPets );
 													title:		'Update the date',
 													placeholder: 'Your birth date',
 													value: dateNaissance,
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -591,6 +611,7 @@ console.log( 'userPets', userPets );
 													title:		'Something about you',
 													placeholder: 'Biographie',
 													value: biography,
+													type: 2, // 2 = update
 												}}
 											/>
 										</div>
@@ -621,7 +642,7 @@ console.log( 'userPets', userPets );
 										</div>
 										<div className="row">
 											<div className="col-md-9">
-												<BuildPaymentList/>
+												Foo
 											</div>
 										</div>
 									</div>

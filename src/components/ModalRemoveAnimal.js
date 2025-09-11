@@ -69,17 +69,17 @@ const ModalRemoveAnimal = ( params ) => {
 
 	useEffect(() => {
 		// reset the form
-		form.resetFields()
+		form.resetFields();
+		
 		// get user's PayPal data
 		const a = async() => {
-console.log( 'selectedAnimal', selectedAnimal );
+
 			// Title
 			const titleText = 'Remove your animal ' + selectedAnimal.nom;
 			// alert( selectedAnimal.name );
 			const titlePicture =  selectedAnimal.picture ? base_url + 'uploads/files/pets/' + selectedAnimal.picture: photoAnimalDefaultSrc ;
 			
-console.log( 'titleText', titleText );
-console.log( 'titlePicture', titlePicture );
+
 			const title = 
 				<p>
 					<img 
@@ -91,7 +91,8 @@ console.log( 'titlePicture', titlePicture );
 			
 			setTitle( title );
 		}
-		a();
+		if( selectedAnimal )
+			a();
 	}, [ selectedAnimal ]); 
 
 

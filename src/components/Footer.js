@@ -111,6 +111,12 @@ const Footer = () => {
 		setLanguage_german,
 		setLanguage_italian,
 		setLanguage_estonian,
+		setCountry_france,
+		setCountry_italy,
+		setCountry_suiss,
+		setCountry_belgium,
+		setCountry_spain,
+		setCountry_germain,
 	} = useContext( SiteContext );
 
 	const navigate = useNavigate();
@@ -801,6 +807,46 @@ const Footer = () => {
 					const language_estonian = language_estonianElt.innerHTML;
 					setLanguage_estonian( language_estonian );
 				}
+
+				const country_franceElt  = document.getElementsByClassName("country_france")[0];
+
+				if( country_franceElt ){
+
+					const country_france = country_franceElt.innerHTML;
+					
+					setCountry_france( country_france );
+				}
+				
+				const country_suissElt  = document.getElementsByClassName("country_suiss")[0];
+				if( country_suissElt ){
+					const country_suiss = country_suissElt.innerHTML;
+					setCountry_suiss( country_suiss );
+				}
+				
+				const country_belgiumElt  = document.getElementsByClassName("country_belgium")[0];
+				if( country_belgiumElt ){
+					const country_belgium = country_belgiumElt.innerHTML;
+					setCountry_belgium( country_belgium );
+				}
+
+				const country_spainElt  = document.getElementsByClassName("country_spain")[0];
+				if( country_spainElt ){
+					const  country_spain  = country_spainElt.innerHTML;
+					setCountry_spain( country_spain );
+				}
+				
+				const country_italyElt  = document.getElementsByClassName("country_italy")[0];
+				if( country_italyElt ){
+					const country_italy = country_italyElt.innerHTML;
+					setCountry_italy( country_italy );
+				}
+				
+				const country_germainElt  = document.getElementsByClassName("country_germain")[0];
+				if( country_germainElt ){
+					const country_germain = country_germainElt.innerHTML;
+					setCountry_germain( country_germain );
+				}
+
 			}
 		}
 		updatePageContent();

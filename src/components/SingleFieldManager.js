@@ -24,9 +24,15 @@ const SingleFieldManager = ( params ) => {
 	const [ title, setTitle ] = useState( '' );
 	const [ value, setValue ] = useState( '' );
 	
-	const [ placeholder, setPlaceholder ] = useState( '' );
-	useEffect( () => {
+	const [ type, setType ] = useState( '' );
 
+	const [ placeholder, setPlaceholder ] = useState( '' );
+	
+	useEffect( () => {
+		// type
+		const type = params.params.type;
+		setType(type);
+		
 		// placeholder
 		const placeholder = params.params.placeholder;
 		setPlaceholder( placeholder );
@@ -67,12 +73,12 @@ const SingleFieldManager = ( params ) => {
 				<span>{ value ? value : placeholder }</span>
 			</div> 
 			<div 
-				className='buttonDiv borderRightRadius25'
+				className='buttonDiv borderRadius18'
 				role={'button'}
 				tabIndex={0}
 				onClick={ (e) => handleClickField() }
 			>
-				<span>{ userProfile.nom ? 'update' : 'add' } ></span>
+				<span>{ type == 1 ? 'add' : 'modify' } ></span>
 			</div>
 		</div>
 	</>
