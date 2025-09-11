@@ -171,6 +171,17 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// List all languages
+	const countryList = async () => {
+		const url		= base_api_url + 'pays/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// list all payment's method
 	const paymentMethodList = async () => {
 		const url		= base_api_url + 'paymentMethod/list';
@@ -469,6 +480,9 @@ export const SiteProvider = ({ children }) => {
 	
 	const [ especes, setEspeces ] = useState( [] );
 	const [ languages, setLanguages ] = useState( [] );
+	// const [ countries, setCountries ] = useState( [] );
+	const [ countriesAllowed, setCountriesAllowed ] = useState( [] );
+	
 	useEffect(() => {
 		const a = async () =>{
 			// Languages
@@ -478,7 +492,15 @@ export const SiteProvider = ({ children }) => {
 			}
 			const languages = await getLanguages();
 			setLanguages( languages );
-	
+			
+			// Countries
+			const getCountries = async () => {
+				const countries = await countryList();
+				return countries
+			}
+			const countries = await getCountries();
+			setCountriesAllowed( countries );
+			
 			// Espece
 			const getEspeces = async () => {
 				const species = await speciesList();
@@ -582,13 +604,21 @@ export const SiteProvider = ({ children }) => {
 	const currency = 'EUR';
 	const [ profile_sexe_male, setProfile_sexe_male ] = useState( '' );
 	const [ profile_sexe_female, setProfile_sexe_female ] = useState( '' );
-
+	// language translate
 	const [ language_french, setLanguage_french ] = useState( '' );
 	const [ language_english, setLanguage_english ] = useState( '' );
 	const [ language_spanish, setLanguage_spanish ] = useState( '' );
 	const [ language_german, setLanguage_german ] = useState( '' );
 	const [ language_italian, setLanguage_italian ] = useState( '' );
 	const [ language_estonian, setLanguage_estonian ] = useState( '' );
+	// countries translate
+	const [ country_france, setCountry_france ] = useState( '' );
+	const [ country_italy, setCountry_italy ] = useState( '' );
+	const [ country_suiss, setCountry_suiss ] = useState( '' );
+	const [ country_belgium, setCountry_belgium ] = useState( '' );				
+	const [ country_spain, setCountry_spain ] = useState( '' );	
+	const [ country_germain, setCountry_germain ] = useState( '' );	
+
 
 	const getBase64 = async (file) => {
 		return new Promise((resolve, reject) => {
@@ -844,6 +874,8 @@ export const SiteProvider = ({ children }) => {
 				userPets, 
 				setUserPets,
 				languages,
+				// site countries list
+				countriesAllowed,
 				especes,
 				selectedAnimal, 
 				setSelectedAnimal,
@@ -851,6 +883,19 @@ export const SiteProvider = ({ children }) => {
 				setModalRemoveAnimalOpen,
 				photoAnimalDefaultSrc,
 				carnetAnimalRemove,
+				// translate countries
+				country_france,
+				setCountry_france,
+				country_italy,
+				setCountry_italy,
+				country_suiss,
+				setCountry_suiss,
+				country_belgium,
+				setCountry_belgium,
+				country_spain,
+				setCountry_spain,
+				country_germain,
+				setCountry_germain,
 			}}
 		>
 

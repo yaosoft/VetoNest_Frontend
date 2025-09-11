@@ -20,6 +20,7 @@ const ModalProfileIdentity = ( params ) => {
 	
 	const { 
 		getUser,
+		setUser,
 		profileTypeId,
 		profileId,
 		userId,
@@ -65,13 +66,18 @@ const ModalProfileIdentity = ( params ) => {
 		siteLanguage,
 		dateFormater,
 		siteLocale,
-		languageList,
 		language_french,
 		language_english,
 		language_spanish,
 		language_german,
 		language_italian,
 		language_estonian,
+		country_france,
+		country_italy,
+		country_suiss,
+		country_belgium,
+		country_spain,
+		country_germain,
 		profileIdentity_addressPlaceholder,
 		profileIdentity_addressErrorText,
 		profileIdentity_codePostalErrorText,
@@ -115,8 +121,14 @@ const ModalProfileIdentity = ( params ) => {
 		editUserPets,
 		userPets,
 		languages,
+		countriesAllowed,
 		especes,
 		getBase64,
+		selectedLanguageId,
+		updateLanguagePreference,
+		setSelectedLanguageId,
+		languageSetup,
+		
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -774,6 +786,30 @@ const ModalProfileIdentity = ( params ) => {
 	// save
 	const handleClickSave = async () => {
 		
+		if( fieldName == 'Language' ){
+			
+			const languagePreferenceData = {
+				userId: 	userId,
+				languageId: lastSelectedLanguage
+			}
+			
+			const rep = await updateLanguagePreference( languagePreferenceData )
+			if( rep !== false ){
+				await setSelectedLanguageId( lastSelectedLanguage ); // update the listbox via context
+				await languageSetup( lastSelectedLanguage ); // Update flag and user locale
+				user.languageId = lastSelectedLanguage; // update user
+				setUser( user );
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Default language updated' );
+				return
+			}
+			else{
+				message.error( 'Default language not updated' );
+				return
+			}
+		}
+		
 		if( fieldName == 'Animaux'){
 			// check the form errors
 			const checkFormErrors = async( ) => {
@@ -1129,6 +1165,15 @@ const ModalProfileIdentity = ( params ) => {
 	}
 
 	// countries
+	// const [ countryError, setCountryError ] = useState( '' );
+	// const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
+	// const [ countrySelected, setCountrySelected ] = useState( '' );
+	// const [ allCountries, setAllCountries ]  = useState( [] ); 
+	// const [ siteCountries, setSiteCountries ]  = useState( [] ); 
+	// const [ countryCode, setCountryCode ] = useState( '' );	
+	// const [ flagCode, setFlagCode ] = useState( '' );
+	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
+
 	const [ countryError, setCountryError ] = useState( '' );
 	const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
 	const [ countrySelected, setCountrySelected ] = useState( '' );
@@ -1195,12 +1240,43 @@ const ModalProfileIdentity = ( params ) => {
 	const [ animal, setAnimal ] = useState( '' );
 	const [ showBreeds, setShowBreeds ]  = useState( 'none' );
 
+	// Account language options
+	const [ languageOptions, setLanguageOptions ] =  useState( [] );
+	const [ languageDefault, setLanguageDefault ] = useState( [] );
+	const [ languageSelected, setLanguageSelected ] = useState( [] );
+
+	const [ lastSelectedLanguage, setLastSelectedLanguage ] = useState( selectedLanguageId ); // initial
+	const onLanguageOptionChange = async ( checkedValues ) => {
+		// setLanguageSelected(checkedValues);
+		
+		const valuesNew = checkedValues.filter((v) => v !== lastSelectedLanguage);
+		const value = valuesNew.length ? valuesNew[0] : '';
+		setLastSelectedLanguage(value);
+		setLanguageSelected([value]);
+	}
+
+	// Account country options
+	const [ countriesOptions, setCountriesOptions ] =  useState( [] );
+	const [ countriesDefault, setCountriesDefault ] = useState( [] );
+	const [ countriesSelected, setCountriesSelected ] = useState( [] );
+
+	const [ lastSelectedCountry, setLastSelectedCountry ] = useState( 1 );  // initial
+	const onCountryOptionChange = async ( checkedValues ) => {
+		// setCountrySelected(checkedValues);
+		
+		const valuesNew = checkedValues.filter((v) => v !== lastSelectedCountry);
+		const value = valuesNew.length ? valuesNew[0] : '';
+		setLastSelectedCountry(value);
+		setCountriesSelected([value]);
+	}
+
 	useEffect(() => {
+
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
-		
-		// set the countries
+
+		// all countries
 		const allCountries = Country.getAllCountries();
 		var countries = Array();
 		// Add an id property to the countries array for and Select to work
@@ -1209,7 +1285,19 @@ const ModalProfileIdentity = ( params ) => {
 			countries.push( country );
 		}
 		setCountries( countries );
-		
+
+		// Site country 
+		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
+		setCountriesOptions( countriesOptions  );  // options
+		const countryDefault = [ 1 ]; // default
+		setCountriesSelected( countryDefault );
+
+		// Site languages 
+		const languageOptions = languages.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
+		setLanguageOptions( languageOptions  );  // options
+		const languageDefault = [ selectedLanguageId ]; // default
+		setLanguageSelected( languageDefault );
+
 		const a = async () => {
 			const fieldName = await params.params.fieldName;
 			setFieldName( fieldName );
@@ -1298,14 +1386,14 @@ const ModalProfileIdentity = ( params ) => {
 		}
 		a()
 
-	}, [ visibleModalName, userProfile ]); // Dependency array ensures effect runs when isModalOpen changes
+	}, [ visibleModalName, userProfile ]) 
 
 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
+
 		if( especes.length ){
-console.log( 'Fooo bar' );
 			return(
 				([])
 			)
@@ -1362,6 +1450,35 @@ console.log( 'Fooo bar' );
 					form = {form}
 					/* initialValues={{ PaypalEmail: 'john.doe@example.com' }} */
 				>
+					{ fieldName == "Country" &&
+						<>
+							<div className="row">
+								<Checkbox.Group 
+									options={countriesOptions} 
+									// defaultValue={languageDefault} 
+									value={countriesSelected}
+									onChange={ onCountryOptionChange }
+								/>
+							</div>
+							<p className="row">&nbsp;
+							</p>
+						</>
+					}
+					{ fieldName == "Language" &&
+						<>
+						
+							<div className="row">
+								<Checkbox.Group 
+									options={languageOptions} 
+									// defaultValue={languageDefault} 
+									value={languageSelected}
+									onChange={ onLanguageOptionChange }
+								/>
+							</div>
+							<p className="row">&nbsp;
+							</p>
+						</>
+					}
 					{ fieldName == "Profile" &&
 					<>	
 						<div className="row">

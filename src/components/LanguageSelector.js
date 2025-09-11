@@ -44,10 +44,10 @@ const LanguageSelector = ( params ) => {
 	const handleChangeLanguages = async ( languageId ) => {
 		
 		if( user === null ){
-console.log(languageId);			
+console.log(languageId);		
 			await setSelectedLanguageId( languageId );
 			await languageSetup( languageId );
-			
+
 			return
 		}
 		
@@ -90,8 +90,8 @@ console.log(languageId);
 						{ eval( option.tagClass ) }
 					</Select.Option>
 				))}
-          </Select>
-		);
+			</Select>
+		)
 	}
 
 	useEffect( () => {

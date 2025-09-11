@@ -217,43 +217,82 @@ const Header = () => {
 				</div>
 			</header>
 			<div className="displayNone" >
-					<span 
-						id="cmp_vetonest.com_JLQuQUHS9n"
-						className ="language_french" 
-					>
-						Français
-					</span>
-					<span 
-						id="cmp_vetonest.com_wyemTkNBRm"
-						className ="language_english" 
-					>
-						Anglais
-					</span>
-					<span 
-						id="cmp_vetonest.com_EJtVTUW6Bh"
-						className ="language_spanish" 
-					>
-						Espagnol
-					</span>
-					<span 
-						id="cmp_vetonest.com_pxa8xJMVaM"
-						className ="language_german" 
-					>
-						Allemand
-					</span>
-					<span 
-						id="cmp_vetonest.com_9tmtPx9JYg"
-						className ="language_italian" 
-					>
-						Italien
-					</span>
-					<span 
-						id="cmp_vetonest.com_0pM9CADe5s"
-						className ="language_estonian" 
-					>
-						Estonien
-					</span>
+				/* LANGUAGES TAG */
+				<span 
+					id="cmp_vetonest.com_JLQuQUHS9n"
+					className ="language_french" 
+				>
+					Français
+				</span>
+				<span 
+					id="cmp_vetonest.com_wyemTkNBRm"
+					className ="language_english" 
+				>
+					Anglais
+				</span>
+				<span 
+					id="cmp_vetonest.com_EJtVTUW6Bh"
+					className ="language_spanish" 
+				>
+					Espagnol
+				</span>
+				<span 
+					id="cmp_vetonest.com_pxa8xJMVaM"
+					className ="language_german" 
+				>
+					Allemand
+				</span>
+				<span 
+					id="cmp_vetonest.com_9tmtPx9JYg"
+					className ="language_italian" 
+				>
+					Italien
+				</span>
+				<span 
+					id="cmp_vetonest.com_0pM9CADe5s"
+					className ="language_estonian" 
+				>
+					Estonien
+				</span>
+				
+				/* COUNTRIES TAG */
+				<span 
+					id="cmp_vetonest.com_hKFx1Nxwy1"
+					className ="country_france" 
+				>
+					France
+				</span>
+				<span 
+					id="cmp_vetonest.com_zaQ8Sa8QFr"
+					className ="country_italy" 
+				>
+					Italy
+				</span>
+				<span 
+					id="cmp_vetonest.com_bfomRndj4C"
+					className ="country_suiss" 
+				>
+					Suisse
+				</span>
+				<span 
+					id="cmp_vetonest.com_vhn75Axj1a"
+					className ="country_belgium" 
+				>
+					Belgique
+				</span>
 			</div>
+			<span 
+				id="cmp_vetonest.com_c3XMo9aZSc"
+				className ="country_spain" 
+			>
+				Espagne
+			</span>
+			<span 
+				id="cmp_vetonest.com_bkNRecc1Tq"
+				className ="country_germain" 
+			>
+				Allemagne
+			</span>
 		</>
 	);
 };

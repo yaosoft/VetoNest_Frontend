@@ -197,10 +197,21 @@ ant-select-selection-wrap {
 }
 
 input[type="checkbox"] {
-  box-sizing: border-box;
-  padding: 0;
-  accent-color: #FFDE59;
   background-color: #FFDE59 !important;
+  /* Remove default browser styles if necessary */
+  appearance: none;
+  -webkit-appearance: none;
+  /* Add other styling like border, size, etc. */
+  border: 1px solid #FFDE59;
+  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Style for the checked checkbox background */
+input[type="checkbox"]:checked {
+  background-color: #FFDE59; /* Green for checked state */
+  border: 1px solid #FFDE59;
 }
 
 .custom-checkbox {
@@ -213,17 +224,6 @@ input[type="checkbox"] {
   height: 18px;
 }
 
-.custom-checkbox-container input[type="checkbox"]:checked ~ .custom-checkbox {
-  background-color: green !important; /* Background for checked state */
-}
-
-.custom-checkbox-container input[type="checkbox"] ~ .custom-checkbox {
-  background-color: green !important; /* Background for checked state */
-}
-
-.custom-checkbox-container input[type="checkbox"] {
-  background-color: green !important; 
-}
 
 .custom-select-rounded:hover {
 	border-color: #FFDE59 !important; /* Adjust hover effect as needed */
@@ -328,7 +328,8 @@ input[type="checkbox"] {
 }
 
 .borderRadius18 {
-	border-radius: 10px;
+	border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .marginLeft20 {
@@ -821,7 +822,7 @@ button {
 .banner .carousel-indicators li {
      width: 20px;
      height: 20px;
-     border-radius: 30px;
+     border-radius: 10px;
      background: #000;
 }
 
@@ -886,7 +887,7 @@ button {
      width: 100%;
      margin: 0 auto;
      padding: 10px 0;
-     border-radius: 50px;
+     border-radius: 10px;
      color: #fff;
      font-size: 20px;
      transition: ease-in 0.5s;
@@ -963,7 +964,7 @@ button {
      display: inline-block;
      transition: ease-in all 0.5s;
      font-weight: 500;
-     border-radius: 30px;
+     border-radius: 10px;
 }
 
 .read_more:hover {
@@ -1151,8 +1152,8 @@ button {
      background-color: #fff;
      margin-bottom: 30px;
      transition: ease-in all 0.5s;
-	 border-bottom-left-radius: 25px;
-     border-bottom-right-radius: 25px;
+	 border-bottom-left-radius: 10px;
+     border-bottom-right-radius: 10px;
 }
 
 .blog .blog_box .blog_img {
@@ -1222,7 +1223,7 @@ button {
     color: #000000;
     font-size: 18px;
     font-weight: normal;
-    border-radius: 25px;
+    border-radius: 10px;
 }
 
 .main_form .textarea {
@@ -1235,7 +1236,7 @@ button {
      font-weight: normal;
      padding: 12px 15px 0 15px;
      height: 125px;
-	 border-radius: 25px;
+	 border-radius: 10px;
 }
 
 .main_form .send_btn {
