@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import { createContext, useState, useEffect } from 'react'
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 
 export const AuthContext = createContext();
@@ -43,13 +42,39 @@ export const AuthProvider = ({ children }) => {
 	// const base_api_url	= 'https://backend.vetonest.com/api/'// prod 
 
 	// user
-	const [ user, setUser ] = useState( localStorage.getItem( 'user' ) ? JSON.parse( localStorage.getItem( 'user' ) ) : {} );
-	
+	const [ user, setUser ] = useState( JSON.parse( localStorage.getItem( 'user' ) ) );
+
 	// login
 	const logIn = ( user ) => {
-
-		setUser( user )
+		// set user
+		setUser( user );
+		// profile type ID
+		setProfileTypeId( user.profileTypeId );
+		// profile  ID
+		setProfileId( user.profileId );
+		// get user  ID
+		setUserId( user.userId );
+		// set user in localStorage
+		localStorage.setItem( 'user', JSON.stringify( user ) );
 	}
+
+	// logOut
+	const logOut = async ( user ) => {
+		// set user
+		setUser( null );
+		// profile type ID
+		setProfileTypeId( null );
+		// profile  ID
+		setProfileId( null );
+		// get user  ID
+		setUserId( null );
+		// remove user in localStorage
+		localStorage.removeItem( 'user' );
+		
+		return true;
+		
+	}
+
 
 	// get the user
 	const getUser = () => {
@@ -63,9 +88,13 @@ export const AuthProvider = ({ children }) => {
 	// is authentificated
 	const isAuthenticated = () => {
 		
-		 const rep = getUser() != null && getUser().userId != null ? true : false
-
-		 return rep;
+		// const rep = getUser() != null && getUser().userId != null ? true : false
+		const data = localStorage.getItem( 'user' );
+		if (data)
+			return true
+		else
+			return false
+		
 	}
 	
 	// check password validation
@@ -98,30 +127,20 @@ export const AuthProvider = ({ children }) => {
 	}
 
 	// profile type ID
-	const [ profileTypeId, setProfileTypeId ] = useState( user.profileTypeId );
+	const [ profileTypeId, setProfileTypeId ] = useState( user ? user.profileTypeId : '' );
 	
 	// profile  ID
-	const [ profileId, setProfileId ] = useState( user.profileId );
+	const [ profileId, setProfileId ] = useState( user ? user.profileId : '' );
 
-	// user  ID
-	const [ userId, setUserId ] = useState( user.userId );
+	// get user  ID
+	const [ userId, setUserId ] = useState( user ? user.userId : '' );
 
-	useEffect (() => {
-		setUser( null );
-		const data = localStorage.getItem( 'user' );
-		if (data) {
-			setUser( JSON.parse(data) );
-		}
-	}, []); // 
-
-	useEffect (() => {	
-		localStorage.setItem( 'user', JSON.stringify( user ) );
-	}, [user]); // 
 	
 	return (
 		<AuthContext.Provider 
 			value={{ 
-				logIn, 
+				logIn,
+				logOut,
 				getUser,
 				user,
 				setUser,

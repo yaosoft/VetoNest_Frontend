@@ -183,6 +183,7 @@ ant-select-selection-wrap {
 	background-color: #FFDE59 !important;
 	border: none;
 	margin-top: -20px;
+	background: #FFDE59;
 }
 
 .custom-select:hover {
@@ -196,46 +197,40 @@ ant-select-selection-wrap {
 	border: none;
 }
 
+/* Style for the checked checkbox background */
 input[type="checkbox"] {
-  background-color: #FFDE59 !important;
+  accent-color: #FFDE59; /* Green for checked state */
+}
+
+
+input[type="checkbox"] {
+
   /* Remove default browser styles if necessary */
-  appearance: none;
-  -webkit-appearance: none;
+  /* appearance: none; */
+  /* -webkit-appearance: none; */
   /* Add other styling like border, size, etc. */
-  border: 1px solid #FFDE59;
+  background-color: #FFDE59 !important;
+  border: 1px solid #000;
   border-radius: 3px;
-  width: 20px;
   height: 20px;
 }
 
 /* Style for the checked checkbox background */
 input[type="checkbox"]:checked {
-  background-color: #FFDE59; /* Green for checked state */
-  border: 1px solid #FFDE59;
+  background-color: #000; /* Green for checked state */
+  border: 1px solid #000;
 }
 
-.custom-checkbox {
-  top: 0;
-  left: 0;
-  border: 1px solid #ccc !important;
-  border-color: #FFDE59 !important;
-  background-color: #FFDE59 !important;
-  width: 18px;
-  height: 18px;
+.ant-picker-outlined{
+  border: 0px !important;
+  box-shadow: none !important;	
 }
-
-
-.custom-select-rounded:hover {
-	border-color: #FFDE59 !important; /* Adjust hover effect as needed */
-}
-
-
 
 .ant-select-focused .ant-select-selector,
 .ant-select-selector:focus,
 .ant-select-selector:active,
 .ant-select-open .ant-select-selector {
-  border: none !important;
+  border: 0px !important;
   box-shadow: none !important;
 }
 
@@ -257,7 +252,7 @@ input[type="checkbox"]:checked {
 }
 
 .profilIdentityField{
-    margin-top: 2%;
+    margin-top: 3%;
 	margin-left: 0%;
 }
 
@@ -268,7 +263,6 @@ input[type="checkbox"]:checked {
 .selectLanguage {
     margin-left: 0%;
     margin-top: 3%;
-    border-radius: 30px;
     border-bottom: #FFDE59 solid 1px;
     background-color: #ffde59;
     /* padding-left: 3%; */
@@ -325,6 +319,13 @@ input[type="checkbox"]:checked {
 
 .searchButtonDiv:hover {
     background-color: #FFC71C;
+}
+
+.rounded10{
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .borderRadius18 {
@@ -498,6 +499,8 @@ input[type=password]:hover {
 .singleFieldManager .dataDiv{
 	width: 10em;
 	border-color: #FFDE59 !important;
+	border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .singleFieldManager .buttonDiv{

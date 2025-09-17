@@ -301,7 +301,8 @@ export const SiteProvider = ({ children }) => {
 
 	// get a user profile
 	const profileGet = async ( profileId, profileTypeId ) => {
-		const type = profileTypeId == 1 ? 'profileUser' : 'profileVeto';
+console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
+		const type 		= profileTypeId == 1 ? 'profileUser' : 'profileVeto';
 		const url		= base_api_url + type + '/show/?' + type + 'Id=' + profileId;
 		const data 		= '';
 		const method 	= 'GET';
@@ -414,6 +415,18 @@ export const SiteProvider = ({ children }) => {
 	// user payment method
 	const [ userPaymentMethods, setUserPaymentMethods ] = useState( [] );
 
+	// list specialité
+	const [ allSpecialities, setAllSpecialities ] = useState( [] );
+	const getAllSpeciaLities = async () => {
+		const url		= base_api_url + 'vetoSpecialite/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// list all animals species
 	const speciesList = async () => {
 		const url		= base_api_url + 'espece/list';
@@ -423,6 +436,45 @@ export const SiteProvider = ({ children }) => {
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
+	}
+
+	// RPPS validator
+	const validateRppsNumber = (rppsNumber) => {
+		// Remove any spaces or non-digit characters from the input string
+		const cleanedNumber = rppsNumber.toString().replace(/\D/g, '');
+		// Check if the cleaned number is a numeric string of exactly 11 digits
+		const rppsRegex = /^\d{11}$/;
+		return rppsRegex.test(cleanedNumber);
+	}
+
+	// SIRET number
+	const validateSiretNumber = (siret) => {
+		// Remove any non-digit characters
+		siret = String(siret).replace(/\D/g, '');
+
+		// A SIRET number must be 14 digits long
+		if (siret.length !== 14 || !/^\d+$/.test(siret)) {
+			return false;
+		}
+
+		let sum = 0;
+		for (let i = 0; i < siret.length; i++) {
+			let digit = parseInt(siret[i], 10);
+
+			// Double every second digit from the right (or every digit at an even index from the left)
+			if (i % 2 === 0) { // For SIRET, the Luhn algorithm usually applies to every second digit from the right.
+						   // When iterating from the left, this means digits at even indices (0, 2, 4...)
+						   // are treated differently. For SIRET specifically, the 1st, 3rd, 5th... digits
+						   // (from the left, index 0, 2, 4...) are multiplied by 2.
+				digit *= 2;
+				if (digit > 9) {
+					digit -= 9;
+				}
+			}
+			sum += digit;
+		}
+
+		return sum % 10 === 0;
 	}
 
 	// get a specie's breed
@@ -508,7 +560,10 @@ export const SiteProvider = ({ children }) => {
 			} 
 			const especes = await getEspeces();
 			setEspeces( especes )
-					
+			
+			// specialities
+			const specialities = await getAllSpeciaLities();
+			setAllSpecialities( specialities )
 		}
 		
 		a()
@@ -628,6 +683,16 @@ export const SiteProvider = ({ children }) => {
 			reader.onerror = (error) => reject(error);
 		})
 	}
+
+	// const truncateString = ( str, maxLength ) => {
+		// if (str.length > maxLength) {
+			// // If maxLength is less than or equal to 3, the ellipsis takes up all the space
+			// // Otherwise, reserve 3 characters for the ellipsis
+			// const actualLength = (maxLength <= 3) ? maxLength : maxLength - 3;
+			// return str.substring(0, actualLength) + '...';
+		// }
+		// return str; // Return original string if no truncation is needed
+	// }
 
 	return (	
 	
@@ -896,6 +961,9 @@ export const SiteProvider = ({ children }) => {
 				setCountry_spain,
 				country_germain,
 				setCountry_germain,
+				allSpecialities,
+				validateRppsNumber,
+				validateSiretNumber,
 			}}
 		>
 

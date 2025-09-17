@@ -13,7 +13,6 @@ const SecuredPagesAuth = () => {
 	// Admin's user list
 	const adminList = [ 
 		'jane@diamta.com',
-		'info@237usa.com'
 	];
 	
 	// secured pages list
@@ -23,7 +22,6 @@ const SecuredPagesAuth = () => {
 	
 	// pages to not referrer
 	const notToReferPages = [
-		'/accueil',
 		'/inscription',
 		'/connexion',
 		'/mot-de-passe-oublie',
@@ -42,9 +40,9 @@ const SecuredPagesAuth = () => {
 	const [authenticate, setAuthenticate ] = useState( isAuthenticated() );
 
 	useEffect(() => {
-// console.log( 'isAuthenticated', isAuthenticated() );
+console.log( 'isAuthenticated', isAuthenticated() );
 			const security = async () => {
-				if( securedPagesPath.includes( currentPage ) && !authenticate ){
+				if( securedPagesPath.includes( currentPage ) && isAuthenticated() === false ){
 					if( currentPage != '/connexion'  )
 						await navigate( '/connexion' )
 				}

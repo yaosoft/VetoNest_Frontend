@@ -63,6 +63,7 @@ const Profile = ( params ) => {
 		visibleModalName,
 		profile_sexe_male,
 		profile_sexe_female,
+		profile_title,
 		siteLanguage,
 		profileFormUpdated,
 		setProfileFormUpdated,
@@ -76,6 +77,7 @@ const Profile = ( params ) => {
 		setModalRemoveAnimalOpen,
 		removeAnimalOpen,
 		photoAnimalDefaultSrc,
+		truncateString,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -88,38 +90,6 @@ const Profile = ( params ) => {
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
 	
 	const [ spin, setSpin ] = useState( 'none' );
-	
-	// useEffect( () => {
-		// // get all paymentMethodList
-		// const getPaymentMethods = async() => {
-			// const paymentMethods = await paymentMethodList();
-			// setPaymentMethods( paymentMethods );
-		// }
-		
-		// // get user paymentMethod
-		// const getUserPaymentMethods = async() => {
-			// const paymentMethods = await userPaymentMethodList( userId );
-
-			// setUserPaymentMethods( paymentMethods );
-		// }
-		// getUserPaymentMethods();
-		// getPaymentMethods();
-	// }, [user, modalPaymentMethodOpen, modalRemovePaymentMethodOpen] );
-
-	// check if user have this payment method. If true, return user paiment method object
-	// const isUserMethod = ( paymentMethodId ) => {
-
-		// const rep = userPaymentMethods.filter( e => e.paymentMethodId == paymentMethodId )
-
-		// if( rep.length ){
-
-			// return rep[0]
-		// }
-		// else{	 	// new
-
-			// return false
-		// }
-	// }
 
 	// File upload
 	const { Dragger } = Upload;
@@ -205,75 +175,6 @@ const Profile = ( params ) => {
 	const modalPhotoCancelText = () => {
 		return "Annuler"
 	}
-	
-	// Build paiement list
-	// const BuildPaymentList = () => {
-		// return(
-			// paymentMethods.map(( paymentMethod, index ) => 
-				// <div style= {{ margin: '1%' }}>
-				// <div key = { index } className= "row">
-				
-					// <img 
-						// src={ '/img/paymentMethod/' + paymentMethod.image } 
-						// className="profilePaymentMethodIcon"
-					// />
-				// </div>
-				// <div className= "row">
-					// <span>
-						// { isUserMethod( paymentMethod.id ) === false ?
-							// <a 
-								// onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, false ) }
-							// >
-								// <i className="fa fa-edit"></i>Add { paymentMethod.name }
-							// </a>
-							// :
-							// <>
-								// <i className="fa fa-check text-success"></i>added
-								// { 	paymentMethod.id == 1 &&
-									// <a>
-										// &nbsp;<i className="fa fa-star text-warning"></i>prefered 
-									// </a>
-								// }
-								// &nbsp;&nbsp;
-								// <a 
-									// onClick={ ( e ) => handleClickSettingPaymentMethod( paymentMethod, true ) }
-								// >
-									// <i className="fa fa-edit text-info"></i>edit 
-								// </a>
-								// &nbsp;
-								// <a 
-									// onClick={ ( e ) => handleClickRemoveUserPaymentMethod( paymentMethod ) }
-								// >
-									// &nbsp;<i className="fa fa-trash text-danger"></i>remove 
-								// </a>
-							// </>
-						// }
-					// </span>
-				// </div>
-				// <br/>
-				// </div>
-			// )
-		// )
-	// }
-
-
-	// payment method setting button
-	// const handleClickSettingPaymentMethod = ( paymentMethod, isUserHave )  => { 
-// // console.log( 'paymentMethod', paymentMethod );
-		// setIsNew( !isUserHave ); // is user have this payment method
-		// // if( paymentMethod.name == "PayPal" ){	// to do:		
-			// // setModalPaymentMethodOpen( true )
-		// // }
-		// setSelectedPaymentMethod( paymentMethod );
-		// setModalPaymentMethodOpen( true );
-	// } 
-
-	// const handleClickRemoveUserPaymentMethod = ( paymentMethod )  => {
-		// // get user payment method
-		// setSelectedPaymentMethod( paymentMethod );
-		// setModalRemovePaymentMethodOpen( true )
-		// // removePaymentMethodOpen( userPaymentMethodId )
-	// }
 
 	const handleClickRemoveAnimal = ( animalId )  => {		
 
@@ -292,11 +193,13 @@ const Profile = ( params ) => {
 	const [ firstName, setFirstName ] 	= useState( '' );
 	const [ dateNaissance, setDateNaissance ] = useState( '' );
 	const [ biography, setBiography ] = useState( '' );
+	const [ profileNom, setProfileNom ] = useState( '' );
 	useEffect(() => {
 		// get user profile info
 		const a = async () => {
+console.log( '>>> user', user );
+console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
 			const profile = await profileGet( profileId, profileTypeId );
-// console.log( 'profile', profile );
 			setUserProfile( profile );
 			// setSiteLocale( siteLocale );
 			// name
@@ -314,7 +217,10 @@ const Profile = ( params ) => {
 			// biography
 			const biography = profile.biography
 			setBiography( biography );
-
+			// profile nom texte
+// console.log( 'userProfile', userProfile );
+			const profileNom = userProfile.nom && truncateString( userProfile.nom, 12 );
+			setProfileNom( profileNom )
 		}
 		a();
 	}, [ visibleModalName, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
@@ -385,6 +291,7 @@ const Profile = ( params ) => {
 
 	return (
 		<>
+			<Header />
 			<Modal
 				title={
 				  <>
@@ -415,14 +322,13 @@ const Profile = ( params ) => {
 			</Modal>
 			<ModalRemovePaymentMethod />
 			<ModalRemoveAnimal />
-			<Header />
 			
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
 			
-			<Title title = { 'Votre Profile' } />
+			<Title title = { profile_title } />
 					<Form 
 						form = {form}
 					>
@@ -457,14 +363,14 @@ const Profile = ( params ) => {
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Profile
+											{ profileTypeId == 1 ? 'Profile' : 'Profile Pro' } 
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
-													fieldName: 	'Profile',
+													fieldName: 	profileTypeId == 1 ? 'Profile' : 'ProfileVeto',
 													title:		'Modifier mon profile',
 													placeholder: 'Nom, age, address ...',
-													value: 'Modify my profile',
+													value: profileNom,
 													type: 2, // 2 = update
 												}}
 											/>
@@ -664,6 +570,13 @@ const Profile = ( params ) => {
 					>
 						Femme
 					</span>
+					<span 
+						id = "cmp_vetonest.com_Cdm1dvyDO1"
+						className ="profile_title" 
+					>
+						Mon profile
+					</span>
+
 				</div>							
 			<div>&nbsp;</div>
 			<Footer />

@@ -236,7 +236,7 @@ const PasswordForgot = ( params ) => {
 	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
 	
 	const handleCompletedCode = ( typedCode ) => {
-		
+// console.log( code + " --- " + typedCode );
 		if( code != typedCode ){
 				message.error( signUp_codeIncorrect );
 				setDisplayCodeIncorrect( 'block' );
@@ -248,10 +248,11 @@ const PasswordForgot = ( params ) => {
 			setDisplayCodeCorrect( 'block' );
 			setDisplayCodeIncorrect( 'none' );
 			setDisplayCodeResend( 'none' );
-			setTimeout( setIsModalOpen, 2000, false );
+			// setTimeout( setIsModalOpen, 2000, false );
+			setIsModalOpen(false);
 		}
 	}
-	
+
 	const showModal = () => {
 		setIsModalOpen(true);
 	};
@@ -269,7 +270,7 @@ const PasswordForgot = ( params ) => {
 	 return (
 		<>
 			<Modal
-				title			= { signUp_codeTitle }
+				title			= { <p style={{ textAlign: 'center' }}>{signUp_codeTitle}</p> }
 				closable		= {{ 'aria-label': 'Custom Close Button' }}
 				open			= { isModalOpen }
 				onOk			= { handleOk }
@@ -312,10 +313,10 @@ const PasswordForgot = ( params ) => {
 						<div className="col-xl-6">
 							<div className="form-input-content">
 
-										 <Form 
+										<Form 
 											className=""
 											form = {form}
-										 >
+										>
 										
 										
 										<div className="form-group">
@@ -339,7 +340,7 @@ const PasswordForgot = ( params ) => {
 
 												<Input 
 													id="pwForgotEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow rounded10 width100per100 borderNone height40" 
 													placeholder={signUp_emailPlaceholder} 
 													type="text" 
 													name="pwForgotmail"
@@ -367,7 +368,7 @@ const PasswordForgot = ( params ) => {
 										</div>
 									</>
 											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickEmailValidation}
 												disabled = { sendingDisabled }
 											>
