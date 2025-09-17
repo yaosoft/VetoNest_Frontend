@@ -189,7 +189,7 @@ const SignIn = ( params ) => {
 		setSignInSpin( 'none' );
 
 		// Frontend login
-// console.log( 'logInData', logInData );
+console.log( 'resp', resp );
 		await logIn( resp );	
 		
 		languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
@@ -258,7 +258,7 @@ const SignIn = ( params ) => {
 
 												<Input 
 													id="signInEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_emailPlaceholder }
 													type="text" 
 													name="signInmail"
@@ -288,7 +288,7 @@ const SignIn = ( params ) => {
 											>
 												<Input 
 													id="signInPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_passwordPlaceholder } 
 													type="password" 
 													name="password"
@@ -311,7 +311,7 @@ const SignIn = ( params ) => {
 										</div>
 									</>
 											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickInscription}
 												disabled = { sendingDisabled }
 											>

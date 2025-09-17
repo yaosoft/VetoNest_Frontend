@@ -53,6 +53,7 @@ const ModalProfileIdentity = ( params ) => {
 		profileUpdate,
 		signUp_nameEmpty,
 		profileIdentity_firstNameEmpty,
+		profileIdentity_sexeEmpty,
 		userProfile,
 		visibleModalName,
 		setVisibleModalName,
@@ -128,7 +129,12 @@ const ModalProfileIdentity = ( params ) => {
 		updateLanguagePreference,
 		setSelectedLanguageId,
 		languageSetup,
-		
+		profileVeto_FullNameErrorText,
+		allSpecialities,
+		validateRppsNumber,
+		validateSiretNumber,
+		phoneNumberErrorText,
+		phoneNumberErrorText02,
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -219,7 +225,12 @@ const ModalProfileIdentity = ( params ) => {
 		return "Annuler"
 	}
 	
-	
+	// flags
+	const [ selectedFlag, setSelectedFlag ] = useState( 'fr' ); // ToDo create default country in site context
+	// phone
+	const [ selectedCountryCode, setSelectedCountryCode ] = useState( '+33' ); // ToDO
+	const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
+
 	
 	// title
 	const [ title, setTitle ] = useState( '' );
@@ -244,6 +255,25 @@ const ModalProfileIdentity = ( params ) => {
 		// signUpNameErrorText = 'Your name seems incorect'
 		setNameError( nameErrorText );
 	}
+
+	// veto full name
+	const [ vetoFullName, setVetoFullName ] = useState( '' );
+	const [ vetoFullNameError, setVetoFullNameError ] = useState( '' );
+	const handleChangeVetoFullName = ( e ) => {
+		const data = e.target.value;
+		setVetoFullName( data );
+
+		var vetoFullNameErrorText = '';
+		const test = nameValidator( data )
+
+		if( data && test === false ){
+		
+			vetoFullNameErrorText = 'profileVeto_FullNameErrorText';
+		}
+		// signUpVetoFullNameErrorText = 'Your vetoFullName seems incorect'
+		setVetoFullNameError( vetoFullNameErrorText );
+	}
+
 
 	// animal name
 	const [ animalName, setAnimalName ] = useState( '' );
@@ -447,6 +477,7 @@ const ModalProfileIdentity = ( params ) => {
 	const [ sexe, setSexe ] = useState( userProfile.userSexeId );// 1 for male, 2 for female
 	const [ sexeError, setSexeError ] 	= useState( '' );
 	const handleChangeSexes = async ( sexeType ) => {
+		setSexeError( '' );
 		const elt01 = document.getElementById( 'sexeType' + sexeType ); // current elt
 		const elt02 = sexeType == 1 ? document.getElementById( 'sexeType' + 2) :   document.getElementById( 'sexeType' + 1 );
 
@@ -704,7 +735,6 @@ const ModalProfileIdentity = ( params ) => {
 		)
 	}
 
-
 	// Build races
 	const BuildRacesOptions = async () => {
 		return(
@@ -786,6 +816,154 @@ const ModalProfileIdentity = ( params ) => {
 	// save
 	const handleClickSave = async () => {
 		
+		// Profile veto
+		if( fieldName == 'ProfileVeto' ){
+			// check the form errors
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( phoneNumberError != '' ){
+					errorsExist = true
+					setPhoneNumberError( 'phoneNumberErrorText' );
+					form.validateFields()
+				}
+				else if( vetoFullNameError != '' ){
+					errorsExist = true
+					setVetoFullNameError( 'vetoFullNameErrorText' );
+					form.validateFields()
+				}
+				else if( rppsErrorTextDisplay != 'none' ){
+					errorsExist = true
+					
+				}
+				else if( siretErrorTextDisplay != 'none' ){
+					errorsExist = true
+					
+				}
+				
+				return errorsExist
+			}
+			const formHasErrors = await checkFormErrors();
+
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+;
+				return
+			}
+
+			// check form empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = () => {
+				if( phoneNumber == '' ){
+					formHasEmpty = 'phoneNumberEmptyErrorText';
+					setPhoneNumberError( formHasEmpty );
+					form.validateFields()
+				}
+				if( vetoFullName == '' ){
+					formHasEmpty = 'vetoFullNameEmptyErrorText';
+					setVetoFullNameError( formHasEmpty );
+					form.validateFields()
+				}
+				if( vetoRpps == '' ){
+					formHasEmpty = 'vetoRppsEmptyErrorText';
+					setRppsEmptyTextDisplay( 'block' );
+				}
+				if( vetoSiret == '' ){
+					formHasEmpty = 'vetoSiretEmptyErrorText';
+					setSiretEmptyTextDisplay( 'block' );
+				}
+				if( vetoSelectedSpecialities.length == 0 ){
+					setVetoSpecialiteError( 'vetoSpecialiteEmptyErrorText' );
+					formHasEmpty = 'vetoSpecialiteEmptyErrorText'
+				}
+				if( !vetoType ){
+					setCheckboxesAtHomeNoneSelectedDisplay( 'block' );
+					formHasEmpty = 'checkboxesAtHomeNoneErrorText'
+				}
+			}
+			
+			await checkFormEmpty();
+			
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+			
+			const sendData = {
+				nom: 				name,
+				prenom:				firstName,
+				sexeId:				sexe ? sexe : userProfile.userSexeId,
+				profileId: 			profileId,
+				dateDeNaissance: 	dateDeNaissance,
+				langues: 			selectedLanguages.join( ',' ),
+				adresse:			address,
+				codePostal:			codePostal,
+				country:	countrySelected,
+				state:		stateSelected,
+				city:		citySelected,
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+			
+			if( rep === false ){ //
+				message.error( 'Profile cannot be updated' );
+				return;
+			}
+			else{
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+			}
+		}
+		
+		// Country & languages
+		if( fieldName == 'Country' ){
+			const sendData = {
+				consultationCountryId: 	lastSelectedCountry,
+				profileId: 				profileId,
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+			
+			if( rep === false ){ //
+				message.error( 'Profile cannot be updated' );
+				return;
+			}
+			else{
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+				return;
+			}
+		}
+		
+		// if( fieldName == 'Language' ){
+			
+			// const languagePreferenceData = {
+				// userId: 	userId,
+				// languageId: lastSelectedLanguage
+			// }
+			
+			// const rep = await updateLanguagePreference( languagePreferenceData )
+			// if( rep !== false ){
+				// await setSelectedLanguageId( lastSelectedLanguage ); // update the listbox via context
+				// await languageSetup( lastSelectedLanguage ); // Update flag and user locale
+				// user.languageId = lastSelectedLanguage; // update user
+				// setUser( user );
+				// const random = generateRandomDigits(3);
+				// setProfileFormUpdated( random );
+				// message.success( 'Default language updated' );
+				// return
+			// }
+			// else{
+				// message.error( 'Default language not updated' );
+				// return
+			// }
+		// }
+		
 		if( fieldName == 'Language' ){
 			
 			const languagePreferenceData = {
@@ -830,7 +1008,6 @@ const ModalProfileIdentity = ( params ) => {
 			// check empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = async( ) => {
-				
 
 				if( ! animalSexe ){
 					setFormError06( 'block'  );
@@ -939,7 +1116,6 @@ const ModalProfileIdentity = ( params ) => {
 				return
 			}
 
-
 			// check form empty fields
 			const formHasEmpty = await checkFormEmpty();
 		
@@ -1046,7 +1222,7 @@ const ModalProfileIdentity = ( params ) => {
 			return
 		}
 
-		// Email
+		// Profile
 		if( fieldName == 'Profile' ){	
 			// check form erors
 			const formHasErrors = await checkFormErrors();
@@ -1112,17 +1288,25 @@ const ModalProfileIdentity = ( params ) => {
 	// check the form empty fields
 	const checkFormEmpty = async( ) => {
 		var formHasEmpty = '';
+		// name
 		if( name == '' ){
 			const errorMessage = signUp_nameEmpty;
 			await setNameError( errorMessage );
 			formHasEmpty = errorMessage
 		}
+		// first name
 		if( firstName == '' ){
 			const errorMessage = profileIdentity_firstNameEmpty;
 			await setNameError( errorMessage );
 			formHasEmpty = errorMessage
 		}
-		
+		// sexe
+		if( sexe == '' ){
+			const errorMessage = 'To translate';//profileIdentity_sexeEmpty;
+			await setSexeError( errorMessage );
+			formHasEmpty = errorMessage
+		}
+console.log( '>>>>>> sexe', sexe );
 		form.validateFields()
 		return formHasEmpty
 	}
@@ -1180,16 +1364,24 @@ const ModalProfileIdentity = ( params ) => {
 	const [ countries, setCountries ]  = useState( [] ); 
 	const [ countryCode, setCountryCode ] = useState( '' );	
 	const [ flagCode, setFlagCode ] = useState( '' );
-	const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
+
+	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
+	const handleChangeFlag = ( countryIso ) => {
+console.log( '>>>>>>>> countryIso', countryIso );
+		const country = countriesAllowed.filter( e => e.iso == countryIso )[0];
+		setSelectedFlag( country.iso );
+		setSelectedCountryCode( country.countryCodc );
+	}
 
 	const handleChangeCountrySelected = ( countryCode ) => {
+
 		setCountrySelected( countryCode );
 		const countryStates = State.getStatesOfCountry( countryCode );
 		setCountryCode( countryCode );
 		// const flagCode = countryPhoneCode.toLowerCase();
 		setFlagCode( flagCode );
 		setStates( countryStates );			
-		const country = countries.filter( country => country.isoCode == countryCode );
+		// const country = countries.filter( country => country.isoCode == countryCode );
 		// const countryPhoneCode = country[0].phonecode;
 	
 		setCountryError( '' );
@@ -1229,6 +1421,28 @@ const ModalProfileIdentity = ( params ) => {
 	}
 	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' );
 
+	// Phone number
+	const [ phoneNumber, setPhoneNumber ] = useState( '' );
+	const [phoneNumberError, setPhoneNumberError]  = useState( '' );
+	const handleChangePhoneNumber = ( e ) => {
+		const data = e.target.value;
+		setPhoneNumber( data );
+console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
+		var phoneErrorText = '';
+		if( data.length == 0 )
+			phoneErrorText = '';
+		else if( data.length > 0 && data.length < 7 )
+			phoneErrorText = 'phoneNumberErrorText02' 	//'Your phone number seems incomplete';
+		else if( !isValidPhoneNumber( selectedCountryCode + data ) )
+			phoneErrorText = 'phoneNumberErrorText' 	// 'Your phone number seems incorrect'
+			
+		setPhoneNumberError( phoneErrorText );
+	}
+	const isValidPhoneNumber = (value) => {	// Phone validation
+		// return (/^\d{7,}$/).test(value.replace(/[\s()+\-\.]|ext/gi, ''));
+		return (/^\+(?:[ 0-9] ?){6,14}[0-9]$/).test(value);
+	}
+
 	// Espece
 	const [ especeSelectedId, setEspeceSelectedId ] = useState( '' );
 
@@ -1260,7 +1474,7 @@ const ModalProfileIdentity = ( params ) => {
 	const [ countriesDefault, setCountriesDefault ] = useState( [] );
 	const [ countriesSelected, setCountriesSelected ] = useState( [] );
 
-	const [ lastSelectedCountry, setLastSelectedCountry ] = useState( 1 );  // initial
+	const [ lastSelectedCountry, setLastSelectedCountry ] = useState( userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 );  // initial
 	const onCountryOptionChange = async ( checkedValues ) => {
 		// setCountrySelected(checkedValues);
 		
@@ -1270,8 +1484,122 @@ const ModalProfileIdentity = ( params ) => {
 		setCountriesSelected([value]);
 	}
 
-	useEffect(() => {
+	// userSpecialities
+	const [ vetoSelectedSpecialities, setVetoSelectedSpecialities ] =  useState( [] );
+	const [ vetoSpecialiteError, setVetoSpecialiteError  ] =  useState( '' )
+	const MAX_SPECIALITIES = 1; // Define your maximum limit
+	const handleChangeVetoSpecialities = (value) => {
+		
+		if ( value.length > 0 ) {
+			setVetoSpecialiteError('');
+			form.validateFields()
+		}
+		if (value.length > MAX_SPECIALITIES) {
+		  // If the new selection exceeds the limit, take only the allowed number
+		  // setVetoSelectedSpecialities( value.slice(0, MAX_SPECIALITIES) );
+		  setVetoSelectedSpecialities( value.slice(0, MAX_SPECIALITIES) );
+		} 
+		else {
+		  setVetoSelectedSpecialities(value);
+		}
+	}
+	
+	// veto RPPS handleChangeVetoRpps
+	const [ vetoRpps, setVetoRpps ] =  useState( '' );
+	const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
+	const [ rppsEmptyTextDisplay, setRppsEmptyTextDisplay ] =  useState( 'none' );
+	const [ rppsErrorTextDisplay, setRppsErrorTextDisplay ] =  useState( 'none' );
+	const handleChangeVetoRpps = ( e ) => {
+		const data = e.target.value;
 
+		if( data.length > 0 )
+			setRppsEmptyTextDisplay( 'none' )
+
+		if( data.length > 11 )
+			return
+
+		setVetoRpps( data );
+		var vetoRppsErrorText = 'none';
+		const test = validateRppsNumber( data )
+ 
+		if( data != '' && test === false ){
+			// vetoRppsErrorText = 'To translate profileAnimal_vetoRppsErrorText';// profileAnimal_vetoRppsErrorText
+			// setVetoRppsError( vetoRppsErrorText )
+			vetoRppsErrorText = 'block'
+		}
+		setRppsErrorTextDisplay( vetoRppsErrorText );
+	}
+
+	// veto SIRET handleChangeVetoSiret
+	const [ vetoSiret, setVetoSiret ] =  useState( '' );
+	const [ vetoSiretError, setVetoSiretError ] =  useState( '' );
+	const [ siretEmptyTextDisplay, setSiretEmptyTextDisplay ] =  useState( 'none' );
+	const [ siretErrorTextDisplay, setSiretErrorTextDisplay ] =  useState( 'none' );
+	const handleChangeVetoSiret = ( e ) => {
+		const data = e.target.value;
+
+		if( data.length > 0 )
+			setSiretEmptyTextDisplay( 'none' )
+
+		if( data.length > 14 )
+			return
+
+		setVetoSiret( data );
+		var vetoSiretErrorText = 'none';
+		const test = validateSiretNumber( data )
+ 
+		if( data != '' && test === false ){
+			// vetoSiretErrorText = 'To translate profileAnimal_vetoSiretErrorText';// profileAnimal_vetoSiretErrorText
+			// setVetoSiretError( vetoSiretErrorText )
+			vetoSiretErrorText = 'block'
+		}
+		setSiretErrorTextDisplay( vetoSiretErrorText );
+	}
+
+   
+    // const handleChangeVetoType = (e) => {
+		// console.log( 'foo' )
+	// }
+	// animal sexe
+	// const [ vetoType, setVetoType ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
+	const [ vetoType, setVetoType ] = useState( userProfile.isAtHome );// 0 for home, 1 for facility
+	const [ vetoTypeError, setVetoTypeError ] 	= useState( '' );
+	const handleChangeVetoType = async ( vetoType ) => {
+console.log( 'userProfile.isAtHome', userProfile.isAtHome );
+console.log( 'vetoType', vetoType );
+		const elt01 = document.getElementById( 'vetoType' + vetoType ); // current elt
+		const elt02 = vetoType == 1 ? document.getElementById( 'vetoType' + 2) :   document.getElementById( 'vetoType' + 1 );
+
+		//setVetoType_formOption1Error( '' );
+		//setVetoType_formOption2Error( '' );
+	
+		if( elt01.checked ){ // chackboxes inverser
+			elt02.checked = false;
+		}
+		
+		if( elt01.checked == true && vetoType == 1 ){
+			// message.info( vetoType_type1 );
+			setVetoType( 1 );
+			// showModalOptionType();
+			setCheckboxesAtHomeNoneSelectedDisplay( 'none' )
+		}
+		else if( elt01.checked == true && vetoType == 2 ){
+			// message.info( vetoType_type2 );
+			setVetoType( 2 );
+			// showModalOptionType();
+			setCheckboxesAtHomeNoneSelectedDisplay( 'none' )
+		}
+		if( elt01.checked == false && elt02.checked == false ){
+			setVetoType( '' );
+			//setVetoType_formOption1Error( vetoType_formOption1ErrorText );
+			//setVetoType_formOption2Error( vetoType_formOption2ErrorText );
+			setCheckboxesAtHomeNoneSelectedDisplay( 'block' )
+		}
+	}
+	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
+
+	useEffect(() => {
+// console.log( 'vetoSelectedSpecialities', vetoSelectedSpecialities );
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
@@ -1289,7 +1617,7 @@ const ModalProfileIdentity = ( params ) => {
 		// Site country 
 		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
 		setCountriesOptions( countriesOptions  );  // options
-		const countryDefault = [ 1 ]; // default
+		const countryDefault = [ userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 ]; // default
 		setCountriesSelected( countryDefault );
 
 		// Site languages 
@@ -1298,6 +1626,7 @@ const ModalProfileIdentity = ( params ) => {
 		const languageDefault = [ selectedLanguageId ]; // default
 		setLanguageSelected( languageDefault );
 
+		// 
 		const a = async () => {
 			const fieldName = await params.params.fieldName;
 			setFieldName( fieldName );
@@ -1316,10 +1645,14 @@ const ModalProfileIdentity = ( params ) => {
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
 			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs()  );
-			
+// console.log( '************ userProfile', userProfile );
 			const userLanguages = userProfile.langue ? userProfile.langue : [];
-			const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
-			setSelectedLanguages( userLanguagesId );
+// console.log( '************ userProfile.langue', userProfile.langue );
+			if( Array.isArray( userLanguages ) ){
+				const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
+				setSelectedLanguages( userLanguagesId )
+			}
+
 			// address
 			const address = userProfile.adresse ? userProfile.adresse : '';
 			setAddress( address );
@@ -1356,14 +1689,8 @@ const ModalProfileIdentity = ( params ) => {
 				setStateDefault( profileIdentity_stateDefault )
 			if( !citySelected )
 				setCityDefault( profileIdentity_cityDefault )
-			// email
-			// if( signUpEmail == '' )
-			//	setSignUpEmail( user.email )
 			
-
-			
-			// animal edit ( carnets animal )
-
+			// user pets
 			if( selectedPetId ){
 				const pets = userPets;
 // console.log( 'pets', pets );
@@ -1383,6 +1710,9 @@ const ModalProfileIdentity = ( params ) => {
 				else
 					setAnimalSexe(2)
 			}
+			
+			// veto specialities
+			
 		}
 		a()
 
@@ -1480,8 +1810,8 @@ const ModalProfileIdentity = ( params ) => {
 						</>
 					}
 					{ fieldName == "Profile" &&
-					<>	
-						<div className="row">
+					<div className="container">	
+						<div className="row gy-2">
 							<div className="col-6">
 								<Form.Item
 									name  = "Name"
@@ -1502,7 +1832,7 @@ const ModalProfileIdentity = ( params ) => {
 								>
 									<Input 
 										name  = "nameInput"
-										className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
 										placeholder={ signUp_namePlaceholder }
 										type="text" 
 										value={ name }
@@ -1531,7 +1861,7 @@ const ModalProfileIdentity = ( params ) => {
 								>
 									<Input 
 										name  = "firstNameInput"
-										className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
 										placeholder={ signUp_firstNamePlaceholder }
 										type="text" 
 										value={ firstName }
@@ -1543,14 +1873,27 @@ const ModalProfileIdentity = ( params ) => {
 						<div className="row">
 							<div className="col-6">
 								<Form.Item
-									className = "backgroundYellow borderRadius18 height40"
+									className = "backgroundYellow rounded10 height40"
 									name  = "male"
+									rules = {[
+										{
+											message: sexeError,
+											validator: ( value ) => {
+												if ( sexeError ) {
+													return Promise.reject( sexeError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
 								>
 									<div className='row' >
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
 											Male
 										</div>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
 											<Input
 												className=''
 												type="checkbox" 
@@ -1560,21 +1903,21 @@ const ModalProfileIdentity = ( params ) => {
 												defaultChecked= { userProfile.userSexeId == 1 ? true : false }
 												onChange = { e => handleChangeSexes(1) }
 												style={{ outline: 'none' }}
-											 />
+											/>
 										</div>
 									</div>
 								</Form.Item>
 							</div>
 							<div className="col-6">
 								<Form.Item
-									className = "backgroundYellow borderRadius18 height40"
+									className = "backgroundYellow rounded10 height40"
 									name  = "female"
 								>
 									<div className='row'>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
 											Female
 										</div>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
 											<Input
 												type="checkbox" 
 												name="signUpTypeUser"
@@ -1589,14 +1932,13 @@ const ModalProfileIdentity = ( params ) => {
 								</Form.Item>
 							</div>
 						</div>
-						<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField dateSelector">
+						<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
 							<div className="col-6">
 								<span>Birth date &nbsp; { dateNaissance }</span>
 							</div>
 							<div className="col-6 justify-content-end dateField">
 								<ConfigProvider 
 									locale={ getDatePickerlocale() }
-									theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
 								>
 									<DatePicker 
 										defaultValue={ datePickerDefaultValue }
@@ -1605,15 +1947,14 @@ const ModalProfileIdentity = ( params ) => {
 								</ConfigProvider>
 							</div>
 						</div>
-						<div className="row height40 width100per100 selectLanguage">
+						<div className="row height40 width100per100 selectLanguage rounded10">
 							<div className="col-3">
 								Language
 							</div>
 							<div className="col-9">
 								
 								<ConfigProvider 
-									locale={ getDatePickerlocale() }
-									theme={{ token: { colorPrimary: '#FFDE59' } }} 
+									theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
 								>
 								
 									<Select 
@@ -1640,7 +1981,7 @@ const ModalProfileIdentity = ( params ) => {
 								 
 							</div>
 						</div>
-						<div className="row backgroundYellow borderRadius18 height40 width100per100 profilIdentityField">
+						<div className="row backgroundYellow rounded10 height40 width100per100 profilIdentityField">
 							<Form.Item
 								name  = "address"
 								rules = {[
@@ -1660,7 +2001,7 @@ const ModalProfileIdentity = ( params ) => {
 							>
 								<Input 
 									name= "addressInput"
-									className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+									className="backgroundYellow rounded10 width100per100 borderNone height40" 
 									placeholder={ profileIdentity_addressPlaceholder }
 									type="text" 
 									value={ address }
@@ -1689,7 +2030,7 @@ const ModalProfileIdentity = ( params ) => {
 								>
 									<Input 
 										name  = "codePostalInput"
-										className="backgroundYellow  borderRadius18 width100per100 borderNone height40"  
+										className="backgroundYellow rounded10 width100per100 borderNone height40"  
 										placeholder={ profileIdentity_codePostalPlaceholder }
 										type="text" 
 										value={ codePostal }
@@ -1804,8 +2145,257 @@ const ModalProfileIdentity = ( params ) => {
 										</Form.Item>
 								</div>
 						</div>
-					</>
+					</div>
 					
+					}
+
+					{
+						fieldName == "ProfileVeto" &&
+						<div className="container">	
+							<div className="row">
+									
+										<div className="col-2">
+											<Select 
+												/* mode="multiple" */
+												placeholder="Select a country"
+												variant="borderless"
+												className=""
+												value={selectedFlag}
+												onChange={ e => handleChangeFlag( e ) }
+												suffixIcon={null} // This hides the arrow
+												style={{ width: '85px' }}
+											>
+												{ 
+													countriesAllowed.map(( v, k ) => (
+														<Option key={v.iso} value={v.iso}>
+															<img  style={{ width: '50%' }} src={ '/img/flags/' + v.iso + '.svg' } />
+														</Option>
+													))
+												}
+											</Select>
+										</div>
+										<div className="col-2" style={{float:'rigth', paddingTop: '3%'}}>
+											&nbsp;{ selectedCountryCode }
+										</div>
+										<div className="col-8">
+											
+											<Form.Item
+												name  = "PhoneNumber"
+												style = {{ marginBottom: '0px', float: 'rigth' }}
+												
+												rules = {[
+													{
+														message: phoneNumberError, //phoneNumberError,
+														validator: ( value ) => {
+															if ( phoneNumberError ) {
+																return Promise.reject( phoneNumberError );
+															} 
+															else {
+																return Promise.resolve();
+															}
+														}
+													}
+												]}
+											>
+												<Input 
+													type		= "text" 
+													className 	= "backgroundYellow rounded10 borderNone height40" 
+													placeholder	= { 'profileVeto_placeHolderPhone' }
+													value		= { phoneNumber }
+													onChange	= { e => handleChangePhoneNumber( e ) }
+												/>
+											</Form.Item>
+										</div>
+									
+									
+								
+							</div>
+							<div className="">
+								<Form.Item
+									name  = "VetoFullName"
+									rules = {[
+										{
+											message: vetoFullNameError,
+											validator: ( value ) => {
+												if ( vetoFullNameError ) {
+													return Promise.reject( vetoFullNameError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+								>
+									<Input 
+										type		= "text" 
+										className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" 
+										placeholder	= { 'profileVeto_placeholderFullName' }
+										value		= { vetoFullName }
+										onChange	= { e => handleChangeVetoFullName( e ) }
+									/>
+								</Form.Item>
+							</div>
+							<div className="row height40 width100per100 selectLanguage rounded10">
+								<div className="col-3">
+									{ 'profileVeto_labelSpecialite' }
+								</div>
+								<div className="col-9">
+								<Form.Item
+									name  = "VetoSpecialite"
+									rules = {[
+										{
+											message: vetoSpecialiteError,
+											validator: ( value ) => {
+												if ( vetoSpecialiteError ) {
+													return Promise.reject( vetoSpecialiteError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+								>
+									<ConfigProvider 
+										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
+									>
+									
+										<Select 
+											mode="multiple"
+											placeholder= { 'profileVeto_placeholderSelectSpeciality' }
+											variant="borderless"
+											className="custom-select"
+											value={vetoSelectedSpecialities}
+											onChange={ e => handleChangeVetoSpecialities( e ) }
+											style={{ width: '100%' }}
+											suffixIcon={null} // This hides the arrow
+										>
+											{ 
+												allSpecialities.map(( v, k ) => (
+													<Option key={v.id} value={v.id}>
+														<Checkbox checked={vetoSelectedSpecialities.includes(v.id)}>
+															{v.name}
+														</Checkbox>
+													</Option>
+												))
+											}
+										</Select>
+									</ConfigProvider>
+								</Form.Item>	 
+								</div>
+							</div>
+							<div className="backgroundYellow rounded10 height40 width100per100 profilIdentityField">
+								<Input 
+									placeholder	= { 'profileVeto_placeholderRPPS' }
+									className 	= "backgroundYellow height40 width100per100 birthdateField borderNone"
+									value		= { vetoRpps }
+									onChange	= { e => handleChangeVetoRpps( e ) }
+								/>
+							</div>
+							<div 
+								className={'row text-danger profilIdentityField'}
+								style={{ display: rppsEmptyTextDisplay, marginTop: '0px' }}
+							>
+								{ 'profileVeto_rppsEmptyText' }
+							</div>
+							<div 
+								className={'row text-danger profilIdentityField'}
+								style={{ display: rppsErrorTextDisplay, marginTop: '0px' }}
+							>
+								{ 'toTranslate profileVeto_rppsErrorText' /* profileVeto_rppsErrorText */ }
+							</div>
+							<div className="backgroundYellow rounded10 height40 width100per100 profilIdentityField">
+								<Input 
+									placeholder	= { 'profileVeto_placeholderSiret' } 
+									className 	= "backgroundYellow height40 width100per100 birthdateField borderNone"
+									value		= { vetoSiret }
+									onChange	= { e => handleChangeVetoSiret( e ) }
+								/>
+							</div>
+							<div 
+								className={'row text-danger profilIdentityField'}
+								style={{ display: siretEmptyTextDisplay, marginTop: '0px' }}
+							>
+								{ 'profileVeto_siretEmptyText' }
+							</div>
+							<div 
+								className={'row text-danger profilIdentityField'}
+								style={{ display: siretErrorTextDisplay, marginTop: '0px' }}
+							>
+								{ 'profileVeto_siretErrorText' }
+							</div>
+							<div className="row marginTop10">
+							<div className="col-6">
+								<Form.Item
+									className = "backgroundYellow rounded10 height40"
+									name  = "atHomeTrue"
+									rules = {[
+										{
+											message: vetoTypeError,
+											validator: ( value ) => {
+												if ( sexeError ) {
+													return Promise.reject( sexeError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+								>
+									<div className='row' >
+										<div className='col-9' style={{paddingTop: '4px', paddingLeft: '14%', lineHeight: '16px'}}>
+											{ 'profileVeto_checkboxeIsAtHome' }
+										</div>
+										<div className='col-2' style={{paddingTop: '4%', paddingLeft: '0%'}}>
+											<Input
+												className=''
+												type="checkbox" 
+												name="vetoType1"
+												id="vetoType1"
+												value={ 1 }
+												defaultChecked= { userProfile.vetoType == 1 ? true : false }
+												onChange = { e => handleChangeVetoType(1) }
+												style={{ outline: 'none' }}
+											/>
+										</div>
+									</div>
+								</Form.Item>
+							</div>
+							<div className="col-6">
+								<Form.Item
+									className = "backgroundYellow rounded10 height40"
+									name  = "atHomeFalse"
+								>
+									<div className='row'>
+										<div className='col-9' style={{paddingTop: '4px',  paddingLeft: '14%', lineHeight: '16px'}}>
+											{ 'profileVeto_checkboxeIsAtHomeFalse' }
+										</div>
+										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
+											<Input
+												type="checkbox" 
+												name="vetoType2"
+												id="vetoType2"
+												value={ 2 }
+												defaultChecked= { userProfile.vetoType == 2 ? true : false }
+												onChange = { e => handleChangeVetoType(2) }
+												style={{ outline: 'none' }}
+											 />
+										</div>
+									</div>
+								</Form.Item>
+								
+							</div>
+							<div 
+								className={'row text-danger'}
+								style={{ display: checkboxesAtHomeNoneSelectedDisplay, paddingLeft: '6%'}}
+							>
+								{ 'profileVeto_profileVeto_checkboxesAtHomeNoneSelected' }
+							</div>
+						</div>
+							
+						</div>
 					}
 
 					{ 
@@ -1832,7 +2422,7 @@ const ModalProfileIdentity = ( params ) => {
 									>
 										<Input 
 											name  = "animalNameInput"
-											className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField borderNone" 
+											className="row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" 
 											placeholder={ profileAnimal_animalNamePlaceHolder }
 											type="text" 
 											value={ animalName }
@@ -1843,14 +2433,13 @@ const ModalProfileIdentity = ( params ) => {
 							<div className="row marginTop5px">
 								<div className="col-6">
 									<Form.Item
-										className = "backgroundYellow borderRadius18 height40"
+										className = "backgroundYellow rounded10 height40"
 										name  = "animalMale"
 									>
 										<div className='row'>
 											<div className='col-1' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-													<label className='custom-checkbox-container'>
 													<Input
-														className='custom-checkbox'
+														
 														type="checkbox" 
 														name="animalSexeType02"
 														id="animalSexeType1"
@@ -1858,7 +2447,6 @@ const ModalProfileIdentity = ( params ) => {
 														defaultChecked= { animal.sexeId == 1 ? true : false }
 														onChange = { e => handleChangeAnimalSexes(1) }
 													 />
-													 </label> 
 											</div>
 											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '4%'}}>
 													Male
@@ -1869,14 +2457,14 @@ const ModalProfileIdentity = ( params ) => {
 								</div>
 								<div className="col-6">
 									<Form.Item
-										className = "backgroundYellow borderRadius18 height40"
+										className = "backgroundYellow rounded10 height40"
 										name  = "animalFemale"
 									>
 										<div className='row'>
 											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-													<label className='custom-checkbox-container'>
+													
 													<Input
-														className='custom-checkbox'
+														
 														type="checkbox" 
 														name="animalSexeType02"
 														id="animalSexeType2"
@@ -1884,7 +2472,6 @@ const ModalProfileIdentity = ( params ) => {
 														defaultChecked= { animal.sexeId == 2 ? true : false }
 														onChange = { e => handleChangeAnimalSexes(2) }
 													 />
-													 </label> 
 											</div>
 											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '5%'}}>
 													Female
@@ -1899,7 +2486,7 @@ const ModalProfileIdentity = ( params ) => {
 										</span> 
 								</div>
 							</div>
-							<div className="row backgroundYellow borderRadius18 height40 width100per100 birthdateField dateSelector">
+							<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
 								<div className="col-6">
 									<span id="cmp_vetonest.com_Eou9HL3uHS">Animal Birth date &nbsp; { animalDateNaissance }</span>
 								</div>
@@ -2017,14 +2604,13 @@ const ModalProfileIdentity = ( params ) => {
 								<div className="row marginTop2percent">
 								<div className="col-6">
 									<Form.Item
-										className = "backgroundYellow borderRadius18 height40"
+										className = "backgroundYellow rounded10 height40"
 										name  = "haveNoInsurance"
 									>
 										<div className='row' >
 											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-												<label className='custom-checkbox-container'>
 												<Input
-													className='custom-checkbox'
+													
 													type="checkbox" 
 													name="animalInsuranceType01"
 													id="animalInsuranceType1"
@@ -2033,7 +2619,6 @@ const ModalProfileIdentity = ( params ) => {
 													onChange = { e => handleChangeAnimalInsurances(1) }
 													style={{ outline: 'none' }}
 												 />
-												 </label> 
 											</div>
 											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>			
 												Mon animal ne possede pas une assurance
@@ -2044,14 +2629,13 @@ const ModalProfileIdentity = ( params ) => {
 								
 								<div className="col-6">
 									<Form.Item
-										className = "backgroundYellow borderRadius18 height40"
+										className = "backgroundYellow rounded10 height40"
 										name  = "haveInsurance"
 									>
 										<div className='row' >
 											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-												<label className='custom-checkbox-container'>
 												<Input
-													className='custom-checkbox'
+													
 													type="checkbox" 
 													name="animalInsuranceType02"
 													id="animalInsuranceType2"
@@ -2060,7 +2644,6 @@ const ModalProfileIdentity = ( params ) => {
 													onChange = { e => handleChangeAnimalInsurances(2) }
 													style={{ outline: 'none' }}
 												 />
-												 </label> 
 											</div>
 											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>
 												Mon animal possede une assurance
@@ -2129,7 +2712,7 @@ const ModalProfileIdentity = ( params ) => {
 							>
 								<Input 
 									name  = "emailInput"
-									className="backgroundYellow borderRadius18 width100per100 borderNone height40" 
+									className="backgroundYellow rounded10 width100per100 borderNone height40" 
 									placeholder={ signUp_emailPlaceholder }
 									type="text" 
 									value={ signUpEmail }
@@ -2163,7 +2746,7 @@ const ModalProfileIdentity = ( params ) => {
 								>
 												<Input 
 													id="pwResetPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_passwordPlaceholder }
 													type="password" 
 													name="password"
@@ -2191,7 +2774,7 @@ const ModalProfileIdentity = ( params ) => {
 								>
 									<Input 
 													id="pwResetPasswordRepeatInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_passwordRepeatPlaceholder 
 													} 
 													type="password" 
@@ -2245,7 +2828,7 @@ const ModalProfileIdentity = ( params ) => {
 						>
 							<Input 
 								name  = "firstNameInput"
-								className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+								className="backgroundYellow rounded10 width100per100 borderNone height40" 
 								placeholder={ signUp_firstNamePlaceholder }
 								type="text" 
 								value={ firstName }
@@ -2257,14 +2840,14 @@ const ModalProfileIdentity = ( params ) => {
 						<div className="row" style={{width: '103%'}}>
 							<div className="col-6">
 								<Form.Item
-									className = "backgroundYellow borderRadius18 height40"
+									className = "backgroundYellow rounded10 height40"
 									name  = "male"
 								>
 									<div className='row' >
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
 											Male
 										</div>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
 											<Input
 												className=''
 												type="checkbox" 
@@ -2281,14 +2864,14 @@ const ModalProfileIdentity = ( params ) => {
 							</div>
 							<div className="col-6">
 								<Form.Item
-									className = "backgroundYellow borderRadius18 height40"
+									className = "backgroundYellow rounded10 height40"
 									name  = "female"
 								>
 									<div className='row'>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
 											Female
 										</div>
-										<div className='col-6' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
+										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
 											<Input
 												type="checkbox" 
 												name="signUpTypeUser"

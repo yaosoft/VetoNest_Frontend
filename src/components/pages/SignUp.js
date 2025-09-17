@@ -203,7 +203,7 @@ const SignUp = ( params ) => {
 	const handleChangeSignUpType = ( signUpType ) => {
 
 		const elt01 = document.getElementById( 'signUpType' + signUpType ); // current elt
-		const elt02 = signUpType == 1 ? document.getElementById( 'signUpType' + 2) :   document.getElementById( 'signUpType' + 1 );
+		const elt02 = signUpType == 1 ? document.getElementById( 'signUpType' + 2) : document.getElementById( 'signUpType' + 1 );
 
 		setSignUp_formOption1Error( '' );
 		setSignUp_formOption2Error( '' );
@@ -531,10 +531,10 @@ console.log( 'Check email', rep );
 
 			<Modal
 				title={
-				  <>
+				  <p>
 					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
 					<span>{ signUpType == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
-				  </>
+				  </p>
 				}
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
 				open		= { isModalOptionTypeOpen }
@@ -604,7 +604,7 @@ console.log( 'Check email', rep );
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
-													className = "backgroundYellow borderRadius18 height40"
+													className = "backgroundYellow rounded10 height40"
 													name  = "SignUpType1"
 													rules = {[
 														{
@@ -642,7 +642,7 @@ console.log( 'Check email', rep );
 											</div>
 											<div className="col-6">
 												<Form.Item
-													className = "backgroundYellow borderRadius18 height40"
+													className = "backgroundYellow rounded10 height40"
 													name  = "SignUpType2"
 													rules = {[
 														{
@@ -700,7 +700,7 @@ console.log( 'Check email', rep );
 												>
 													<Input
 														id="signUpNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 														placeholder={ signUp_namePlaceholder }
 														type="text" 
 														name="signUpName"
@@ -730,7 +730,7 @@ console.log( 'Check email', rep );
 												>
 													<Input 
 														id="signUpFirstNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 														placeholder={ signUp_firstNamePlaceholder }
 														type="text" 
 														name="signUpFirstName"
@@ -761,7 +761,7 @@ console.log( 'Check email', rep );
 
 												<Input 
 													id="signUpEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_emailPlaceholder }
 													type="text" 
 													name="signUpmail"
@@ -791,7 +791,7 @@ console.log( 'Check email', rep );
 											>
 												<Input 
 													id="signUpPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_passwordPlaceholder }
 													type="password" 
 													name="password"
@@ -821,7 +821,7 @@ console.log( 'Check email', rep );
 											>
 												<Input 
 													id="signUpPasswordRepeatInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
 													placeholder={ signUp_passwordRepeatPlaceholder }
 													
 													type="password" 
@@ -861,7 +861,7 @@ console.log( 'Check email', rep );
 										</div>
 									</>
 											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickRegistration}
 												disabled = { sendingDisabled }
 											>

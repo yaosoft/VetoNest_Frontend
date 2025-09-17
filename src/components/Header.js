@@ -6,13 +6,15 @@ import SecuredPagesAuth from "./SecuredPagesAuth";
 import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
 
+import { Space, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
+
 import LanguageSelector from './LanguageSelector';
 const Header = () => {
 
 	const { 
 		isAuthenticated, 
 		logOut, 
-		getUser, 
+		user, 
 		setUser 
 	} = useContext( AuthContext );
 
@@ -31,7 +33,8 @@ const Header = () => {
 		selectedLanguageId,
 		truncateString,
 		siteLanguage,
-		flag
+		flag,
+		userProfile,
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -59,7 +62,7 @@ const Header = () => {
 		},
 	]
 
-	var user = getUser();
+	// var user = getUser();
 
 	const [ languages, setLanguages ]  = useState( '' );
 
@@ -72,18 +75,14 @@ const Header = () => {
 
 	// Login / logout
 	const handleClickLogInOut = async( event ) => {
-		event.preventDefault();
+		event.preventDefault();		
 		if( isAuthenticated() ){
-			// const resp = await logOut();
-			// if( resp !== true  ){
-				// message.error( resp );
-				// return;
-			// }
-			setUser( null );
-			
+			const resp = await logOut();
+			if( resp === true )
+				await navigate( '/connexion' )
+			else
+				message.error( 'Error' )
 		}
-
-		navigate( '/connexion' )
 	}
 
 	// get the profile data
@@ -93,6 +92,8 @@ const Header = () => {
 				setSelectedLanguageId( defaultLanguageId );	// update languagelist boxes
 				languageSetup( defaultLanguageId ); 			// Update language flag
 			}
+
+			navigate( '/connexion' )
 			return
 		}
 
@@ -102,13 +103,24 @@ const Header = () => {
 		
 		// Get user preference
 		const a = async () => {
+
+			// if( user === null ){
+// console.log( '*************** user === null ***************' );
+				// await navigate( '/connexion' );
+
+				// return
+			// }
+console.log( '*************** user != null ***************' );
 			const data = {
 				userId: user.userId,
 			}
+
 			const resp = await getLanguagePreference ( data );
 			var languageId = defaultLanguageId;
 			if( resp !== null )
 				languageId = resp.id;
+
+console.log( '>>> languageId', languageId  );
 
 			setSelectedLanguageId( languageId );	// update languagelist boxes
 			languageSetup( languageId ); 			// Update language flag
@@ -178,7 +190,7 @@ const Header = () => {
 											<ul>{ isAuthenticated() ? 
 												<>	
 													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>{ truncateString( user.userNom, 10 ) }</li>
+														<li>{ user && truncateString( user.userNom, 10 ) }</li>
 													</Link>
 												</>
 												: 
