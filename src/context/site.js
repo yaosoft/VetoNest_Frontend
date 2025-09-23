@@ -60,7 +60,7 @@ export const SiteProvider = ({ children }) => {
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
-	const [ siteUrl, setSiteUrl ] 	= useState( 'http://vetonrst.com' );
+	const [ siteUrl, setSiteUrl ] 	= useState( 'http://vetonest.com' );
 	const [ siteEmail, setEmail ] 	= useState( 'info@vetonest.com' );
 
 	// site
@@ -428,8 +428,33 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 	}
 
 	// list all animals species
+	const [ especes, setEspeces ] = useState( [] );
 	const speciesList = async () => {
 		const url		= base_api_url + 'espece/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Time slot
+	const [ timeslot, setTimeslot ] = useState( '' );
+	const getTimeslot = async ( profileVetoId ) => {
+		const url		= base_api_url + 'timeSlot/get?profileVetoId=' + profileVetoId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// list all default opened days
+	const [ defaultOpenedDays, setDefaultOpenedDays ] = useState( [] );
+	const defaultOpenedDaysList = async () => {
+		const url		= base_api_url + 'timeSlotDefault/list';
 		const data 		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
@@ -530,7 +555,7 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 	const [ userPets, setUserPets ] = useState( [] );
 	const [ selectedPetId, setSelectedPetId ] = useState( '' );
 	
-	const [ especes, setEspeces ] = useState( [] );
+
 	const [ languages, setLanguages ] = useState( [] );
 	// const [ countries, setCountries ] = useState( [] );
 	const [ countriesAllowed, setCountriesAllowed ] = useState( [] );
@@ -564,6 +589,8 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 			// specialities
 			const specialities = await getAllSpeciaLities();
 			setAllSpecialities( specialities )
+			
+			
 		}
 		
 		a()
@@ -942,6 +969,7 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 				// site countries list
 				countriesAllowed,
 				especes,
+				defaultOpenedDays,
 				selectedAnimal, 
 				setSelectedAnimal,
 				modalRemoveAnimalOpen, 
@@ -964,6 +992,9 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 				allSpecialities,
 				validateRppsNumber,
 				validateSiretNumber,
+				getTimeslot,
+				timeslot, 
+				setTimeslot
 			}}
 		>
 

@@ -40,11 +40,10 @@ const SecuredPagesAuth = () => {
 	const [authenticate, setAuthenticate ] = useState( isAuthenticated() );
 
 	useEffect(() => {
-console.log( 'isAuthenticated', isAuthenticated() );
+// console.log( 'isAuthenticated', isAuthenticated() );
 			const security = async () => {
 				if( securedPagesPath.includes( currentPage ) && isAuthenticated() === false ){
-					if( currentPage != '/connexion'  )
-						await navigate( '/connexion' )
+					await navigate( '/connexion' )
 				}
 				else if( currentPage.includes( 'dashboard/' ) && !adminList.includes( getUser().email ) ) {
 

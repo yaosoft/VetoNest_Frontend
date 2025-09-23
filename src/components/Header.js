@@ -93,7 +93,7 @@ const Header = () => {
 				languageSetup( defaultLanguageId ); 			// Update language flag
 			}
 
-			navigate( '/connexion' )
+			// navigate( '/connexion' )
 			return
 		}
 
@@ -190,7 +190,7 @@ console.log( '>>> languageId', languageId  );
 											<ul>{ isAuthenticated() ? 
 												<>	
 													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>{ user && truncateString( user.userNom, 10 ) }</li>
+														<li>{ userProfile && truncateString( userProfile.nom, 10 ) }</li>
 													</Link>
 												</>
 												: 

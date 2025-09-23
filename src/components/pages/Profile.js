@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-// import { Modal } from 'react-responsive-modal';
+import dayjs from 'dayjs';
 
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
@@ -37,6 +37,7 @@ const Profile = ( params ) => {
 		profileId,
 		userId,
 		user,
+		setUser,
 	} = useContext( AuthContext );
 	const { 
 		siteName,
@@ -78,6 +79,11 @@ const Profile = ( params ) => {
 		removeAnimalOpen,
 		photoAnimalDefaultSrc,
 		truncateString,
+		defaultOpenedDays,
+		siteLocale,
+		getTimeslot,
+		setTimeslot,
+		timeslot
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -197,9 +203,10 @@ const Profile = ( params ) => {
 	useEffect(() => {
 		// get user profile info
 		const a = async () => {
-console.log( '>>> user', user );
-console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
+// console.log( '>>> user', user );
+// console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
 			const profile = await profileGet( profileId, profileTypeId );
+// console.log( '>>> profile', profile );
 			setUserProfile( profile );
 			// setSiteLocale( siteLocale );
 			// name
@@ -218,12 +225,18 @@ console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
 			const biography = profile.biography
 			setBiography( biography );
 			// profile nom texte
-// console.log( 'userProfile', userProfile );
-			const profileNom = userProfile.nom && truncateString( userProfile.nom, 12 );
+
+			const profileNom = profile.nom && truncateString( profile.nom, 12 );
 			setProfileNom( profileNom )
+			// veto timeslot
+			const timeslotObj = await getTimeslot( profile.id );
+console.log( '++++++++++++++++++ timeslotObj', timeslotObj );
+			const timeslot = await Object.entries( timeslotObj );
+console.log( '++++++++++++++++++ timeslot', timeslot );
+			setTimeslot( timeslot );
 		}
 		a();
-	}, [ visibleModalName, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
+	}, [ profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
 //  [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
@@ -242,6 +255,78 @@ console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
 		}
 		a()
 	}, [profileFormUpdated] );
+
+	// Build timeslot
+	const BuildTimeslot = () => {
+		if( !timeslot )
+			return
+
+		const getHoraire = ( dateObj01, dateObj02 ) => { return(
+			dayjs( dateObj01 ).format( 'HH:ss' ) + ' - ' + 
+			dayjs( dateObj02 ).format( 'HH:ss' ) 
+		)};
+console.log( 'timeslot', timeslot )
+		return(
+			timeslot.map( e => 
+				<div className="row singleFieldManager">
+					<SingleFieldManager 
+						params={{
+							fieldName: 		'Timeslot',
+							title:			e.opened ? 'Opened'  : 'Closed',
+							placeholder:	'Horaire',
+							value: 			e[1].opened ? getDayName( e[0] ) + ' ' +   
+												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
+											getDayName( e[0] ) + ': closed' + ( e[1].nom &&  ', ' + e[1].nom + ', ' + e[1].description),
+							type: 			2, // 2 = update
+						}}
+					/>
+				</div>
+			)
+		)
+	}
+	
+	// Build default opened days
+	const BuildDefaultOpenedDays = () =>{
+		const getHoraire = ( dateObj01, dateObj02 ) => { return(
+			dayjs( dateObj01 ).format( 'HH:ss' ) + ' - ' + 
+			dayjs( dateObj02 ).format( 'HH:ss' ) 
+		)};
+		return(
+				defaultOpenedDays.map( e => 
+					<div className="row singleFieldManager">
+						<SingleFieldManager 
+							params={{
+								fieldName: 		'Horaires',
+								title:			getDayName( e.dayNumber ) + ' : ' + 
+												getHoraire( e.startTime.date,  e.endTime.date ),
+								placeholder:	'Horaire',
+								value: 			getDayName( e.dayNumber ) + ' : ' + 
+												getHoraire( e.startTime.date,  e.endTime.date ),
+								type: 			2, // 2 = update
+							}}
+						/>
+					</div>
+				)
+			
+		)
+	}
+	 
+	// Get a day name
+	const getDayName = ( dayNumber, locale = siteLocale ) => {
+		// Create a Date object. The specific date doesn't matter as we only need the day of the week.
+		// We set it to a Sunday (e.g., January 1, 2000) and then adjust the day.
+		const date = new Date(2000, 0, 1); // January 1, 2000 was a Saturday, so we adjust.
+		date.setDate(date.getDate() + dayNumber); // Add the dayNumber to get the correct day of the week.
+		// Use toLocaleDateString to get the day name in the specified locale.
+		// The 'weekday: "long"' option ensures the full name is returned.
+		
+		const dayName = date.toLocaleDateString( locale, { weekday: 'long' } );
+
+console.log( `>>>>>> Day name: ${dayName}` );
+		
+		return dayName;
+		
+	}
 
 	// build pets list
 	const BuildUserPetsList = () =>{
@@ -458,6 +543,66 @@ console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
 											</div>
 										</div>
 									</div>
+								</div>
+							</div>
+							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
+							</div>
+							<div className="row">
+								<div className="col-md-6 row">
+									<div className="col-md-3">
+										<b>Ouverture</b>
+									</div>
+									<div className="col-md-9">
+										<div className="row">
+											Horaires
+										</div>
+										<BuildTimeslot />
+										<p>&nbsp;</p>
+										<div className="row">
+											Devise
+										</div>
+										<div className="row profileLanguageSelector">
+											<CurrencySelector />
+										</div>
+										<p>&nbsp;</p>
+									</div>
+								</div>
+								<div className="col-md-6 row">
+								{ profileTypeId == 2 &&
+								<>
+									<div className="col-md-3">
+										<b>Fermetures</b>
+									</div>
+									<div className="col-md-9">
+										<div className="row">
+											Jours fériés
+										</div>
+										<div className="row">
+											<div className="col-md-9">
+												<div className="row singleFieldManager">
+													<SingleFieldManager params={{
+															fieldName: 	'Hollidays',
+															title:		'Ajouter un jour férié',
+															placeholder: 'Hollidays',
+															value: 'Ajouter un jour férié',
+															type: 1, // 1 = create
+														}}
+													/>
+												</div>
+											</div>
+											<div className="col-md-9">
+												<br/>
+												<div className="row">
+													Vous avez 0 jour fériés<br/>
+												</div>
+												<div className="row singleFieldManager">
+													<BuildUserPetsList />
+												</div>
+											</div>
+										</div>
+									</div>
+								</>
+								}
 								</div>
 							</div>
 							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
