@@ -497,7 +497,7 @@ input[type=password]:hover {
 }
 
 .singleFieldManager .dataDiv{
-	width: 10em;
+	width: 13em;
 	border-color: #FFDE59 !important;
 	border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;

@@ -13,11 +13,9 @@ import Header from './Header';
 const SingleFieldManager = ( params ) => {
 	// context
 	const { 
-		modalProfileIdentityOpen,
 		setModalProfileIdentityOpen,
 		userProfile,
 		setVisibleModalName,
-		visibleModalName,
 		setSelectedPetId,
 	} = useContext( SiteContext );
 
@@ -51,9 +49,7 @@ const SingleFieldManager = ( params ) => {
 		const fieldName = params.params.fieldName;
 		setFieldName( fieldName );
 		setValue( params.params.value );
-		
-		
-		
+
 	}, [userProfile] );
 
 
@@ -68,7 +64,7 @@ const SingleFieldManager = ( params ) => {
 		setModalProfileIdentityOpen( true );
 		
 		setVisibleModalName( params.params.fieldName );
-		
+
 	}
 	
 	return (

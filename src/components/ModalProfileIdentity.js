@@ -129,7 +129,7 @@ const ModalProfileIdentity = ( params ) => {
 		updateLanguagePreference,
 		setSelectedLanguageId,
 		languageSetup,
-		profileVeto_FullNameErrorText,
+		profileVeto_nameErrorText,
 		allSpecialities,
 		validateRppsNumber,
 		validateSiretNumber,
@@ -256,25 +256,39 @@ const ModalProfileIdentity = ( params ) => {
 		setNameError( nameErrorText );
 	}
 
-	// veto full name
-	const [ vetoFullName, setVetoFullName ] = useState( '' );
-	const [ vetoFullNameError, setVetoFullNameError ] = useState( '' );
-	const handleChangeVetoFullName = ( e ) => {
+	// veto name
+	const [ vetoName, setVetoName ] = useState( '' );
+	const [ vetoNameError, setVetoNameError ] = useState( '' );
+	const handleChangeVetoName = ( e ) => {
 		const data = e.target.value;
-		setVetoFullName( data );
+		setVetoName( data );
 
-		var vetoFullNameErrorText = '';
+		var vetoNameErrorText = '';
 		const test = nameValidator( data )
 
 		if( data && test === false ){
-		
-			vetoFullNameErrorText = 'profileVeto_FullNameErrorText';
+			vetoNameErrorText = signUp_nameErrorText;
 		}
-		// signUpVetoFullNameErrorText = 'Your vetoFullName seems incorect'
-		setVetoFullNameError( vetoFullNameErrorText );
+		// signUpVetoNameErrorText = 'Your vetoName seems incorect'
+		setVetoNameError( vetoNameErrorText );
 	}
 
+	// Veto first name
+	const [ vetoFirstName, setVetoFirstName ] = useState( '' );
+	const [ vetoFirstNameError, setVetoFirstNameError ] = useState( '' );
+	const handleChangeVetoFirstName = ( e ) => {
+		const data = e.target.value;
+		setVetoFirstName( data );
+		
+		var vetoFirstNameErrorText = '';
+		const test = firstNameValidator( data )
+		if( data && test === false )
+			vetoFirstNameErrorText = signUp_firstNameErrorText
 
+// signUpVetoFirstNameErrorText = 'Your firstname seems incorect'
+		setVetoFirstNameError( vetoFirstNameErrorText );
+	}
+	
 	// animal name
 	const [ animalName, setAnimalName ] = useState( '' );
 	const [ animalNameError, setAnimalNameError ] = useState( '' );
@@ -774,7 +788,6 @@ const ModalProfileIdentity = ( params ) => {
 
 	// password reset
 	const [ pwResetSpin, setPwResetSpin ] = useState( 'none' );
-// password
 	const [ pwResetPassword, setPwResetPassword ] = useState( '' );
 	const [ pwResetPasswordError, setPwResetPasswordError ] = useState( '' );
 	const handleChangePwResetPassword = ( e ) => {
@@ -823,23 +836,26 @@ const ModalProfileIdentity = ( params ) => {
 				var errorsExist = false;
 				if( phoneNumberError != '' ){
 					errorsExist = true
-					setPhoneNumberError( 'phoneNumberErrorText' );
-					form.validateFields()
+					//setPhoneNumberError( 'phoneNumberErrorText' );
 				}
-				else if( vetoFullNameError != '' ){
+				else if( vetoNameError != '' ){
 					errorsExist = true
-					setVetoFullNameError( 'vetoFullNameErrorText' );
-					form.validateFields()
+					//setVetoNameError( signUp_nameErrorText );
 				}
-				else if( rppsErrorTextDisplay != 'none' ){
+				else if( vetoFirstNameError != '' ){
 					errorsExist = true
-					
+					//setVetoFirstNameError( signUp_firstNameErrorText );
 				}
-				else if( siretErrorTextDisplay != 'none' ){
-					errorsExist = true
-					
+				else if( vetoRppsError != '' ){
+					errorsExist = true;
+					//setVetoRppsError( 'profileVeto_rppsError' )
 				}
-				
+				else if( vetoSiretError != '' ){
+					errorsExist = true;
+					//setVetoSiretError( 'profileVeto_siretError' )
+				}
+
+				form.validateFields();
 				return errorsExist
 			}
 			const formHasErrors = await checkFormErrors();
@@ -853,32 +869,40 @@ const ModalProfileIdentity = ( params ) => {
 			// check form empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = () => {
+// console.log( 'phoneNumber', phoneNumber );
 				if( phoneNumber == '' ){
 					formHasEmpty = 'phoneNumberEmptyErrorText';
 					setPhoneNumberError( formHasEmpty );
 					form.validateFields()
 				}
-				if( vetoFullName == '' ){
-					formHasEmpty = 'vetoFullNameEmptyErrorText';
-					setVetoFullNameError( formHasEmpty );
+				if( vetoName == '' ){
+					formHasEmpty = signUp_nameEmpty;
+					setVetoNameError( formHasEmpty );
 					form.validateFields()
 				}
-				if( vetoRpps == '' ){
-					formHasEmpty = 'vetoRppsEmptyErrorText';
-					setRppsEmptyTextDisplay( 'block' );
+				if( vetoFirstName == '' ){
+					formHasEmpty = signUp_firstNameErrorText;
+					setVetoFirstNameError( formHasEmpty );
+					form.validateFields()
 				}
-				if( vetoSiret == '' ){
-					formHasEmpty = 'vetoSiretEmptyErrorText';
-					setSiretEmptyTextDisplay( 'block' );
-				}
+				// if( vetoRpps == '' ){
+					// formHasEmpty = 'vetoRppsEmptyErrorText';
+					// rppsErrorTextDisplay( 'block' );
+				// }
+				// if( vetoSiret == '' ){
+					// formHasEmpty = 'vetoSiretEmptyErrorText';
+					// setSiretEmptyTextDisplay( 'block' );
+				// }
+
 				if( vetoSelectedSpecialities.length == 0 ){
-					setVetoSpecialiteError( 'vetoSpecialiteEmptyErrorText' );
-					formHasEmpty = 'vetoSpecialiteEmptyErrorText'
+					formHasEmpty = 'vetoSpecialiteEmptyErrorText';
+					setVetoSpecialiteError( formHasEmpty );
 				}
-				if( !vetoType ){
-					setCheckboxesAtHomeNoneSelectedDisplay( 'block' );
-					formHasEmpty = 'checkboxesAtHomeNoneErrorText'
+				if( !vetoType ){ 
+					formHasEmpty = 'checkboxesAtHomeError';
+					setCheckboxesAtHomeError( formHasEmpty );
 				}
+				form.validateFields();
 			}
 			
 			await checkFormEmpty();
@@ -889,25 +913,23 @@ const ModalProfileIdentity = ( params ) => {
 				// setSendingDisabled( false );
 				return
 			}
-			
-			const sendData = {
-				nom: 				name,
-				prenom:				firstName,
-				sexeId:				sexe ? sexe : userProfile.userSexeId,
-				profileId: 			profileId,
-				dateDeNaissance: 	dateDeNaissance,
-				langues: 			selectedLanguages.join( ',' ),
-				adresse:			address,
-				codePostal:			codePostal,
-				country:	countrySelected,
-				state:		stateSelected,
-				city:		citySelected,
-			}
 
+			const sendData = {
+				userId:				userId,
+				nom: 				vetoName,
+				prenom:				vetoFirstName,
+				phone:				selectedCountryCode + ' ' + phoneNumber.replaceAll( "", "" ),
+				siret:				vetoSiret,
+				rpps: 				vetoRpps,
+				specialiteId: 		vetoSelectedSpecialities[0],
+				atHome: 			document.getElementById( 'vetoType1' ).checked ? true : false,
+				profileId:			profileId,
+			}
+			
 			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
 			
 			if( rep === false ){ //
-				message.error( 'Profile cannot be updated' );
+				message.error( 'Veto profile cannot be updated' );
 				return;
 			}
 			else{
@@ -1306,7 +1328,7 @@ const ModalProfileIdentity = ( params ) => {
 			await setSexeError( errorMessage );
 			formHasEmpty = errorMessage
 		}
-console.log( '>>>>>> sexe', sexe );
+// console.log( '>>>>>> sexe', sexe );
 		form.validateFields()
 		return formHasEmpty
 	}
@@ -1330,6 +1352,7 @@ console.log( '>>>>>> sexe', sexe );
 
 	// birth date
 	const [ datePickerDefaultValue, setDatePickerDefaultValue ] = useState( '' ); 
+	// const  modalActiveFieldName = params.params.fieldName;
 	const [ fieldName, setFieldName ] = useState( '' );
 	const [ dateNaissance, setDateNaissance ] = useState( '' );
 	
@@ -1367,7 +1390,7 @@ console.log( '>>>>>> sexe', sexe );
 
 	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 	const handleChangeFlag = ( countryIso ) => {
-console.log( '>>>>>>>> countryIso', countryIso );
+// console.log( '>>>>>>>> countryIso', countryIso );
 		const country = countriesAllowed.filter( e => e.iso == countryIso )[0];
 		setSelectedFlag( country.iso );
 		setSelectedCountryCode( country.countryCodc );
@@ -1421,13 +1444,13 @@ console.log( '>>>>>>>> countryIso', countryIso );
 	}
 	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' );
 
-	// Phone number
+	// Phone number veto
 	const [ phoneNumber, setPhoneNumber ] = useState( '' );
 	const [phoneNumberError, setPhoneNumberError]  = useState( '' );
 	const handleChangePhoneNumber = ( e ) => {
 		const data = e.target.value;
 		setPhoneNumber( data );
-console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
+// console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 		var phoneErrorText = '';
 		if( data.length == 0 )
 			phoneErrorText = '';
@@ -1489,7 +1512,7 @@ console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 	const [ vetoSpecialiteError, setVetoSpecialiteError  ] =  useState( '' )
 	const MAX_SPECIALITIES = 1; // Define your maximum limit
 	const handleChangeVetoSpecialities = (value) => {
-		
+// console.log( 'handleChangeVetoSpecialities', value );
 		if ( value.length > 0 ) {
 			setVetoSpecialiteError('');
 			form.validateFields()
@@ -1509,25 +1532,27 @@ console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 	const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
 	const [ rppsEmptyTextDisplay, setRppsEmptyTextDisplay ] =  useState( 'none' );
 	const [ rppsErrorTextDisplay, setRppsErrorTextDisplay ] =  useState( 'none' );
-	const handleChangeVetoRpps = ( e ) => {
+	const handleChangeVetoRpps = async ( e ) => {
 		const data = e.target.value;
 
-		if( data.length > 0 )
-			setRppsEmptyTextDisplay( 'none' )
+// console.log( '>>>> data', data.length );
 
-		if( data.length > 11 )
-			return
+		// if( data.length > 11 )
+		// 	return
 
 		setVetoRpps( data );
-		var vetoRppsErrorText = 'none';
-		const test = validateRppsNumber( data )
- 
+
+// console.log( '>>>> vetoRpps', vetoRpps );
+		
+		var vetoRppsErrorText = '';
+		const test = await validateRppsNumber( data );
+// console.log( '>>>> test', test );
 		if( data != '' && test === false ){
-			// vetoRppsErrorText = 'To translate profileAnimal_vetoRppsErrorText';// profileAnimal_vetoRppsErrorText
-			// setVetoRppsError( vetoRppsErrorText )
-			vetoRppsErrorText = 'block'
+			vetoRppsErrorText = 'profileVeto_vetoRppsErrorText';// profileAnimal_vetoRppsErrorText
+			// vetoRppsErrorText = 'block'
 		}
-		setRppsErrorTextDisplay( vetoRppsErrorText );
+		setVetoRppsError( vetoRppsErrorText );
+		form.validateFields();
 	}
 
 	// veto SIRET handleChangeVetoSiret
@@ -1538,22 +1563,24 @@ console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 	const handleChangeVetoSiret = ( e ) => {
 		const data = e.target.value;
 
-		if( data.length > 0 )
-			setSiretEmptyTextDisplay( 'none' )
+		// if( data.length > 0 )
+			// setSiretEmptyTextDisplay( '' )
 
-		if( data.length > 14 )
-			return
+		// if( data.length > 14 )
+			// return
 
+// console.log( '>>>> vetoSiret', vetoSiret );
 		setVetoSiret( data );
-		var vetoSiretErrorText = 'none';
+		var vetoSiretErrorText = '';
 		const test = validateSiretNumber( data )
  
 		if( data != '' && test === false ){
-			// vetoSiretErrorText = 'To translate profileAnimal_vetoSiretErrorText';// profileAnimal_vetoSiretErrorText
-			// setVetoSiretError( vetoSiretErrorText )
-			vetoSiretErrorText = 'block'
+			vetoSiretErrorText = 'profileVeto_vetoSiretErrorText';// profileAnimal_vetoSiretErrorText
+			setVetoSiretError( vetoSiretErrorText )
+			//vetoSiretErrorText = 'block'
 		}
-		setSiretErrorTextDisplay( vetoSiretErrorText );
+		setVetoSiretError( vetoSiretErrorText );
+		form.validateFields();
 	}
 
    
@@ -1562,17 +1589,20 @@ console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 	// }
 	// animal sexe
 	// const [ vetoType, setVetoType ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ vetoType, setVetoType ] = useState( userProfile.isAtHome );// 0 for home, 1 for facility
-	const [ vetoTypeError, setVetoTypeError ] 	= useState( '' );
-	const handleChangeVetoType = async ( vetoType ) => {
-console.log( 'userProfile.isAtHome', userProfile.isAtHome );
-console.log( 'vetoType', vetoType );
+	const [ vetoType, setVetoType ] = useState( userProfile.atHome );// 0 for home, 1 for facility
+	// const [ vetoTypeError, setVetoTypeError ] 	= useState( '' );
+		// 
+	const [ checkboxesAtHomeError, setCheckboxesAtHomeError ] = useState( '' ); 
+	const handleChangeVetoType = async ( vetoType ) => { 
+// console.log( 'userProfile.atHome', userProfile.atHome );
+// console.log( 'vetoType', vetoType );
 		const elt01 = document.getElementById( 'vetoType' + vetoType ); // current elt
 		const elt02 = vetoType == 1 ? document.getElementById( 'vetoType' + 2) :   document.getElementById( 'vetoType' + 1 );
 
 		//setVetoType_formOption1Error( '' );
 		//setVetoType_formOption2Error( '' );
-	
+		setCheckboxesAtHomeError( '' );
+
 		if( elt01.checked ){ // chackboxes inverser
 			elt02.checked = false;
 		}
@@ -1591,18 +1621,27 @@ console.log( 'vetoType', vetoType );
 		}
 		if( elt01.checked == false && elt02.checked == false ){
 			setVetoType( '' );
-			//setVetoType_formOption1Error( vetoType_formOption1ErrorText );
-			//setVetoType_formOption2Error( vetoType_formOption2ErrorText );
-			setCheckboxesAtHomeNoneSelectedDisplay( 'block' )
+			setCheckboxesAtHomeError( 'checkboxesAtHomeError' );
+			
 		}
+		form.validateFields();
 	}
 	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
 
+	
+	
 	useEffect(() => {
-// console.log( 'vetoSelectedSpecialities', vetoSelectedSpecialities );
+// console.log( 'signUp_nameErrorText', signUp_nameErrorText );
+// console.log( 'signUp_firstNameErrorText', signUp_firstNameErrorText );
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
+
+		const modalActiveTitle = params.params.title;
+		setTitle( modalActiveTitle );
+
+		const fieldName = params.params.fieldName;
+		setFieldName( fieldName );
 
 		// all countries
 		const allCountries = Country.getAllCountries();
@@ -1628,10 +1667,6 @@ console.log( 'vetoType', vetoType );
 
 		// 
 		const a = async () => {
-			const fieldName = await params.params.fieldName;
-			setFieldName( fieldName );
-			const title = await params.params.title;
-			setTitle( title );
 			
 			// default name
 			const name = userProfile.nom;
@@ -1711,14 +1746,31 @@ console.log( 'vetoType', vetoType );
 					setAnimalSexe(2)
 			}
 			
-			// veto specialities
+			// veto profile
+			if( profileTypeId == 2 && userProfile.id ){
+// console.log( 'countriesAllowed', countriesAllowed );
+// console.log( 'fieldName === visibleModalName', fieldName + ' === ' + visibleModalName );
+// console.log( 'userProfile.phone', userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' );
+				setVetoName( userProfile.nom );
+				setVetoFirstName( userProfile.prenom );
+				const countryCode = userProfile.phone ? userProfile.phone.split( ' ' )[0] : '+33' // toDo
+				const phone = userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' // toDo
+				const country = countriesAllowed.filter( e => e.countryCodc == countryCode )[0];
+				const countryIso = country ? country.iso : 'fr';
+				setSelectedCountryCode( countryCode ); // Todo
+				setSelectedFlag( countryIso );
+				setPhoneNumber( phone );
+				setVetoSiret( userProfile.siret ? userProfile.siret : '' );
+				setVetoRpps( userProfile.rpps ? userProfile.rpps : '' );
+				setVetoSelectedSpecialities( userProfile.specialites ? [ userProfile.specialites.id ] : [] );
+				const vetoType = userProfile.atHome == true ? 1 : 2
+				setVetoType( vetoType );
+			}
 			
 		}
 		a()
 
-	}, [ visibleModalName, userProfile ]) 
-
-
+	}, [ fieldName, modalProfileIdentityOpen ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -1746,13 +1798,10 @@ console.log( 'vetoType', vetoType );
 	 return (
 		 <> 
 			<Modal
-				visible		= { fieldName === visibleModalName ? true : false }
+				visible		= { fieldName === visibleModalName ? true : false } 
 				title		= { <p style={{ textAlign: 'center' }}>{title}</p> }
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { fieldName == visibleModalName ? 
-								modalProfileIdentityOpen :
-								false
-							}
+				open		= { fieldName === visibleModalName ? modalProfileIdentityOpen : false }
 				onOk		= { modalProfileIdentityOk }
 				onCancel	= { () => modalProfileIdentityCancel( false ) }
 				afterClose	= { modalProfileIdentityClosed }
@@ -1809,7 +1858,7 @@ console.log( 'vetoType', vetoType );
 							</p>
 						</>
 					}
-					{ fieldName == "Profile" &&
+					{ fieldName == "Profile" && 
 					<div className="container">	
 						<div className="row gy-2">
 							<div className="col-6">
@@ -2196,6 +2245,7 @@ console.log( 'vetoType', vetoType );
 														}
 													}
 												]}
+												initialValue  = { phoneNumber }
 											>
 												<Input 
 													type		= "text" 
@@ -2210,15 +2260,16 @@ console.log( 'vetoType', vetoType );
 									
 								
 							</div>
-							<div className="">
+							<div className="row gy-2">
+							<div className="col-6">
 								<Form.Item
-									name  = "VetoFullName"
+									name  = "VetoName"
 									rules = {[
 										{
-											message: vetoFullNameError,
+											message: vetoNameError,
 											validator: ( value ) => {
-												if ( vetoFullNameError ) {
-													return Promise.reject( vetoFullNameError );
+												if ( vetoNameError ) {
+													return Promise.reject( vetoNameError );
 												} 
 												else {
 													return Promise.resolve();
@@ -2226,22 +2277,50 @@ console.log( 'vetoType', vetoType );
 											}
 										}
 									]}
+									initialValue  = { name }
 								>
 									<Input 
-										type		= "text" 
-										className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" 
-										placeholder	= { 'profileVeto_placeholderFullName' }
-										value		= { vetoFullName }
-										onChange	= { e => handleChangeVetoFullName( e ) }
+										name  = "vetoNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ signUp_namePlaceholder }
+										type="text" 
+										value={ vetoName }
+										onChange = { e => handleChangeVetoName(e) }
 									/>
 								</Form.Item>
 							</div>
-							<div className="row height40 width100per100 selectLanguage rounded10">
-								<div className="col-3">
-									{ 'profileVeto_labelSpecialite' }
-								</div>
-								<div className="col-9">
+							<div className="col-6">
 								<Form.Item
+									name  = "VetoFirstName"
+									
+									rules = {[
+										{
+											message: vetoFirstNameError,
+											validator: ( value ) => {
+												if ( vetoFirstNameError ) {
+													return Promise.reject( vetoFirstNameError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									initialValue  = { firstName }
+								>
+									<Input 
+										name  = "vetoFirstNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ signUp_firstNamePlaceholder }
+										type="text" 
+										value={ vetoFirstName }
+										onChange = { e => handleChangeVetoFirstName(e) }
+									/>
+								</Form.Item>
+							</div>
+						</div>
+							<div style={{ marginTop: '-15px' }} >
+							<Form.Item
 									name  = "VetoSpecialite"
 									rules = {[
 										{
@@ -2256,7 +2335,14 @@ console.log( 'vetoType', vetoType );
 											}
 										}
 									]}
+									initialValue  = { vetoSelectedSpecialities }
 								>
+							<div className="row height40 width100per100 selectLanguage rounded10">
+								<div className="col-3">
+									{ 'profileVeto_labelSpecialite' }
+								</div>
+								<div className="col-9">
+								
 									<ConfigProvider 
 										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
 									>
@@ -2282,60 +2368,20 @@ console.log( 'vetoType', vetoType );
 											}
 										</Select>
 									</ConfigProvider>
-								</Form.Item>	 
+									 </div>
 								</div>
+								</Form.Item>
+								
 							</div>
-							<div className="backgroundYellow rounded10 height40 width100per100 profilIdentityField">
-								<Input 
-									placeholder	= { 'profileVeto_placeholderRPPS' }
-									className 	= "backgroundYellow height40 width100per100 birthdateField borderNone"
-									value		= { vetoRpps }
-									onChange	= { e => handleChangeVetoRpps( e ) }
-								/>
-							</div>
-							<div 
-								className={'row text-danger profilIdentityField'}
-								style={{ display: rppsEmptyTextDisplay, marginTop: '0px' }}
-							>
-								{ 'profileVeto_rppsEmptyText' }
-							</div>
-							<div 
-								className={'row text-danger profilIdentityField'}
-								style={{ display: rppsErrorTextDisplay, marginTop: '0px' }}
-							>
-								{ 'toTranslate profileVeto_rppsErrorText' /* profileVeto_rppsErrorText */ }
-							</div>
-							<div className="backgroundYellow rounded10 height40 width100per100 profilIdentityField">
-								<Input 
-									placeholder	= { 'profileVeto_placeholderSiret' } 
-									className 	= "backgroundYellow height40 width100per100 birthdateField borderNone"
-									value		= { vetoSiret }
-									onChange	= { e => handleChangeVetoSiret( e ) }
-								/>
-							</div>
-							<div 
-								className={'row text-danger profilIdentityField'}
-								style={{ display: siretEmptyTextDisplay, marginTop: '0px' }}
-							>
-								{ 'profileVeto_siretEmptyText' }
-							</div>
-							<div 
-								className={'row text-danger profilIdentityField'}
-								style={{ display: siretErrorTextDisplay, marginTop: '0px' }}
-							>
-								{ 'profileVeto_siretErrorText' }
-							</div>
-							<div className="row marginTop10">
-							<div className="col-6">
+							<div>
 								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "atHomeTrue"
+									name  = "VetoRpps"
 									rules = {[
 										{
-											message: vetoTypeError,
+											message: vetoRppsError,
 											validator: ( value ) => {
-												if ( sexeError ) {
-													return Promise.reject( sexeError );
+												if ( vetoRppsError ) {
+													return Promise.reject( vetoRppsError );
 												} 
 												else {
 													return Promise.resolve();
@@ -2343,58 +2389,109 @@ console.log( 'vetoType', vetoType );
 											}
 										}
 									]}
+									initialValue  = { vetoRpps }
 								>
-									<div className='row' >
-										<div className='col-9' style={{paddingTop: '4px', paddingLeft: '14%', lineHeight: '16px'}}>
-											{ 'profileVeto_checkboxeIsAtHome' }
-										</div>
-										<div className='col-2' style={{paddingTop: '4%', paddingLeft: '0%'}}>
-											<Input
-												className=''
-												type="checkbox" 
-												name="vetoType1"
-												id="vetoType1"
-												value={ 1 }
-												defaultChecked= { userProfile.vetoType == 1 ? true : false }
-												onChange = { e => handleChangeVetoType(1) }
-												style={{ outline: 'none' }}
-											/>
-										</div>
-									</div>
+									<Input 
+										placeholder	= { 'profileVeto_placeholderRPPS' }
+										className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
+										value		= { vetoRpps }
+										onChange	= { e => handleChangeVetoRpps( e ) }
+									/>
 								</Form.Item>
 							</div>
-							<div className="col-6">
-								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "atHomeFalse"
-								>
-									<div className='row'>
-										<div className='col-9' style={{paddingTop: '4px',  paddingLeft: '14%', lineHeight: '16px'}}>
-											{ 'profileVeto_checkboxeIsAtHomeFalse' }
-										</div>
-										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-											<Input
-												type="checkbox" 
-												name="vetoType2"
-												id="vetoType2"
-												value={ 2 }
-												defaultChecked= { userProfile.vetoType == 2 ? true : false }
-												onChange = { e => handleChangeVetoType(2) }
-												style={{ outline: 'none' }}
-											 />
-										</div>
-									</div>
-								</Form.Item>
-								
-							</div>
-							<div 
-								className={'row text-danger'}
-								style={{ display: checkboxesAtHomeNoneSelectedDisplay, paddingLeft: '6%'}}
-							>
-								{ 'profileVeto_profileVeto_checkboxesAtHomeNoneSelected' }
-							</div>
-						</div>
 							
+							<div>
+								<Form.Item
+									name  = "VetoSiret"
+									rules = {[
+										{
+											message: vetoSiretError,
+											validator: ( value ) => {
+												if ( vetoSiretError ) {
+													return Promise.reject( vetoSiretError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									initialValue  = { vetoSiret }
+								>
+								<Input 
+									placeholder	= { 'profileVeto_placeholderSiret' } 
+									className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
+									value		= { vetoSiret }
+									onChange	= { e => handleChangeVetoSiret( e ) }
+								/>
+								</Form.Item>
+							</div>
+							<div>
+							<Form.Item
+									name  = "AtHomeTrue"
+									rules = {[
+											{
+												message: 'checkboxesAtHomeError',
+													validator: ( value ) => {
+															if ( checkboxesAtHomeError != '' ) {
+																return Promise.reject( 'checkboxesAtHomeError' );
+															} 
+															else {
+																return Promise.resolve();
+															}
+													}
+											}
+									]}
+								>
+							<div className="row">
+								<div className="col-6">
+									
+										<div className 	= "row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" >
+										
+												<div className='col-9' style={{paddingTop: '4px', lineHeight: '16px'}}>
+													{ 'profileVeto_checkboxeIsAtHome' }
+												</div>
+												<div className='col-2' style={{paddingTop: '4%', paddingLeft: '0%'}}>
+													<Input
+															className=''
+															type="checkbox" 
+															name="VetoType1"
+															id="vetoType1"
+															value={ 1 }
+															defaultChecked= { userProfile.atHome == true ? true : false }
+															onChange = { e => handleChangeVetoType(1) }
+															style={{ outline: 'none' }}
+														/>
+													
+												</div>
+											</div>
+									
+								</div>
+								<div className="col-6">
+									
+										<div className 	= "row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" >
+										
+													<div className='col-9' style={{paddingTop: '4px', lineHeight: '16px'}}>
+														{ 'profileVeto_checkboxeIsAtHomeFalse' }
+													</div>
+													<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
+														
+															<Input
+																type="checkbox" 
+																name="VetoType2"
+																id="vetoType2"
+																value={ 2 }
+																defaultChecked= { userProfile.atHome == true ? false :true  }
+																onChange = { e => handleChangeVetoType(2) }
+																style={{ outline: 'none' }}
+															/>
+													</div>
+												</div>
+									
+								</div>
+							</div>
+							</Form.Item>
+							</div>
 						</div>
 					}
 
@@ -2809,7 +2906,7 @@ console.log( 'vetoType', vetoType );
 					
 					{ fieldName == "FirstName" &&
 						<Form.Item
-							name  = "firstName"
+							name  = "FirstName"
 							
 							rules = {[
 								{
@@ -2841,7 +2938,7 @@ console.log( 'vetoType', vetoType );
 							<div className="col-6">
 								<Form.Item
 									className = "backgroundYellow rounded10 height40"
-									name  = "male"
+									name  = "Male"
 								>
 									<div className='row' >
 										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
@@ -2865,7 +2962,7 @@ console.log( 'vetoType', vetoType );
 							<div className="col-6">
 								<Form.Item
 									className = "backgroundYellow rounded10 height40"
-									name  = "female"
+									name  = "Female"
 								>
 									<div className='row'>
 										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
@@ -2894,7 +2991,7 @@ console.log( 'vetoType', vetoType );
 					}
 					{ fieldName == "Biography" &&
 						<Form.Item
-							name  = "biography"
+							name  = "Biography"
 							style = {{ marginBottom: '0px' }}
 							rules = {[
 								{
