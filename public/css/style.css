@@ -178,6 +178,22 @@ ant-select-selection-wrap {
 	background-color: #C1FF72;
 }
 
+.backgroundInactive01{
+	background-color: #f5dff0;
+}
+
+.backgroundInactive02{
+	background-color: #e5dfc0;
+}
+
+.backgroundInactive03{
+	background-color: #a5ede3;
+}
+
+.backgroundRed{
+	background-color: #C1FF72;
+}
+
 .custom-select{
 	height: 20px;
 	background-color: #FFDE59 !important;
@@ -496,8 +512,12 @@ input[type=password]:hover {
 	text-align: center;
 }
 
+.textAlignLeft{
+	text-align: left;
+}
+
 .singleFieldManager .dataDiv{
-	width: 13em;
+	width: 14em;
 	border-color: #FFDE59 !important;
 	border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
