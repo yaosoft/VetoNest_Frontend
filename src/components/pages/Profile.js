@@ -27,8 +27,6 @@ import LanguageSelector from '../LanguageSelector.js';
 import CurrencySelector from '../CurrencySelector.js';
 import Title from '../Title';
 
-
-
 const Profile = ( params ) => {
 	// context
 	const { 
@@ -79,20 +77,27 @@ const Profile = ( params ) => {
 		removeAnimalOpen,
 		photoAnimalDefaultSrc,
 		truncateString,
-		defaultOpenedDays,
 		siteLocale,
 		getTimeslot,
 		setTimeslot,
-		timeslot
+		timeslot,
+		getAbsence,
+		setAbsence,
+		absence,
+		getHollydays,
+		setHollydays,
+		hollydays,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
 	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
-	
-	// const [ formUpdated, setFormUpdated ] = useState( '' );
-	// const [ paymentMethods, setPaymentMethods ] = useState( [] );
+	// count user's pets
 	const [ userTotalAnimal, setUserTotalAnimal ] = useState( 0 );
-	
+	// count vet absence
+	const [ countAbsence, setCountAbsence ] = useState( 0 ); 
+	// count vet absence
+	const [ countHollydays, setCountHollydays ] = useState( 0 ); 
+
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
 	
 	const [ spin, setSpin ] = useState( 'none' );
@@ -192,9 +197,6 @@ const Profile = ( params ) => {
 	}
 
 
-	// date formater
-	// const [ siteLocale, setSiteLocale ] = useState( 'en-EN' );
-	
 	const [ name, setName ] 			= useState( '' );
 	const [ firstName, setFirstName ] 	= useState( '' );
 	const [ dateNaissance, setDateNaissance ] = useState( '' );
@@ -225,15 +227,22 @@ const Profile = ( params ) => {
 			const biography = profile.biography
 			setBiography( biography );
 			// profile nom texte
-
 			const profileNom = profile.nom && truncateString( profile.nom, 12 );
 			setProfileNom( profileNom )
 			// veto timeslot
 			const timeslotObj = await getTimeslot( profile.id );
-console.log( '++++++++++++++++++ timeslotObj', timeslotObj );
 			const timeslot = await Object.entries( timeslotObj );
-console.log( '++++++++++++++++++ timeslot', timeslot );
 			setTimeslot( timeslot );
+			// veto absence
+			const absence = await getAbsence( profile.id );
+			setAbsence( absence );
+			setCountAbsence( absence.length );
+			// system hollydays
+			const hollydays = await getHollydays( profile.id );
+console.log( 'hollydays', hollydays );
+			setHollydays( hollydays );
+			setCountHollydays( hollydays.length );
+			
 		}
 		a();
 	}, [ profileFormUpdated ] ); // Dependency array ensures effect runs when changes
@@ -265,18 +274,44 @@ console.log( '++++++++++++++++++ timeslot', timeslot );
 			dayjs( dateObj01 ).format( 'HH:ss' ) + ' - ' + 
 			dayjs( dateObj02 ).format( 'HH:ss' ) 
 		)};
+		
+		const getFieldName = ( type ) => {
+			if( type == 1 )
+				return 'Open'
+			if( type == 2 )
+				return 'Close'
+			if( type == 3 )
+				return 'Absence'
+			if( type == 4 )
+				return 'Hollydays'
+		}
+		
+		const getStatus = ( type ) => {
+			if( type == 1 )
+				return 'opened'
+			if( type == 2 )
+				return 'closed'
+			if( type == 3 )
+				return 'absent'
+			if( type == 4 )
+				return 'hollydays'
+		}
+		
 console.log( 'timeslot', timeslot )
 		return(
 			timeslot.map( e => 
 				<div className="row singleFieldManager">
 					<SingleFieldManager 
 						params={{
-							fieldName: 		'Timeslot',
-							title:			e.opened ? 'Opened'  : 'Closed',
+							fieldName: 		getFieldName( e[1].type ),
+							title:			e[1].opened ? 'Opened' : 'Closed',
+							nom:			e[1].nom ? e[1].nom : '',
+							description:	e[1].description ? e.description : '',
 							placeholder:	'Horaire',
-							value: 			e[1].opened ? getDayName( e[0] ) + ' ' +   
+							value: 			e[1].opened ? getDayName( e[0] ) + ': ' +   
 												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
-											getDayName( e[0] ) + ': closed' + ( e[1].nom &&  ', ' + e[1].nom + ', ' + e[1].description),
+											getDayName( e[0] ) + ' ' + dayjs( e[1].startTime.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].startTime.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ),
+							style:			e[1].opened ? 'opened' : 'closed',
 							type: 			2, // 2 = update
 						}}
 					/>
@@ -285,33 +320,65 @@ console.log( 'timeslot', timeslot )
 		)
 	}
 	
-	// Build default opened days
-	const BuildDefaultOpenedDays = () =>{
-		const getHoraire = ( dateObj01, dateObj02 ) => { return(
-			dayjs( dateObj01 ).format( 'HH:ss' ) + ' - ' + 
-			dayjs( dateObj02 ).format( 'HH:ss' ) 
-		)};
+	// Build absence
+	const BuildAbsence = () => {
+		if( !absence )
+			return
+
+		const locale = siteLocale.split( '-' )[0];
+
 		return(
-				defaultOpenedDays.map( e => 
-					<div className="row singleFieldManager">
-						<SingleFieldManager 
-							params={{
-								fieldName: 		'Horaires',
-								title:			getDayName( e.dayNumber ) + ' : ' + 
-												getHoraire( e.startTime.date,  e.endTime.date ),
-								placeholder:	'Horaire',
-								value: 			getDayName( e.dayNumber ) + ' : ' + 
-												getHoraire( e.startTime.date,  e.endTime.date ),
-								type: 			2, // 2 = update
-							}}
-						/>
-					</div>
-				)
-			
+			absence.map( e => 
+				<div className="row singleFieldManager">
+					<SingleFieldManager 
+						params={{
+							fieldName: 		'Absence',
+							title:			'Absence',
+							nom:			e.nom,
+							description:	e.description ? e.description : '',
+							placeholder:	'Absence',
+							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
+							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ),
+							style:			'closed',
+							type: 			2, // 2 = update
+							
+						}}
+					/>
+				</div>
+			)
 		)
 	}
-	 
-	// Get a day name
+
+	// Build system's hollydays
+	const BuildHollydays = () => {
+		if( !hollydays )
+			return
+
+		const locale = siteLocale.split( '-' )[0];
+
+		return(
+			hollydays.map( e => 
+				<div className="row singleFieldManager">
+					<SingleFieldManager 
+						params={{
+							fieldName: 		'Hollydays',
+							title:			'Hollydays',
+							nom:			e.nom,
+							description:	e.description ? e.description : '',
+							placeholder:	'Hollydays',
+							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
+							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ),
+							style:			'closed',
+							type: 			2, // 2 = update
+							
+						}}
+					/>
+				</div>
+			)
+		)
+	}
+
+	// Get a day name from day number
 	const getDayName = ( dayNumber, locale = siteLocale ) => {
 		// Create a Date object. The specific date doesn't matter as we only need the day of the week.
 		// We set it to a Sunday (e.g., January 1, 2000) and then adjust the day.
@@ -322,10 +389,18 @@ console.log( 'timeslot', timeslot )
 		
 		const dayName = date.toLocaleDateString( locale, { weekday: 'long' } );
 
-console.log( `>>>>>> Day name: ${dayName}` );
+// console.log( `>>>>>> Day number: ${dayNumber} Day name: ${dayName}` );
 		
 		return dayName;
 		
+	}
+
+	// get a month name from month number
+	const getMonthName = ( monthNumber, locale = siteLocale ) => {
+		const date = new Date();
+		const monthName = date.toLocaleDateString( locale, { month: 'short' } );
+
+		return monthName;
 	}
 
 	// build pets list
@@ -575,16 +650,16 @@ console.log( `>>>>>> Day name: ${dayName}` );
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Jours fériés
+											Absence
 										</div>
 										<div className="row">
 											<div className="col-md-9">
 												<div className="row singleFieldManager">
 													<SingleFieldManager params={{
-															fieldName: 	'Hollidays',
-															title:		'Ajouter un jour férié',
-															placeholder: 'Hollidays',
-															value: 'Ajouter un jour férié',
+															fieldName: 	'Absence',
+															title:		'Ajouter une abscence',
+															placeholder: 'Absence',
+															value: 'Ajouter une absence',
 															type: 1, // 1 = create
 														}}
 													/>
@@ -593,10 +668,10 @@ console.log( `>>>>>> Day name: ${dayName}` );
 											<div className="col-md-9">
 												<br/>
 												<div className="row">
-													Vous avez 0 jour fériés<br/>
+													Vous avez { countAbsence } jour absence programmée<br/>
 												</div>
 												<div className="row singleFieldManager">
-													<BuildUserPetsList />
+													<BuildAbsence />
 												</div>
 											</div>
 										</div>

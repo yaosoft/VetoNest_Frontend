@@ -451,10 +451,22 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 		return rep;
 	}
 
-	// list all default opened days
-	const [ defaultOpenedDays, setDefaultOpenedDays ] = useState( [] );
-	const defaultOpenedDaysList = async () => {
-		const url		= base_api_url + 'timeSlotDefault/list';
+	// Hollydays
+	const [ hollydays, setHollydays ] = useState( '' );
+	const getHollydays = async ( profileVetoId ) => {
+		const url		= base_api_url + 'timeSlotClosedDateDefault/list';
+		const data 		= ''; 
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Absence
+	const [ absence, setAbsence ] = useState( '' );
+	const getAbsence = async ( profileVetoId ) => {
+		const url		= base_api_url + 'timeSlotClosedDate/list?profileVetoId=' + profileVetoId;
 		const data 		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
@@ -969,7 +981,6 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 				// site countries list
 				countriesAllowed,
 				especes,
-				defaultOpenedDays,
 				selectedAnimal, 
 				setSelectedAnimal,
 				modalRemoveAnimalOpen, 
@@ -994,7 +1005,13 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 				validateSiretNumber,
 				getTimeslot,
 				timeslot, 
-				setTimeslot
+				setTimeslot,
+				getAbsence,
+				setAbsence,
+				absence,
+				getHollydays,
+				setHollydays,
+				hollydays,
 			}}
 		>
 

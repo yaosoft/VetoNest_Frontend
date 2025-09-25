@@ -6,6 +6,8 @@ import { SiteContext } from "../context/site";
 
 import { Form, Select } from 'antd';
 import { message } from 'antd';
+import { Tooltip, Button } from 'antd';
+
 import ModalProfileIdentity from './ModalProfileIdentity';
 
 import Header from './Header';
@@ -26,21 +28,26 @@ const SingleFieldManager = ( params ) => {
 		profileId,
 		userId,
 		user,
+		truncateString,
 	} = useContext( AuthContext );
 	
 	const [ fieldName, setFieldName ] = useState( '' );
-	const [ title, setTitle ] = useState( '' );
-	const [ value, setValue ] = useState( '' );
-	
-	const [ type, setType ] = useState( '' );
-
+	const [ title, setTitle ] 	= useState( '' );
+	const [ value, setValue ] 	= useState( '' );
+	const [ type, setType ] 	= useState( '' );
+	const [ style, setStyle ] 	= useState( '' );
+	const [ backgroundColor, setBackgroundColor ] 	= useState( '' );
 	const [ placeholder, setPlaceholder ] = useState( '' );
-	
+	const [ description, setDescription ] = useState( '' );
 	useEffect( () => {
 		// type
 		const type = params.params.type;
 		setType(type);
-		
+
+		// style
+		const style = params.params.style && params.params.style;
+		setStyle(style);
+
 		// placeholder
 		const placeholder = params.params.placeholder;
 		setPlaceholder( placeholder );
@@ -49,6 +56,21 @@ const SingleFieldManager = ( params ) => {
 		const fieldName = params.params.fieldName;
 		setFieldName( fieldName );
 		setValue( params.params.value );
+
+		// description
+		const description = params.params.description && params.params.description;
+		setDescription( description );
+
+		// style
+		if( fieldName == 'Open' )
+			setBackgroundColor( 'backgroundOlive' )
+		else if( fieldName == 'Close' )
+			setBackgroundColor( 'backgroundInactive01' )
+		else if( fieldName == 'Absence' )
+			setBackgroundColor( 'backgroundInactive02' )
+		else if( fieldName == 'Hollydays' )
+			setBackgroundColor( 'backgroundInactive03' )
+		else setBackgroundColor( 'backgroundOlive' )
 
 	}, [userProfile] );
 
@@ -67,6 +89,14 @@ const SingleFieldManager = ( params ) => {
 
 	}
 	
+	const BuildTooltip = ( text ) => {
+		return(
+			<Tooltip placement="bottom" title={text}>
+				<span>details</span>
+			</Tooltip>
+		)
+	}
+	
 	return (
 	<>
 		{
@@ -78,8 +108,8 @@ const SingleFieldManager = ( params ) => {
 				}}
 				/>
 				<div className='row singleFieldManager'>
-					<div className='dataDiv backgroundOlive' style={{ textAlign: 'left' }} >
-						<span>{ value ? value : placeholder }</span>
+					<div className={ 'dataDiv textAlignLeft ' + backgroundColor } >
+						<span>{ value ? value : placeholder } &nbsp; { description && BuildTooltip(description) }</span>
 					</div> 
 					<div 
 						className='buttonDiv borderRadius18'
