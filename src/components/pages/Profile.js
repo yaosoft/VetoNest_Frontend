@@ -81,12 +81,12 @@ const Profile = ( params ) => {
 		getTimeslot,
 		setTimeslot,
 		timeslot,
-		getAbsence,
-		setAbsence,
-		absence,
+		getAbsences,
+		setAbsences,
 		getHollydays,
 		setHollydays,
 		hollydays,
+		absences,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -232,14 +232,16 @@ const Profile = ( params ) => {
 			// veto timeslot
 			const timeslotObj = await getTimeslot( profile.id );
 			const timeslot = await Object.entries( timeslotObj );
+// console.log( '*********** timeslot', timeslot );
 			setTimeslot( timeslot );
-			// veto absence
-			const absence = await getAbsence( profile.id );
-			setAbsence( absence );
-			setCountAbsence( absence.length );
+			// veto absences
+			const absences = await getAbsences( profile.id );
+// console.log( '*********** absences', absences );
+			setAbsences( absences ); 
+			setCountAbsence( absences.length );
 			// system hollydays
 			const hollydays = await getHollydays( profile.id );
-console.log( 'hollydays', hollydays );
+// console.log( '*********** hollydays', hollydays );
 			setHollydays( hollydays );
 			setCountHollydays( hollydays.length );
 			
@@ -297,7 +299,7 @@ console.log( 'hollydays', hollydays );
 				return 'hollydays'
 		}
 		
-console.log( 'timeslot', timeslot )
+// console.log( '---------- timeslot', timeslot )
 		return(
 			timeslot.map( e => 
 				<div className="row singleFieldManager">
@@ -310,7 +312,7 @@ console.log( 'timeslot', timeslot )
 							placeholder:	'Horaire',
 							value: 			e[1].opened ? getDayName( e[0] ) + ': ' +   
 												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
-											getDayName( e[0] ) + ' ' + dayjs( e[1].startTime.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].startTime.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ),
+											getDayName( e[0] ) + ' ' + ( e[1].closedDate ?  ' ' + dayjs( e[1].closedDate.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].closedDate.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ) : ': closed' ),
 							style:			e[1].opened ? 'opened' : 'closed',
 							type: 			2, // 2 = update
 						}}
@@ -322,26 +324,25 @@ console.log( 'timeslot', timeslot )
 	
 	// Build absence
 	const BuildAbsence = () => {
-		if( !absence )
+
+		if( !absences )
 			return
 
-		const locale = siteLocale.split( '-' )[0];
-
 		return(
-			absence.map( e => 
+			absences.map( e => 
 				<div className="row singleFieldManager">
 					<SingleFieldManager 
 						params={{
 							fieldName: 		'Absence',
-							title:			'Absence',
+							title:			'Modifier une absence',
 							nom:			e.nom,
+							selectedAbsenceId:	e.id,
 							description:	e.description ? e.description : '',
 							placeholder:	'Absence',
-							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
-							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ),
+							value: 			dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
+							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ) + ', ' + truncateString( e.nom, 10 ),
 							style:			'closed',
 							type: 			2, // 2 = update
-							
 						}}
 					/>
 				</div>
@@ -354,8 +355,6 @@ console.log( 'timeslot', timeslot )
 		if( !hollydays )
 			return
 
-		const locale = siteLocale.split( '-' )[0];
-
 		return(
 			hollydays.map( e => 
 				<div className="row singleFieldManager">
@@ -364,6 +363,7 @@ console.log( 'timeslot', timeslot )
 							fieldName: 		'Hollydays',
 							title:			'Hollydays',
 							nom:			e.nom,
+							selectedHollyday:	e.id,
 							description:	e.description ? e.description : '',
 							placeholder:	'Hollydays',
 							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
@@ -657,7 +657,7 @@ console.log( 'timeslot', timeslot )
 												<div className="row singleFieldManager">
 													<SingleFieldManager params={{
 															fieldName: 	'Absence',
-															title:		'Ajouter une abscence',
+															title:		'Ajouter une absence',
 															placeholder: 'Absence',
 															value: 'Ajouter une absence',
 															type: 1, // 1 = create
@@ -668,11 +668,9 @@ console.log( 'timeslot', timeslot )
 											<div className="col-md-9">
 												<br/>
 												<div className="row">
-													Vous avez { countAbsence } jour absence programmée<br/>
+													Vous avez { countAbsence } absence programmée<br/>
 												</div>
-												<div className="row singleFieldManager">
 													<BuildAbsence />
-												</div>
 											</div>
 										</div>
 									</div>

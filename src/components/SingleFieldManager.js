@@ -18,7 +18,10 @@ const SingleFieldManager = ( params ) => {
 		setModalProfileIdentityOpen,
 		userProfile,
 		setVisibleModalName,
-		setSelectedPetId,
+		setSelectedPetId, 
+		setSelectedAbsenceId,
+		setSelectedHollydayId,
+		setSelectedTimeslotId,
 	} = useContext( SiteContext );
 
 	// context
@@ -75,17 +78,34 @@ const SingleFieldManager = ( params ) => {
 	}, [userProfile] );
 
 
-	const handleClickField = () => {
-		// selected pet's book ID
-		const selectedPetId = params.params.selectedPetId && params.params.selectedPetId;
-		setSelectedPetId( selectedPetId );
-		
-		// title
-		const title = params.params.title;
-		setTitle( title );
-		setModalProfileIdentityOpen( true );
-		
-		setVisibleModalName( params.params.fieldName );
+	const handleClickField = ( e ) => {
+		const a = async() => {
+			// selected pet's book ID
+			const selectedPetId = await params.params.selectedPetId ? params.params.selectedPetId : '';
+			setSelectedPetId( selectedPetId );
+
+			// timeslot selected absence
+			const selectedAbsenceId = await params.params.selectedAbsenceId ? params.params.selectedAbsenceId : '';
+			setSelectedAbsenceId( selectedAbsenceId );
+			
+			// timeslot selected hollyday
+			const selectedHollydayId = await params.params.selectedHollydayId ? params.params.selectedHollydayId : '';
+			setSelectedHollydayId( selectedHollydayId );		
+			
+			// timeslot selected timeslot
+			const selectedTimeslotId = await params.params.selectedTimeslotId ? params.params.selectedTimeslotId : '';
+			setSelectedTimeslotId( selectedTimeslotId );
+
+			// title
+			const title = await params.params.title;
+console.log( "dddddddddd params.params", params.params );
+console.log( "++++++++++ params.params.title", params.params.title );
+			setTitle( title );
+
+			setModalProfileIdentityOpen( true );
+			setVisibleModalName( params.params.fieldName );
+		}
+		a();
 
 	}
 	
@@ -115,7 +135,7 @@ const SingleFieldManager = ( params ) => {
 						className='buttonDiv borderRadius18'
 						role={'button'}
 						tabIndex={0}
-						onClick={ (e) => handleClickField() }
+						onClick={ (e) => handleClickField( e ) }
 					>
 						<span>{ type == 1 ? 'add' : 'modify' } ></span>
 					</div>

@@ -301,7 +301,6 @@ export const SiteProvider = ({ children }) => {
 
 	// get a user profile
 	const profileGet = async ( profileId, profileTypeId ) => {
-console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 		const type 		= profileTypeId == 1 ? 'profileUser' : 'profileVeto';
 		const url		= base_api_url + type + '/show/?' + type + 'Id=' + profileId;
 		const data 		= '';
@@ -451,8 +450,7 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 		return rep;
 	}
 
-	// Hollydays
-	const [ hollydays, setHollydays ] = useState( '' );
+	// Veto's hollydays
 	const getHollydays = async ( profileVetoId ) => {
 		const url		= base_api_url + 'timeSlotClosedDateDefault/list';
 		const data 		= ''; 
@@ -463,9 +461,8 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 		return rep;
 	}
 
-	// Absence
-	const [ absence, setAbsence ] = useState( '' );
-	const getAbsence = async ( profileVetoId ) => {
+	// Veto's absence
+	const getAbsences = async ( profileVetoId ) => {
 		const url		= base_api_url + 'timeSlotClosedDate/list?profileVetoId=' + profileVetoId;
 		const data 		= '';
 		const method 	= 'GET';
@@ -562,6 +559,15 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 
 		return resp;
 	}
+	
+	// Timeslot - veto's absences
+	const [ absences, setAbsences ] = useState( '' );
+	const [ selectedAbsenceId, setSelectedAbsenceId ] = useState( '' );
+	// Timeslot - hollyday
+	const [ hollydays, setHollydays ] = useState( '' );
+	const [ selectedHollydayId, setSelectedHollydayId ] = useState( '' );
+	// Timeslot
+	const [ selectedTimeslotId, setSelectedTimeslotId ] = useState( '' );
 	
 	// selected ( active ) pets
 	const [ userPets, setUserPets ] = useState( [] );
@@ -1006,12 +1012,17 @@ console.log( '>>>>>>>>>>>>>>>>>> profileTypeId', profileTypeId );
 				getTimeslot,
 				timeslot, 
 				setTimeslot,
-				getAbsence,
-				setAbsence,
-				absence,
+				getAbsences,
+				setAbsences,
+				absences,
 				getHollydays,
 				setHollydays,
-				hollydays,
+				selectedTimeslotId,
+				setSelectedTimeslotId,
+				selectedAbsenceId,
+				setSelectedAbsenceId,
+				selectedHollydayId,
+				setSelectedHollydayId,
 			}}
 		>
 
