@@ -135,6 +135,11 @@ const ModalProfileIdentity = ( params ) => {
 		validateSiretNumber,
 		phoneNumberErrorText,
 		phoneNumberErrorText02,
+		absences,
+		hollydays,
+		timeslot,
+		selectedAbsenceId,
+		selectedHollydayId,
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -301,10 +306,45 @@ const ModalProfileIdentity = ( params ) => {
 
 		if( data && test === false ){
 		
-			animalNameErrorText = profileAnimal_animalNameErrorText
+			animalNameErrorText = 'profileAnimal_animalNameErrorText'
 		}
 		// signUpAnimalNameErrorText = 'Your animalName seems incorect'
 		setAnimalNameError( animalNameErrorText );
+	}
+
+	// Veto absence name
+	const [ absenceName, setAbsenceName ] = useState( '' );
+	const [ absenceNameError, setAbsenceNameError ] = useState( '' );
+	const handleChangeAbsenceName = ( e ) => {
+		const data = e.target.value;
+		setAbsenceName( data );
+
+		var absenceNameErrorText = '';
+		const test = nameValidator( data )
+
+		if( data && test === false ){
+			absenceNameErrorText = 'profileAbsence_absenceNameErrorText'
+		}
+		// signUpAbsenceNameErrorText = 'Your absenceName seems incorect'
+		setAbsenceNameError( absenceNameErrorText );
+	}
+
+	// Veto absence description
+	const [ absenceDescription, setAbsenceDescription ] = useState( '' );
+	const [ absenceDescriptionError, setAbsenceDescriptionError ] = useState( '' );
+	const handleChangeAbsenceDescription = ( e ) => {
+		const data = e.target.value;
+		setAbsenceDescription( data );
+
+		var absenceDescriptionErrorText = '';
+		const test = nameValidator( data )
+
+		if( data && test === false ){
+		
+			absenceDescriptionErrorText = 'profileAbsence_absenceDescriptionErrorText'
+		}
+		// signUpAbsenceDescriptionErrorText = 'Your absenceDescription seems incorect'
+		setAbsenceDescriptionError( absenceDescriptionErrorText );
 	}
 
 	// animal espece
@@ -606,6 +646,21 @@ const ModalProfileIdentity = ( params ) => {
 		// const year 	= dateString.$y;
 		const dateStr = date.format('YYYY-MM-DD');
 		setAnimalDateNaissance( dateStr )
+	}
+
+	// Absence
+	const [ dateAbsence, setDateAbsence ] = useState( '' );
+	const handleDateAbsenceChange = ( date, dateString ) => {
+// console.log( 'date', date.format('YYYY-MM-DD') );
+		// const day 	= dateString.$D;
+		// const month = dateString.$M;
+		// const year 	= dateString.$y;
+		const today = new Date();
+		const dateStr = date.format('YYYY-MM-DD');
+		if( dateStr < today )						// todo: dynamic
+			setDateAbsence( dateStr )
+		else
+			message.error( 'Invalide date' )	// todo
 	}
 
 	// Biography
@@ -1629,6 +1684,11 @@ const ModalProfileIdentity = ( params ) => {
 	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
 
 	
+	// veto absence
+	const [ absence, setAbsence ]= useState( '' );
+
+	// veto hollyday
+	const [ hollyday, setHollyday ]= useState( '' );
 	
 	useEffect(() => {
 // console.log( 'signUp_nameErrorText', signUp_nameErrorText );
@@ -1638,6 +1698,8 @@ const ModalProfileIdentity = ( params ) => {
 		clearFormErrors();
 
 		const modalActiveTitle = params.params.title;
+// console.log( 'eeee params.params', params.params );
+// console.log( '<<<< modalActiveTitle', modalActiveTitle );
 		setTitle( modalActiveTitle );
 
 		const fieldName = params.params.fieldName;
@@ -1665,7 +1727,7 @@ const ModalProfileIdentity = ( params ) => {
 		const languageDefault = [ selectedLanguageId ]; // default
 		setLanguageSelected( languageDefault );
 
-		// 
+
 		const a = async () => {
 			
 			// default name
@@ -1767,10 +1829,26 @@ const ModalProfileIdentity = ( params ) => {
 				setVetoType( vetoType );
 			}
 			
+			// veto absence
+			if( selectedAbsenceId ){
+console.log( '>>>>>>>>>> selectedAbsenceId', selectedAbsenceId );
+console.log( '>>>>>>>>>> absences', absences );
+				const absence = absences.filter( e => e.id == selectedAbsenceId )[0];
+console.log( '>>>>>>>>>> absence', absence );
+				setAbsence( absence );
+				setTitle( 'Modifier une absence' )
+			}
+
+			// veto hollyday
+			if( selectedHollydayId ){
+				const hollyday = hollydays.map( e => e.id = selectedHollydayId )[0];
+				setHollyday( hollyday )
+			}
+			
 		}
 		a()
 
-	}, [ fieldName, modalProfileIdentityOpen ]) 
+	}, [ modalProfileIdentityOpen ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -1829,6 +1907,76 @@ const ModalProfileIdentity = ( params ) => {
 					form = {form}
 					/* initialValues={{ PaypalEmail: 'john.doe@example.com' }} */
 				>
+					{ fieldName == "Absence" &&
+						<>
+							<div className="backgroundYellow rounded10 width100per100 borderNone height40">
+									<ConfigProvider 
+										locale={ getDatePickerlocale() }
+									>
+										<DatePicker 
+											defaultValue={ absence.closedDate ? dayjs( absence.closedDate.date ) : '' }
+											onChange={ (e) => handleDateAbsenceChange(e) }
+										/>
+									</ConfigProvider>
+							</div>
+							<div className="profilIdentityField">
+								<Form.Item
+									name  = "AbsenceName"
+									rules = {[
+										{
+											message: absenceNameError,
+											validator: ( value ) => {
+												if ( absenceNameError ) {
+													return Promise.reject( absenceNameError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									initialValue  = { absence.nom }
+								>
+									<Input 
+										name  = "absenceNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ signUp_namePlaceholder }
+										type="text" 
+										value={ absenceName }
+										onChange = { e => handleChangeAbsenceName(e) }
+									/>
+								</Form.Item>
+							</div>
+							<div className="">
+								<Form.Item
+									name  = "AbsenceDescription"
+									rules = {[
+										{
+											message: absenceDescriptionError,
+											validator: ( value ) => {
+												if ( absenceDescriptionError ) {
+													return Promise.reject( absenceDescriptionError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									initialValue  = { absence.description }
+								>
+									<Input 
+										name  = "absenceDescriptionInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ 'profileAbsence_descriptionPlaceholder' }
+										type="text" 
+										value={ absenceDescription }
+										onChange = { e => handleChangeAbsenceDescription(e) }
+									/>
+								</Form.Item>
+							</div>
+						</>
+					}
 					{ fieldName == "Country" &&
 						<>
 							<div className="row">
