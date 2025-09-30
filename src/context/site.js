@@ -376,10 +376,6 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// profile remove payment method modal
-	const [ selectedPaymentMethod, setSelectedPaymentMethod ] = useState( '' );
-	const [ modalRemovePaymentMethodOpen, setModalRemovePaymentMethodOpen ] = useState( false );
-
 	// profile remove animal modal
 	const [ selectedAnimal, setSelectedAnimal ] = useState( '' );
 	const [ modalRemoveAnimalOpen, setModalRemoveAnimalOpen ] = useState( false );
@@ -466,6 +462,29 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'timeSlotClosedDate/list?profileVetoId=' + profileVetoId;
 		const data 		= '';
 		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// update veto absence
+	const timeSlotClosedDateUpdate = async ( timeSlotData ) => {
+		const url		= base_api_url + 'timeSlotClosedDate/edit';
+		const data 		= timeSlotData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+
+	// delete veto absence
+	const timeSlotClosedDateRemove = async ( timeSlotData ) => {
+		const url		= base_api_url + 'timeSlotClosedDate/delete';
+		const data 		= timeSlotData;
+		const method 	= 'POST';
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
@@ -568,6 +587,7 @@ export const SiteProvider = ({ children }) => {
 	const [ selectedHollydayId, setSelectedHollydayId ] = useState( '' );
 	// Timeslot
 	const [ selectedTimeslotId, setSelectedTimeslotId ] = useState( '' );
+	const [ selectedTimeslotOpen, setSelectedTimeslotOpen ] = useState( {} );
 	
 	// selected ( active ) pets
 	const [ userPets, setUserPets ] = useState( [] );
@@ -767,12 +787,6 @@ export const SiteProvider = ({ children }) => {
 				userPaymentMethodList,
 				userPaymentMethodEdit,
 				userPaymentMethodRemove,
-				modalPaymentMethodOpen,
-				setModalPaymentMethodOpen,
-				modalRemovePaymentMethodOpen, 
-				setModalRemovePaymentMethodOpen,
-				setSelectedPaymentMethod,
-				selectedPaymentMethod,
 				visibleModalName, 
 				setVisibleModalName,
 				languageList,
@@ -1019,10 +1033,14 @@ export const SiteProvider = ({ children }) => {
 				setHollydays,
 				selectedTimeslotId,
 				setSelectedTimeslotId,
+				selectedTimeslotOpen,
+				setSelectedTimeslotOpen,
 				selectedAbsenceId,
 				setSelectedAbsenceId,
 				selectedHollydayId,
 				setSelectedHollydayId,
+				timeSlotClosedDateUpdate,
+				timeSlotClosedDateRemove,
 			}}
 		>
 

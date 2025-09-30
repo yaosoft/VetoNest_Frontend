@@ -1,22 +1,28 @@
 import React, { useState, useEffect, useContext } from "react";
-
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
+
+import { Country, State, City }  from 'country-state-city';
+import { Form, Input, Select, Checkbox, List, TimePicker  } from 'antd';
+import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
+import dayjs from 'dayjs';
+import { ConfigProvider } from 'antd';
+
 import locale_fr from 'antd/locale/fr_FR';
 import locale_en from 'antd/locale/en_US';
 import locale_es from 'antd/locale/es_ES';
 import locale_de from 'antd/locale/de_DE';
 import locale_it from 'antd/locale/it_IT';
-import { Country, State, City }  from 'country-state-city';
-import { Form, Input, Select, Checkbox, List } from 'antd';
-import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
-import dayjs from 'dayjs';
-import { ConfigProvider } from 'antd';
+import 'dayjs/locale/fr';
+import 'dayjs/locale/en';
+import 'dayjs/locale/es';
+import 'dayjs/locale/de';
+import 'dayjs/locale/it';
 
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import InputCode from "./InputCode";
-const ModalProfileIdentity = ( params ) => {
+const ModalProfile = ( params ) => {
 	
 	const { 
 		getUser,
@@ -140,6 +146,10 @@ const ModalProfileIdentity = ( params ) => {
 		timeslot,
 		selectedAbsenceId,
 		selectedHollydayId,
+		timeSlotClosedDateUpdate,
+		setSelectedAbsenceId,
+		timeSlotClosedDateRemove,
+		selectedTimeslotOpen
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -199,23 +209,6 @@ const ModalProfileIdentity = ( params ) => {
 		a();
 	}, [fileList]); // Dependency array ensures effect runs when isModalOpen changes
 
-
-	// const modalPhotoHandleOk = async() => {
-		// const profileIdType = profileTypeId == 1 ? 'profileUserId' : 'profileVetoId';
-		// var data = {};
-		// data[ profileIdType ] = profileId;
-		// const rep = await profileUpdate ( data, profilePhoto, profileTypeId );
-		
-		// if( rep ){
-			// message.success( 'Updated!' );
-			// const random = generateRandomDigits(3);
-			// setFormUpdated( random );
-		// }
-		// else{
-			// message.error( 'not Updated!' )
-		// }
-		// setIsModalPhotoOpen( false );
-	// }
 	
 	const modalPhotoCancel = () => {
 		setIsModalPhotoOpen( false );
@@ -232,11 +225,11 @@ const ModalProfileIdentity = ( params ) => {
 	
 	// flags
 	const [ selectedFlag, setSelectedFlag ] = useState( 'fr' ); // ToDo create default country in site context
+
 	// phone
 	const [ selectedCountryCode, setSelectedCountryCode ] = useState( '+33' ); // ToDO
 	const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 
-	
 	// title
 	const [ title, setTitle ] = useState( '' );
 
@@ -345,6 +338,42 @@ const ModalProfileIdentity = ( params ) => {
 		}
 		// signUpAbsenceDescriptionErrorText = 'Your absenceDescription seems incorect'
 		setAbsenceDescriptionError( absenceDescriptionErrorText );
+	}
+
+	const handleAbsenceRemove = async () => {
+		const timeSlotData = { timeSlotClosedDateId: selectedAbsenceId  };
+		const rep = await timeSlotClosedDateRemove( timeSlotData );	// save
+			
+		if( rep === false ){ //
+			message.error( 'Veto profile cannot be updated' );
+			return;
+		}
+		else{
+			setSelectedAbsenceId('');
+			setAbsence('');
+			const random = generateRandomDigits(3);
+			setProfileFormUpdated( random );
+			message.success( 'Profile updated' );
+			setModalProfileIdentityOpen( false );
+		}
+
+		// This is the function that runs when the user confirms the removal.
+		console.log('Item removed!');
+		message.success('Item has been successfully removed.');
+		setIsModalOpen(false); // Close the main modal after the action is complete
+	}
+
+	// Timeslot opened
+	const [ startTime, setStartTime ] 	= useState( null );
+	const [ endTime, setEndTime ] 		= useState( null );
+	const [ day, setDay ] 				= useState( '' );
+	const [ opened, setOpened ] 		= useState( '' );
+	const handleStartTimeChange = (time) => {
+console.log( '---------------- time', time );
+		setStartTime(time);
+	}
+	const handleEndTimeChange = (time) => {
+		setEndTime(time);
 	}
 
 	// animal espece
@@ -650,18 +679,15 @@ const ModalProfileIdentity = ( params ) => {
 
 	// Absence
 	const [ dateAbsence, setDateAbsence ] = useState( '' );
-	const handleDateAbsenceChange = ( date, dateString ) => {
-// console.log( 'date', date.format('YYYY-MM-DD') );
-		// const day 	= dateString.$D;
-		// const month = dateString.$M;
-		// const year 	= dateString.$y;
-		const today = new Date();
-		const dateStr = date.format('YYYY-MM-DD');
-		if( dateStr < today )						// todo: dynamic
-			setDateAbsence( dateStr )
-		else
-			message.error( 'Invalide date' )	// todo
+	const handleDateAbsenceChange = ( date ) => {
+console.log( '>>>>>>>>>>> date', date );
+		// const dateStr = date.format('YYYY-MM-DD');
+		setDateAbsence( date )
 	}
+	const disabledPastDates = (current) => {
+		// Disable dates before today
+		return current && current.isBefore(dayjs().startOf('day'));
+	};
 
 	// Biography
 	const [ biographyError, setBiographyError]  = useState( '' );
@@ -767,6 +793,20 @@ const ModalProfileIdentity = ( params ) => {
 		
 		return locale_en // falback
 	}
+	// get date format local
+	const getDateFormatLocale = () =>{
+		if( siteLanguage =='fr' )
+			return 'DD MMM YYYY'
+		if( siteLanguage =='de' )
+			return 'YYYY-MM-DD'
+		if( siteLanguage =='es' )
+			return 'YYYY-MM-DD'
+		if( siteLanguage =='it' )
+			return 'YYYY-MM-DD'
+		
+		return 'YYYY-MM-DD' // falback
+	}
+
 
 	// Build countries options
 	const BuildCountriesOptions = () => {
@@ -883,6 +923,90 @@ const ModalProfileIdentity = ( params ) => {
 
 	// save
 	const handleClickSave = async () => {
+
+		// Opened
+		if( fieldName == 'ProfileVeto' ){
+			// check the form errors
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if(	dayjs( startTime ) <= dayjs( setStartTime ) ) {
+					errorsExist = true
+					//setPhoneNumberError( 'phoneNumberErrorText' );
+				}
+			}
+		}
+			
+		// Absence
+		if( fieldName == 'Absence' ){
+// check the form errors
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( absenceNameError != '' ){
+					errorsExist = true
+					//setPhoneNumberError( 'phoneNumberErrorText' );
+				}
+				else if( absenceDescriptionError != '' ){
+					errorsExist = true
+					//setVetoNameError( signUp_nameErrorText );
+				}
+				form.validateFields();
+				return errorsExist
+			}
+			const formHasErrors = await checkFormErrors();
+
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				return
+			}
+
+			// check form empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = () => {
+// console.log( 'phoneNumber', phoneNumber );
+				if( absenceName == '' ){
+					formHasEmpty = 'profileAbssence_emptyNameErrorText';
+					setPhoneNumberError( formHasEmpty );
+				}
+				// if( absenceDescription == '' ){
+					// formHasEmpty = 'profileAbssence_emptyDescriptionErrorText';
+					// setVetoNameError( formHasEmpty );
+				// }
+				form.validateFields();
+			}
+			
+			await checkFormEmpty();
+			
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+console.log( '++++++++++ dateAbsence', dateAbsence );
+			const sendData = {
+				timeSlotClosedDateId:	absence ? absence.id : '',
+				closedDate: 			dateAbsence.format('YYYY-MM-DD'),
+				profileVetoId:			profileId,
+				nom:					absenceName,
+				description:			absenceDescription,
+				enabled: 				true,
+			}
+			
+			const rep = await timeSlotClosedDateUpdate( sendData );	// save
+			
+			if( rep === false ){ //
+				message.error( 'Veto profile cannot be updated' );
+				return;
+			}
+			else{
+				setSelectedAbsenceId('');
+				setAbsence('');
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+			}
+		}
 		
 		// Profile veto
 		if( fieldName == 'ProfileVeto' ){
@@ -928,17 +1052,14 @@ const ModalProfileIdentity = ( params ) => {
 				if( phoneNumber == '' ){
 					formHasEmpty = 'phoneNumberEmptyErrorText';
 					setPhoneNumberError( formHasEmpty );
-					form.validateFields()
 				}
 				if( vetoName == '' ){
 					formHasEmpty = signUp_nameEmpty;
 					setVetoNameError( formHasEmpty );
-					form.validateFields()
 				}
 				if( vetoFirstName == '' ){
 					formHasEmpty = signUp_firstNameErrorText;
 					setVetoFirstNameError( formHasEmpty );
-					form.validateFields()
 				}
 				// if( vetoRpps == '' ){
 					// formHasEmpty = 'vetoRppsEmptyErrorText';
@@ -1126,7 +1247,7 @@ const ModalProfileIdentity = ( params ) => {
 			const animalData = {
                 nomAnimal: animalName,
                 sexeId: animalSexe,
-                dateDeNaissance: dayjs( animalDateNaissance, "YYYY-MM-DD+h:mm").format('YYYY-MM-DD') ,
+                dateDeNaissance: dayjs( animalDateNaissance, "YYYY-MM-DD+h:mm" ).format('YYYY-MM-DD') ,
                 especeId: animalEspece,
 				raceId: animalRace,
                 profileUserId: profileId,
@@ -1349,6 +1470,7 @@ const ModalProfileIdentity = ( params ) => {
 				setModalProfileIdentityOpen( false );
 			}
 		}
+
 	}
 
 	// check the form errors
@@ -1391,17 +1513,21 @@ const ModalProfileIdentity = ( params ) => {
 	// Modal
 	const modalProfileIdentityOk = async( ) => {
 		const rep = await handleClickSave();
-		if( rep !== false )
-			modalProfileIdentityClosed()
+		if( rep !== false ){
+			modalProfileIdentityClosed();
+			setHasModalBeenShown( false );
+		}
 	}
 	
 	const modalProfileIdentityCancel = async( ) => {
-		setModalProfileIdentityOpen( false )
+		setModalProfileIdentityOpen( false );
+		setHasModalBeenShown( false );
 	}
 	
 	const modalProfileIdentityClosed = async( ) => {
 		setVisibleModalName( '' );
 		setModalProfileIdentityOpen( false );
+		setHasModalBeenShown( false );
 		form.resetFields();
 	}
 
@@ -1690,20 +1816,48 @@ const ModalProfileIdentity = ( params ) => {
 	// veto hollyday
 	const [ hollyday, setHollyday ]= useState( '' );
 	
+	//
+	const [ openModal, setOpenModal ] = useState( false );
+	const [ hasModalBeenShown, setHasModalBeenShown ] = useState( false );
+	
+	// form
+	const [form] = Form.useForm();
 	useEffect(() => {
-// console.log( 'signUp_nameErrorText', signUp_nameErrorText );
-// console.log( 'signUp_firstNameErrorText', signUp_firstNameErrorText );
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
+	
 
 		const modalActiveTitle = params.params.title;
-// console.log( 'eeee params.params', params.params );
-// console.log( '<<<< modalActiveTitle', modalActiveTitle );
+// console.log( '<<<<------------ modalActiveTitle', modalActiveTitle );
 		setTitle( modalActiveTitle );
 
 		const fieldName = params.params.fieldName;
+// console.log( '<<<<----------- params', params.params );
 		setFieldName( fieldName );
+
+		const openModal = ( fieldName === visibleModalName ) && modalProfileIdentityOpen;
+		
+		if( hasModalBeenShown === false ){
+			if( openModal === true ){
+				setOpenModal( true );
+				setHasModalBeenShown( true );
+			}
+			if( openModal === false ){
+				setOpenModal( false );
+				setHasModalBeenShown( false );
+			}
+		}
+		else if( hasModalBeenShown === true ){
+			setOpenModal( false );
+			// setHasModalBeenShown( false );
+		}
+
+console.log( 'fieldName', fieldName );
+console.log( 'visibleModalName', visibleModalName );
+console.log( 'fieldName === visibleModalName', ( fieldName === visibleModalName ) && modalProfileIdentityOpen );
+console.log( 'hasModalBeenShown', hasModalBeenShown );
+console.log( 'openModal', openModal );
 
 		// all countries
 		const allCountries = Country.getAllCountries();
@@ -1727,9 +1881,9 @@ const ModalProfileIdentity = ( params ) => {
 		const languageDefault = [ selectedLanguageId ]; // default
 		setLanguageSelected( languageDefault );
 
-
+		// veto open
 		const a = async () => {
-			
+
 			// default name
 			const name = userProfile.nom;
 			setName( name );
@@ -1741,7 +1895,7 @@ const ModalProfileIdentity = ( params ) => {
 			const birthDate = userProfile.dateNaissance ? userProfile.dateNaissance.date : '';
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
-			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs()  );
+			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs() );
 // console.log( '************ userProfile', userProfile );
 			const userLanguages = userProfile.langue ? userProfile.langue : [];
 // console.log( '************ userProfile.langue', userProfile.langue );
@@ -1810,8 +1964,7 @@ const ModalProfileIdentity = ( params ) => {
 			
 			// veto profile
 			if( profileTypeId == 2 && userProfile.id ){
-// console.log( 'countriesAllowed', countriesAllowed );
-// console.log( 'fieldName === visibleModalName', fieldName + ' === ' + visibleModalName );
+
 // console.log( 'userProfile.phone', userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' );
 				setVetoName( userProfile.nom );
 				setVetoFirstName( userProfile.prenom );
@@ -1830,25 +1983,51 @@ const ModalProfileIdentity = ( params ) => {
 			}
 			
 			// veto absence
-			if( selectedAbsenceId ){
-console.log( '>>>>>>>>>> selectedAbsenceId', selectedAbsenceId );
-console.log( '>>>>>>>>>> absences', absences );
+			if( fieldName == 'Absence' && selectedAbsenceId ){		// Edit an absence
 				const absence = absences.filter( e => e.id == selectedAbsenceId )[0];
-console.log( '>>>>>>>>>> absence', absence );
 				setAbsence( absence );
-				setTitle( 'Modifier une absence' )
+				setTitle( 'Modifier une absence' );
+				const closeDate = absence.closedDate ? dayjs( absence.closedDate.date ) : '';
+				setDateAbsence( closeDate );
+				const nomAbsence = absence.nom ? absence.nom : '';
+				setAbsenceName( nomAbsence );
+				const descriptionAbsence = absence.description ? absence.description : '';
+				setAbsenceDescription( descriptionAbsence );
+				form.setFieldsValue( { AbsenceName: nomAbsence, AbsenceDescription: descriptionAbsence } );
+			}
+			else if( fieldName == 'Absence' && ! selectedAbsenceId ){ // Add an absence
+				setTitle( 'Ajouter une absence' );
+				form.setFieldsValue( { AbsenceName: '', AbsenceDescription: '' } );
 			}
 
-			// veto hollyday
-			if( selectedHollydayId ){
-				const hollyday = hollydays.map( e => e.id = selectedHollydayId )[0];
-				setHollyday( hollyday )
+			// veto timeSlot
+			if( fieldName == "Opened" ){
+				const startTime = selectedTimeslotOpen.startTime;
+				const endTime 	= selectedTimeslotOpen.endTime;
+				const day 		= selectedTimeslotOpen.day;
+				const opened	= selectedTimeslotOpen.opened;
+// console.log( '>>>>>>>>>> startTime', startTime );
+				setStartTime( dayjs( startTime ) );
+				setEndTime( dayjs( endTime ) );
+				setDay( day );
+				setOpened( opened );
+				
+				setTitle( 'Modifier un horaire' );
+
 			}
-			
+			else if( fieldName == "Closed" ){
+				const day 		= selectedTimeslotOpen.day;
+				const opened	= selectedTimeslotOpen.opened;
+				setDay( day );
+				setOpened( opened );
+
+				setTitle( 'Modifier un horaire' );
+
+			}
 		}
 		a()
-
-	}, [ modalProfileIdentityOpen ]) 
+console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen );
+	}, [params.params, selectedTimeslotOpen]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -1868,18 +2047,24 @@ console.log( '>>>>>>>>>> absence', absence );
 		)
 	}
 
+	// handle Close A Day
+	const handleCloseADay = () => {
+		setOpened( false )
+	}
 
-	
-	// form
-	 const [form] = Form.useForm();
+	// handle Close A Day
+	const handleOpenADay = () => {
+		setOpened( true )
+	}
 
-	 return (
+
+	return (
 		 <> 
 			<Modal
-				visible		= { fieldName === visibleModalName ? true : false } 
+				/* visible		= { fieldName === visibleModalName ? true : false }  */
 				title		= { <p style={{ textAlign: 'center' }}>{title}</p> }
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { fieldName === visibleModalName ? modalProfileIdentityOpen : false }
+				open		= { openModal }
 				onOk		= { modalProfileIdentityOk }
 				onCancel	= { () => modalProfileIdentityCancel( false ) }
 				afterClose	= { modalProfileIdentityClosed }
@@ -1887,10 +2072,25 @@ console.log( '>>>>>>>>>> absence', absence );
 				
 				footer={
 				  <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-					
+					{ selectedAbsenceId != '' &&
+						<Popconfirm
+							key="popconfirm"
+							title="profileAbsence_PopConfirmTitle"
+							description="profileAbsence_PopConfirmdescription"
+							onConfirm={handleAbsenceRemove}
+							okText="profileAbsenceRemove_YesDelete"
+							cancelText="profileAbsenceRemove_No"
+							okButtonProps={{ danger: true }}
+						>
+							<Button key="delete" className="btnModalProfileIdentity" type="primary" danger icon={<DeleteOutlined />}>
+								Remove
+							</Button>
+						</Popconfirm>
+					}
 					<Button key="submit" type="success" onClick={handleClickSave} className="btnModalProfileIdentity">
-					  Confirmer
+						Confirmer
 					</Button>
+					
 				  </div>
 				}
 				okText		= { 'Ok' }
@@ -1905,16 +2105,82 @@ console.log( '>>>>>>>>>> absence', absence );
 				<Form 
 					className=""
 					form = {form}
-					/* initialValues={{ PaypalEmail: 'john.doe@example.com' }} */
 				>
+					{ ( fieldName == "Opened" || fieldName == "Closed" ) &&
+						<>
+							<p>
+								<i className="fa fa-calendar"></i>&nbsp;{ day } : { opened ? 'profileTimeslot_opened' : 'profileTimeslot_closed'}
+							</p>
+							<p>
+								{ opened ?  
+									<Popconfirm
+										key="popconfirm01"
+										title="profileTimeSlot_PopConfirmTitle01"
+										description="profileTimeSlot_PopConfirmdescription01"
+										onConfirm={handleCloseADay}
+										okText="profileTimeSlot_YesDelete01"
+										cancelText="profileTimeSlot_No01"
+										okButtonProps={{ danger: true }}
+									>
+										<a key="delete01">
+											<LockOutlined />&nbsp;
+											<span>Fermer</span>
+										</a>
+									</Popconfirm >
+										 : 
+									<Popconfirm
+										key="popconfirm02"
+										title="profileTimeSlot_PopConfirmTitle02"
+										description="profileTimeSlot_PopConfirmdescription02"
+										onConfirm={handleOpenADay}
+										okText="profileTimeSlot_YesDelete02"
+										cancelText="profileTimeSlot_No02"
+										okButtonProps={{ success: true }}
+									>
+										<a key="delete02">
+											<UnlockOutlined />&nbsp;
+											<span>Ouvrir</span>
+										</a> 
+									</Popconfirm >
+								}
+							</p>
+							{ opened &&
+								<div className="row">
+									<div className="col-6">
+										<TimePicker
+											value={startTime}
+											onChange={handleStartTimeChange}
+											placeholder="profileOpen_startTimePlaceholder"
+											format="HH:mm" // Example format
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+										/>
+									</div>
+									<div className="col-6">
+										<TimePicker
+											value={endTime}
+											onChange={handleEndTimeChange}
+											placeholder="profileOpen_endTimePlaceholder"
+											format="HH:mm"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+										/>
+									</div>
+								</div>
+							}
+						</>
+						
+					}
+				
 					{ fieldName == "Absence" &&
 						<>
-							<div className="backgroundYellow rounded10 width100per100 borderNone height40">
+							<div className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop1percent">
 									<ConfigProvider 
 										locale={ getDatePickerlocale() }
 									>
 										<DatePicker 
-											defaultValue={ absence.closedDate ? dayjs( absence.closedDate.date ) : '' }
+											disabledDate={disabledPastDates}
+											format={ getDateFormatLocale() }
+											/* defaultValue= { dateAbsence } */
+											value= { dateAbsence }
 											onChange={ (e) => handleDateAbsenceChange(e) }
 										/>
 									</ConfigProvider>
@@ -1935,7 +2201,7 @@ console.log( '>>>>>>>>>> absence', absence );
 											}
 										}
 									]}
-									initialValue  = { absence.nom }
+									/* initialValue  = { absenceName } */
 								>
 									<Input 
 										name  = "absenceNameInput"
@@ -1963,7 +2229,7 @@ console.log( '>>>>>>>>>> absence', absence );
 											}
 										}
 									]}
-									initialValue  = { absence.description }
+									/* initialValue  = { absenceDescription }  */
 								>
 									<Input 
 										name  = "absenceDescriptionInput"
@@ -3435,4 +3701,4 @@ console.log( '>>>>>>>>>> absence', absence );
 	);
 };
 
-export default ModalProfileIdentity;
+export default ModalProfile;
