@@ -18,14 +18,15 @@ import InputCode from "../InputCode";
 
 import Header from '../Header';
 import Footer from '../Footer';
-import ModalRemovePaymentMethod from '../ModalRemovePaymentMethod';
 import ModalRemoveAnimal from '../ModalRemoveAnimal';
 import SingleFieldManager from '../SingleFieldManager';
 // import ModalEmailValidate from '../ModalEmailValidate';
 
 import LanguageSelector from '../LanguageSelector.js';
 import CurrencySelector from '../CurrencySelector.js';
+
 import Title from '../Title';
+import ModalProfile from '../ModalProfile.js';
 
 const Profile = ( params ) => {
 	// context
@@ -87,6 +88,8 @@ const Profile = ( params ) => {
 		setHollydays,
 		hollydays,
 		absences,
+		fieldName,
+		modalProfileIdentityOpen
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -203,6 +206,8 @@ const Profile = ( params ) => {
 	const [ biography, setBiography ] = useState( '' );
 	const [ profileNom, setProfileNom ] = useState( '' );
 	useEffect(() => {
+		if( modalProfileIdentityOpen === true )
+			return
 		// get user profile info
 		const a = async () => {
 // console.log( '>>> user', user );
@@ -244,10 +249,10 @@ const Profile = ( params ) => {
 // console.log( '*********** hollydays', hollydays );
 			setHollydays( hollydays );
 			setCountHollydays( hollydays.length );
-			
+console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen );
 		}
 		a();
-	}, [ profileFormUpdated ] ); // Dependency array ensures effect runs when changes
+	}, [ modalProfileIdentityOpen ] ); // Dependency array ensures effect runs when changes
 
 //  [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
@@ -265,7 +270,7 @@ const Profile = ( params ) => {
 			}
 		}
 		a()
-	}, [profileFormUpdated] );
+	}, [] );
 
 	// Build timeslot
 	const BuildTimeslot = () => {
@@ -279,9 +284,9 @@ const Profile = ( params ) => {
 		
 		const getFieldName = ( type ) => {
 			if( type == 1 )
-				return 'Open'
+				return 'Opened'
 			if( type == 2 )
-				return 'Close'
+				return 'Closed'
 			if( type == 3 )
 				return 'Absence'
 			if( type == 4 )
@@ -301,9 +306,10 @@ const Profile = ( params ) => {
 		
 // console.log( '---------- timeslot', timeslot )
 		return(
-			timeslot.map( e => 
-				<div className="row singleFieldManager">
+			timeslot.map( ( e, index ) => 
+				<div className="row singleFieldManager" key={index}>
 					<SingleFieldManager 
+						key={'timeslot_' + index}
 						params={{
 							fieldName: 		getFieldName( e[1].type ),
 							title:			e[1].opened ? 'Opened' : 'Closed',
@@ -314,6 +320,10 @@ const Profile = ( params ) => {
 												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
 											getDayName( e[0] ) + ' ' + ( e[1].closedDate ?  ' ' + dayjs( e[1].closedDate.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].closedDate.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ) : ': closed' ),
 							style:			e[1].opened ? 'opened' : 'closed',
+							startTime:		e[1].opened ? e[1].startTime.date : '',
+							endTime:		e[1].opened ? e[1].endTime.date : '',
+							opened:			e[1].opened ? e[1].opened : '',
+							day:			getDayName( e[0] ),
 							type: 			2, // 2 = update
 						}}
 					/>
@@ -329,9 +339,10 @@ const Profile = ( params ) => {
 			return
 
 		return(
-			absences.map( e => 
-				<div className="row singleFieldManager">
-					<SingleFieldManager 
+			absences.map( ( e, index ) => 
+				<div className="row singleFieldManager" key={index}>
+					<SingleFieldManager
+						key={'absence_' + index}
 						params={{
 							fieldName: 		'Absence',
 							title:			'Modifier une absence',
@@ -356,9 +367,10 @@ const Profile = ( params ) => {
 			return
 
 		return(
-			hollydays.map( e => 
-				<div className="row singleFieldManager">
+			hollydays.map( ( e, index ) => 
+				<div className="row singleFieldManager" key={index}>
 					<SingleFieldManager 
+						key={'hollydays_' + index}
 						params={{
 							fieldName: 		'Hollydays',
 							title:			'Hollydays',
@@ -409,6 +421,8 @@ const Profile = ( params ) => {
 			return
 		
 		return(
+		<>
+
 			<p>
 				{
 					userPets.map( e => 
@@ -443,6 +457,7 @@ const Profile = ( params ) => {
 					)
 				}		
 			</p>
+		</>
 		)
 	}
 
@@ -452,6 +467,11 @@ const Profile = ( params ) => {
 	return (
 		<>
 			<Header />
+			<ModalProfile params={{
+					fieldName: visibleModalName,
+					title: 'FOo', //title,
+				}}
+			/>
 			<Modal
 				title={
 				  <>
@@ -480,7 +500,6 @@ const Profile = ( params ) => {
 					/>
 				</div>
 			</Modal>
-			<ModalRemovePaymentMethod />
 			<ModalRemoveAnimal />
 			
 			<p>&nbsp;</p>

@@ -8,7 +8,7 @@ import { Form, Select } from 'antd';
 import { message } from 'antd';
 import { Tooltip, Button } from 'antd';
 
-import ModalProfileIdentity from './ModalProfileIdentity';
+import ModalProfile from './ModalProfile.js';
 
 import Header from './Header';
 
@@ -16,12 +16,16 @@ const SingleFieldManager = ( params ) => {
 	// context
 	const { 
 		setModalProfileIdentityOpen,
+		modalProfileIdentityOpen,
 		userProfile,
 		setVisibleModalName,
+		visibleModalName,
 		setSelectedPetId, 
 		setSelectedAbsenceId,
 		setSelectedHollydayId,
 		setSelectedTimeslotId,
+		selectedTimeslotOpen,
+		setSelectedTimeslotOpen,
 	} = useContext( SiteContext );
 
 	// context
@@ -34,22 +38,23 @@ const SingleFieldManager = ( params ) => {
 		truncateString,
 	} = useContext( AuthContext );
 	
-	const [ fieldName, setFieldName ] = useState( '' );
+
 	const [ title, setTitle ] 	= useState( '' );
 	const [ value, setValue ] 	= useState( '' );
 	const [ type, setType ] 	= useState( '' );
-	const [ style, setStyle ] 	= useState( '' );
+	// const [ style, setStyle ] 	= useState( '' );
 	const [ backgroundColor, setBackgroundColor ] 	= useState( '' );
 	const [ placeholder, setPlaceholder ] = useState( '' );
 	const [ description, setDescription ] = useState( '' );
+	const [ fieldName, setFieldName ] = useState( '' );
 	useEffect( () => {
+		// title
+		const title = params.params.title;
+		setTitle(title);
+
 		// type
 		const type = params.params.type;
 		setType(type);
-
-		// style
-		const style = params.params.style && params.params.style;
-		setStyle(style);
 
 		// placeholder
 		const placeholder = params.params.placeholder;
@@ -65,9 +70,9 @@ const SingleFieldManager = ( params ) => {
 		setDescription( description );
 
 		// style
-		if( fieldName == 'Open' )
+		if( fieldName == 'Opened' )
 			setBackgroundColor( 'backgroundOlive' )
-		else if( fieldName == 'Close' )
+		else if( fieldName == 'Closed' )
 			setBackgroundColor( 'backgroundInactive01' )
 		else if( fieldName == 'Absence' )
 			setBackgroundColor( 'backgroundInactive02' )
@@ -75,10 +80,11 @@ const SingleFieldManager = ( params ) => {
 			setBackgroundColor( 'backgroundInactive03' )
 		else setBackgroundColor( 'backgroundOlive' )
 
-	}, [userProfile] );
+	}, [title] );
 
 
-	const handleClickField = ( e ) => {
+	const handleClickField = ( fieldName ) => {
+		
 		const a = async() => {
 			// selected pet's book ID
 			const selectedPetId = await params.params.selectedPetId ? params.params.selectedPetId : '';
@@ -91,22 +97,34 @@ const SingleFieldManager = ( params ) => {
 			// timeslot selected hollyday
 			const selectedHollydayId = await params.params.selectedHollydayId ? params.params.selectedHollydayId : '';
 			setSelectedHollydayId( selectedHollydayId );		
-			
+console.log( 'fieldName', fieldName );
 			// timeslot selected timeslot
 			const selectedTimeslotId = await params.params.selectedTimeslotId ? params.params.selectedTimeslotId : '';
 			setSelectedTimeslotId( selectedTimeslotId );
+			if( fieldName == 'Opened' || fieldName == 'Closed' ){
+console.log( 'fooooooooooooooooo' );
+				const startTime = params.params.startTime;
+				const endTime 	= params.params.endTime;
+				const day 		= params.params.day;
+				const opened	= params.params.opened;
+
+				selectedTimeslotOpen.startTime = startTime;
+				selectedTimeslotOpen.endTime = endTime;
+				selectedTimeslotOpen.day = day;
+				selectedTimeslotOpen.opened = opened;
+console.log( 'handleClickField selectedTimeslotOpen', selectedTimeslotOpen );
+				setSelectedTimeslotOpen( selectedTimeslotOpen );
+			}
+			
 
 			// title
 			const title = await params.params.title;
-console.log( "dddddddddd params.params", params.params );
-console.log( "++++++++++ params.params.title", params.params.title );
 			setTitle( title );
 
 			setModalProfileIdentityOpen( true );
 			setVisibleModalName( params.params.fieldName );
 		}
-		a();
-
+		a()
 	}
 	
 	const BuildTooltip = ( text ) => {
@@ -122,12 +140,7 @@ console.log( "++++++++++ params.params.title", params.params.title );
 		{
 			user &&
 			<>
-				<ModalProfileIdentity params={{
-					fieldName: fieldName,
-					title: title,
-				}}
-				/>
-				<div className='row singleFieldManager'>
+				<div key={'timeslot_' + title} className='row singleFieldManager'>
 					<div className={ 'dataDiv textAlignLeft ' + backgroundColor } >
 						<span>{ value ? value : placeholder } &nbsp; { description && BuildTooltip(description) }</span>
 					</div> 
@@ -135,7 +148,7 @@ console.log( "++++++++++ params.params.title", params.params.title );
 						className='buttonDiv borderRadius18'
 						role={'button'}
 						tabIndex={0}
-						onClick={ (e) => handleClickField( e ) }
+						onClick={ (e) => handleClickField( fieldName ) }
 					>
 						<span>{ type == 1 ? 'add' : 'modify' } ></span>
 					</div>
