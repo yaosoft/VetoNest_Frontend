@@ -479,6 +479,16 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// update veto timeslot
+	const timeSlotDateUpdate = async ( timeSlotData ) => {
+		const url		= base_api_url + 'timeSlot/edit';
+		const data 		= timeSlotData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
 
 	// delete veto absence
 	const timeSlotClosedDateRemove = async ( timeSlotData ) => {
@@ -1041,6 +1051,7 @@ export const SiteProvider = ({ children }) => {
 				setSelectedHollydayId,
 				timeSlotClosedDateUpdate,
 				timeSlotClosedDateRemove,
+				timeSlotDateUpdate,
 			}}
 		>
 

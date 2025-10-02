@@ -324,6 +324,8 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 							endTime:		e[1].opened ? e[1].endTime.date : '',
 							opened:			e[1].opened ? e[1].opened : '',
 							day:			getDayName( e[0] ),
+							dayId:			e[0],
+							timeSlotId:		e[1].timeSlotId,
 							type: 			2, // 2 = update
 						}}
 					/>
