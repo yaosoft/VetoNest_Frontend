@@ -147,6 +147,7 @@ const ModalProfile = ( params ) => {
 		selectedAbsenceId,
 		selectedHollydayId,
 		timeSlotClosedDateUpdate,
+		timeSlotDateUpdate,
 		setSelectedAbsenceId,
 		timeSlotClosedDateRemove,
 		selectedTimeslotOpen
@@ -367,13 +368,36 @@ const ModalProfile = ( params ) => {
 	const [ startTime, setStartTime ] 	= useState( null );
 	const [ endTime, setEndTime ] 		= useState( null );
 	const [ day, setDay ] 				= useState( '' );
+	const [ dayId, setDayId ] 			= useState( '' );
 	const [ opened, setOpened ] 		= useState( '' );
+	const [ timeSlotId, setTimeSlotId ] = useState( '' );
+	const [ openedError, setOpenedError ] = useState( '' );
 	const handleStartTimeChange = (time) => {
-console.log( '---------------- time', time );
 		setStartTime(time);
+		var openedErrorText = '';
+		if( timeValidator( time, endTime ) === false ){
+			openedErrorText = 'profileOpened_OpenedError';
+console.log( openedError );
+		}
+		setOpenedError( openedErrorText );
+		form.validateFields();
 	}
 	const handleEndTimeChange = (time) => {
 		setEndTime(time);
+		var openedErrorText = '';
+		if( timeValidator( startTime, time ) === false ){
+			openedErrorText = 'profileOpened_OpenedError';
+console.log( openedError );
+		}
+		setOpenedError( openedErrorText );
+		form.validateFields();
+	}
+
+	const timeValidator = ( startTime, endTime ) => {
+		if( dayjs( startTime ).isAfter( dayjs( endTime ) ) )
+			return false
+		else
+			return true
 	}
 
 	// animal espece
@@ -923,17 +947,58 @@ console.log( '>>>>>>>>>>> date', date );
 
 	// save
 	const handleClickSave = async () => {
-
 		// Opened
-		if( fieldName == 'ProfileVeto' ){
+		if( fieldName == 'Opened' ){
 			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
-				if(	dayjs( startTime ) <= dayjs( setStartTime ) ) {
+				if( openedError != '' ){
 					errorsExist = true
-					//setPhoneNumberError( 'phoneNumberErrorText' );
 				}
+
+				return errorsExist
 			}
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				return
+			}
+			
+			// check form empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = () => {
+				if( !startTime ){
+					formHasEmpty = 'profileOpen_emptyOpenTime';
+					setOpenedError( formHasEmpty );
+				}
+				if( !endTime ){
+					formHasEmpty = 'profileOpen_emptyOpenTime';
+					setOpenedError( formHasEmpty );
+				}
+				form.validateFields();
+			}
+
+			const sendData = {
+				timeSlotId: 	timeSlotId,
+				dayNumber:		dayId,
+				startTime: 		startTime.format('HH:mm'),
+				endTime:		endTime.format('HH:mm'),
+				profileVetoId:	profileId,
+				enabled: 		true,
+			}
+
+			const rep = await timeSlotDateUpdate( sendData );	// save
+
+			if( rep === false ){ //
+				message.error( 'Veto profile cannot be updated' );
+				// return;
+			}
+			else{
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+			}			
 		}
 			
 		// Absence
@@ -1853,11 +1918,11 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 			// setHasModalBeenShown( false );
 		}
 
-console.log( 'fieldName', fieldName );
-console.log( 'visibleModalName', visibleModalName );
-console.log( 'fieldName === visibleModalName', ( fieldName === visibleModalName ) && modalProfileIdentityOpen );
-console.log( 'hasModalBeenShown', hasModalBeenShown );
-console.log( 'openModal', openModal );
+// console.log( 'fieldName', fieldName );
+// console.log( 'visibleModalName', visibleModalName );
+// console.log( 'fieldName === visibleModalName', ( fieldName === visibleModalName ) && modalProfileIdentityOpen );
+// console.log( 'hasModalBeenShown', hasModalBeenShown );
+// console.log( 'openModal', openModal );
 
 		// all countries
 		const allCountries = Country.getAllCountries();
@@ -2001,32 +2066,27 @@ console.log( 'openModal', openModal );
 			}
 
 			// veto timeSlot
-			if( fieldName == "Opened" ){
-				const startTime = selectedTimeslotOpen.startTime;
-				const endTime 	= selectedTimeslotOpen.endTime;
-				const day 		= selectedTimeslotOpen.day;
-				const opened	= selectedTimeslotOpen.opened;
-// console.log( '>>>>>>>>>> startTime', startTime );
-				setStartTime( dayjs( startTime ) );
-				setEndTime( dayjs( endTime ) );
-				setDay( day );
-				setOpened( opened );
+			if( fieldName == "Opened" || fieldName == "Closed" ){
+				if( fieldName == "Opened" ){
+					const startTime 	= selectedTimeslotOpen.startTime;
+					const endTime 		= selectedTimeslotOpen.endTime;
+					setStartTime( dayjs( startTime ) );
+					setEndTime( dayjs( endTime ) );
+				}
+				const day 			= selectedTimeslotOpen.day;
+				const dayId			= selectedTimeslotOpen.dayId;
+				const opened		= selectedTimeslotOpen.opened;
+				const timeSlotId	= selectedTimeslotOpen.timeSlotId;
 				
-				setTitle( 'Modifier un horaire' );
-
-			}
-			else if( fieldName == "Closed" ){
-				const day 		= selectedTimeslotOpen.day;
-				const opened	= selectedTimeslotOpen.opened;
 				setDay( day );
+				setDayId( dayId );
 				setOpened( opened );
-
+				setTimeSlotId( timeSlotId );
 				setTitle( 'Modifier un horaire' );
-
 			}
 		}
 		a()
-console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen );
+
 	}, [params.params, selectedTimeslotOpen]) 
 
 	// Build especes
@@ -2147,15 +2207,34 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 							{ opened &&
 								<div className="row">
 									<div className="col-6">
-										<TimePicker
-											value={startTime}
-											onChange={handleStartTimeChange}
-											placeholder="profileOpen_startTimePlaceholder"
-											format="HH:mm" // Example format
-											className="backgroundYellow rounded10 width100per100 borderNone height40"
-										/>
+										<Form.Item
+											name  = "OpenedTime"
+											rules = {[
+												{
+													message: openedError,
+													validator: ( value ) => {
+														if ( openedError ) {
+															return Promise.reject( openedError );
+														} 
+														else {
+															return Promise.resolve();
+														}
+													}
+												}
+											]}
+											initialValue  = { startTime }
+										>
+											<TimePicker
+												value={startTime}
+												onChange={handleStartTimeChange}
+												placeholder="profileOpen_startTimePlaceholder"
+												format="HH:mm" // Example format
+												className="backgroundYellow rounded10 width100per100 borderNone height40"
+											/>
+										</Form.Item>
 									</div>
 									<div className="col-6">
+									
 										<TimePicker
 											value={endTime}
 											onChange={handleEndTimeChange}

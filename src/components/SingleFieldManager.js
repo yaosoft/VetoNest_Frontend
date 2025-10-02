@@ -97,22 +97,24 @@ const SingleFieldManager = ( params ) => {
 			// timeslot selected hollyday
 			const selectedHollydayId = await params.params.selectedHollydayId ? params.params.selectedHollydayId : '';
 			setSelectedHollydayId( selectedHollydayId );		
-console.log( 'fieldName', fieldName );
 			// timeslot selected timeslot
 			const selectedTimeslotId = await params.params.selectedTimeslotId ? params.params.selectedTimeslotId : '';
 			setSelectedTimeslotId( selectedTimeslotId );
 			if( fieldName == 'Opened' || fieldName == 'Closed' ){
-console.log( 'fooooooooooooooooo' );
-				const startTime = params.params.startTime;
-				const endTime 	= params.params.endTime;
-				const day 		= params.params.day;
-				const opened	= params.params.opened;
+				const startTime 	= params.params.startTime;
+				const endTime 		= params.params.endTime;
+				const day 			= params.params.day;
+				const dayId			= params.params.dayId
+				const opened		= params.params.opened;
+				const timeSlotId	= params.params.timeSlotId;
 
-				selectedTimeslotOpen.startTime = startTime;
-				selectedTimeslotOpen.endTime = endTime;
-				selectedTimeslotOpen.day = day;
-				selectedTimeslotOpen.opened = opened;
-console.log( 'handleClickField selectedTimeslotOpen', selectedTimeslotOpen );
+				selectedTimeslotOpen.startTime 		= startTime;
+				selectedTimeslotOpen.endTime 		= endTime;
+				selectedTimeslotOpen.day 			= day;
+				selectedTimeslotOpen.dayId 			= dayId;
+				selectedTimeslotOpen.opened 		= opened;
+				selectedTimeslotOpen.timeSlotId 	= timeSlotId
+
 				setSelectedTimeslotOpen( selectedTimeslotOpen );
 			}
 			
