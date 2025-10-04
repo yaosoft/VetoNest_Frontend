@@ -150,7 +150,8 @@ const ModalProfile = ( params ) => {
 		timeSlotDateUpdate,
 		setSelectedAbsenceId,
 		timeSlotClosedDateRemove,
-		selectedTimeslotOpen
+		selectedTimeslotOpen,
+		timeSlotDayClose
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -314,13 +315,19 @@ const ModalProfile = ( params ) => {
 		setAbsenceName( data );
 
 		var absenceNameErrorText = '';
-		const test = nameValidator( data )
+		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
 			absenceNameErrorText = 'profileAbsence_absenceNameErrorText'
 		}
 		// signUpAbsenceNameErrorText = 'Your absenceName seems incorect'
 		setAbsenceNameError( absenceNameErrorText );
+	}
+
+	// absence name validator
+	const absenceNameValidator = ( name ) => {
+		const rep = /^(([A-Za-zéàèêêâäë\d\s]+[\-\']?)*([A-Za-zéàèêêâäë]+)?(\s)?)+([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?$/.test( name );
+		return rep
 	}
 
 	// Veto absence description
@@ -331,7 +338,7 @@ const ModalProfile = ( params ) => {
 		setAbsenceDescription( data );
 
 		var absenceDescriptionErrorText = '';
-		const test = nameValidator( data )
+		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
 		
@@ -365,13 +372,14 @@ const ModalProfile = ( params ) => {
 	}
 
 	// Timeslot opened
-	const [ startTime, setStartTime ] 	= useState( null );
-	const [ endTime, setEndTime ] 		= useState( null );
-	const [ day, setDay ] 				= useState( '' );
-	const [ dayId, setDayId ] 			= useState( '' );
-	const [ opened, setOpened ] 		= useState( '' );
-	const [ timeSlotId, setTimeSlotId ] = useState( '' );
-	const [ openedError, setOpenedError ] = useState( '' );
+	const [ startTime, setStartTime ] 		= useState( null );
+	const [ endTime, setEndTime ] 			= useState( null );
+	const [ day, setDay ] 					= useState( '' );
+	const [ dayId, setDayId ] 				= useState( '' );
+	const [ opened, setOpened ] 			= useState( '' );
+	const [ closeThisDay, setCloseThisDay ] = useState( false );
+	const [ timeSlotId, setTimeSlotId ] 	= useState( '' );
+	const [ openedError, setOpenedError ] 	= useState( '' );
 	const handleStartTimeChange = (time) => {
 		setStartTime(time);
 		var openedErrorText = '';
@@ -948,7 +956,29 @@ console.log( '>>>>>>>>>>> date', date );
 	// save
 	const handleClickSave = async () => {
 		// Opened
-		if( fieldName == 'Opened' ){
+		if( fieldName == 'Opened' || fieldName == 'Closed' ){
+			// close selected day
+// alert( closeThisDay );
+			if( closeThisDay ){
+				const sendData = {
+					dayNumber:		dayId,
+					profileVetoId:	profileId,
+					enabled: 		true,
+				}
+				const rep = await timeSlotDayClose( sendData );	// save
+
+				if( rep === false ){ //
+					message.error( 'Veto profile cannot be updated' );
+				}
+				else{
+					const random = await generateRandomDigits(3);
+					setProfileFormUpdated( random );
+					message.success( 'Profile updated' );
+					setModalProfileIdentityOpen( false );
+				}
+				return;
+			}
+			
 			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
@@ -978,6 +1008,15 @@ console.log( '>>>>>>>>>>> date', date );
 				form.validateFields();
 			}
 
+			await checkFormEmpty();
+			
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
 			const sendData = {
 				timeSlotId: 	timeSlotId,
 				dayNumber:		dayId,
@@ -994,7 +1033,7 @@ console.log( '>>>>>>>>>>> date', date );
 				// return;
 			}
 			else{
-				const random = generateRandomDigits(3);
+				const random = await generateRandomDigits(3);
 				setProfileFormUpdated( random );
 				message.success( 'Profile updated' );
 				setModalProfileIdentityOpen( false );
@@ -2087,7 +2126,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		}
 		a()
 
-	}, [params.params, selectedTimeslotOpen]) 
+	}, [ params.params, selectedTimeslotOpen ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -2109,12 +2148,14 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 
 	// handle Close A Day
 	const handleCloseADay = () => {
-		setOpened( false )
+		setOpened( false );
+		setCloseThisDay( true );
 	}
 
 	// handle Close A Day
 	const handleOpenADay = () => {
-		setOpened( true )
+		setOpened( true );
+		setCloseThisDay( false );
 	}
 
 

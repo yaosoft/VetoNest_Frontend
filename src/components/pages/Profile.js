@@ -304,7 +304,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 				return 'hollydays'
 		}
 		
-// console.log( '---------- timeslot', timeslot )
+console.log( '---------- timeslot', timeslot )
 		return(
 			timeslot.map( ( e, index ) => 
 				<div className="row singleFieldManager" key={index}>
@@ -320,6 +320,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
 											getDayName( e[0] ) + ' ' + ( e[1].closedDate ?  ' ' + dayjs( e[1].closedDate.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].closedDate.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ) : ': closed' ),
 							style:			e[1].opened ? 'opened' : 'closed',
+							selectedAbsenceId:	e[1].type == 3 ? e[1].id : '',
 							startTime:		e[1].opened ? e[1].startTime.date : '',
 							endTime:		e[1].opened ? e[1].endTime.date : '',
 							opened:			e[1].opened ? e[1].opened : '',
