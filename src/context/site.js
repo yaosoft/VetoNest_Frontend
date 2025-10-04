@@ -490,6 +490,18 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// close a day
+	const timeSlotDayClose = async ( timeSlotData ) => {
+		const url		= base_api_url + 'timeSlotClosedDay/edit';
+		const data 		= timeSlotData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+
 	// delete veto absence
 	const timeSlotClosedDateRemove = async ( timeSlotData ) => {
 		const url		= base_api_url + 'timeSlotClosedDate/delete';
@@ -1052,6 +1064,7 @@ export const SiteProvider = ({ children }) => {
 				timeSlotClosedDateUpdate,
 				timeSlotClosedDateRemove,
 				timeSlotDateUpdate,
+				timeSlotDayClose,
 			}}
 		>
 
