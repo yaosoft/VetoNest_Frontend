@@ -5,6 +5,7 @@ import { SiteContext } from "../context/site";
 
 import { Country, State, City }  from 'country-state-city';
 import { Form, Input, Select, Checkbox, List, TimePicker  } from 'antd';
+
 import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
 import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
@@ -23,7 +24,6 @@ import 'dayjs/locale/it';
 import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import InputCode from "./InputCode";
 const ModalProfile = ( params ) => {
-	
 	const { 
 		getUser,
 		setUser,
@@ -31,10 +31,10 @@ const ModalProfile = ( params ) => {
 		profileId,
 		userId,
 		user,
-		isValidPassword
+		isValidPassword,
 	} = useContext( AuthContext );
 
-	const { 
+	const {
 		siteName,
 		siteEmail,
 		siteUrl,
@@ -63,6 +63,8 @@ const ModalProfile = ( params ) => {
 		userProfile,
 		visibleModalName,
 		setVisibleModalName,
+		visibleModalTitle,
+		setVisibleModalTitle,
 		signUp_firstNamePlaceholder,
 		signUp_namePlaceholder,
 		signUp_verifyEmailSubjet,
@@ -137,6 +139,7 @@ const ModalProfile = ( params ) => {
 		languageSetup,
 		profileVeto_nameErrorText,
 		allSpecialities,
+		allEtablissementTypes,
 		validateRppsNumber,
 		validateSiretNumber,
 		phoneNumberErrorText,
@@ -151,7 +154,8 @@ const ModalProfile = ( params ) => {
 		setSelectedAbsenceId,
 		timeSlotClosedDateRemove,
 		selectedTimeslotOpen,
-		timeSlotDayClose
+		timeSlotDayClose,
+		etablissementUpdate
 	} = useContext( SiteContext )
 
 	// Animal photo
@@ -306,6 +310,43 @@ const ModalProfile = ( params ) => {
 		// signUpAnimalNameErrorText = 'Your animalName seems incorect'
 		setAnimalNameError( animalNameErrorText );
 	}
+
+	// Veto etablissement name
+	const [ etablissementName, setEtablissementName ] = useState( '' );
+	const [ etablissementNameError, setEtablissementNameError ] = useState( '' );
+	const handleChangeEtablissementName = ( e ) => {
+		const data = e.target.value;
+		setEtablissementName( data );
+
+		var etablissementNameErrorText = '';
+		const test = absenceNameValidator( data )
+
+		if( data && test === false ){
+			etablissementNameErrorText = 'profileEtablissement_etablissementNameErrorText'
+		}
+		// signUpEtablissementNameErrorText = 'Your etablissementName seems incorect'
+		setEtablissementNameError( etablissementNameErrorText );
+	}
+
+	// Veto etablissement presentation
+	const [ etablissementPresentation, setEtablissementPresentation ] = useState( '' );
+	const [ etablissementPresentationError, setEtablissementPresentationError ] = useState( '' );
+	const handleChangeEtablissementPresentation = ( e ) => {
+		const data = e.target.value;
+		setEtablissementPresentation( data );
+
+		var etablissementPresentationErrorText = '';
+		const test = absenceNameValidator( data )
+
+		if( data && test === false ){
+			etablissementPresentationErrorText = 'profileEtablissement_etablissementPresentationErrorText'
+		}
+
+		// signUpEtablissementPresentationErrorText = 'Your etablissementPresentation seems incorect'
+		setEtablissementPresentationError( etablissementPresentationErrorText );
+		form.validateFields();
+	}
+
 
 	// Veto absence name
 	const [ absenceName, setAbsenceName ] = useState( '' );
@@ -955,6 +996,82 @@ console.log( '>>>>>>>>>>> date', date );
 
 	// save
 	const handleClickSave = async () => {
+		// Etablissement
+		if( fieldName == 'Etablissement' ){
+// check the form errors
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( etablissementNameError != '' ){
+					errorsExist = true
+					//setPhoneNumberError( 'phoneNumberErrorText' );
+				}
+				else if( etablissementPresentationError != '' ){
+					errorsExist = true
+					//setVetoNameError( signUp_nameErrorText );
+				}
+				form.validateFields();
+				return errorsExist
+			}
+			
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				return
+			}
+
+			// check empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = async( ) => {
+				if( !etablissementName ){
+					formHasEmpty = 'profileEtablissement_emptyName';
+					setEtablissementNameError( formHasEmpty );
+				}
+				if( !etablissementPresentation ){
+					formHasEmpty = 'profileEtablissement_emptyPresentation';
+					setEtablissementPresentationError( formHasEmpty );
+				}
+				if( selectedEtablissementTypes.length == 0 ){
+					formHasEmpty = 'profileEtablissement_emptyEtablissementType';
+					
+					setEtablissementTypeError( formHasEmpty );
+				}
+				form.validateFields();
+			}
+			await checkFormEmpty();
+			// check form empty fields
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setPwResetSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
+			const etablissementData = {
+                nom: etablissementName,
+                presentation: etablissementPresentation,
+				etablissementTypeId: selectedEtablissementTypes[0],
+				creatorProfileId: profileId,
+                enabled: true,
+			}
+
+			const resp = await etablissementUpdate( etablissementData );
+			if( resp === false ){ //
+				message.error( 'Veto cannot be updated' );
+				return;
+			}
+			else{
+				//const random = generateRandomDigits(3);
+				//setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+				const random = generateRandomDigits(3);
+				// setFormUpdated( random );
+				setProfileFormUpdated( random );
+				return;
+			}
+			
+		}
+		
 		// Opened
 		if( fieldName == 'Opened' || fieldName == 'Closed' ){
 			// close selected day
@@ -1449,7 +1566,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		}
 		
 		// Email
-		if( fieldName == 'Email' ){	
+		if( fieldName == 'Email' ){
 
 			clearFormErrors()
 			// check if email already exists
@@ -1812,6 +1929,24 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		}
 	}
 	
+	// all etablissement types
+	const [ selectedEtablissementTypes, setSelectedEtablissementTypes ] =  useState( [] );
+	const [ etablissementTypeError, setEtablissementTypeError  ] =  useState( '' )
+	const MAX_ETSTYPES = 1; // Define your maximum limit
+	const handleChangeEtablissementType = (value) => {
+// console.log( 'handleChangeVetoSpecialities', value );
+		if ( value.length > 0 ) {
+			setEtablissementTypeError('');
+			form.validateFields()
+		}
+		if (value.length > MAX_ETSTYPES) {
+		  setSelectedEtablissementTypes( value.slice(0, MAX_ETSTYPES) );
+		} 
+		else {
+		  setSelectedEtablissementTypes(value);
+		}
+	}
+	
 	// veto RPPS handleChangeVetoRpps
 	const [ vetoRpps, setVetoRpps ] =  useState( '' );
 	const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
@@ -1930,16 +2065,10 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
-	
-
-		const modalActiveTitle = params.params.title;
-// console.log( '<<<<------------ modalActiveTitle', modalActiveTitle );
-		setTitle( modalActiveTitle );
-
+// console.log( '>>>>>>>> allEtablissementTypes', allEtablissementTypes );
+		setTitle( visibleModalTitle );
 		const fieldName = params.params.fieldName;
-// console.log( '<<<<----------- params', params.params );
 		setFieldName( fieldName );
-
 		const openModal = ( fieldName === visibleModalName ) && modalProfileIdentityOpen;
 		
 		if( hasModalBeenShown === false ){
@@ -2152,7 +2281,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		setCloseThisDay( true );
 	}
 
-	// handle Close A Day
+	// handle Open A Day
 	const handleOpenADay = () => {
 		setOpened( true );
 		setCloseThisDay( false );
@@ -2207,6 +2336,106 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 					className=""
 					form = {form}
 				>
+					{ fieldName == "Etablissement" &&
+						<>
+							<div className="profilIdentityField">
+								<Form.Item
+									name  = "EtablissementName"
+									rules = {[
+										{
+											message: etablissementNameError,
+											validator: ( value ) => {
+												if ( etablissementNameError ) {
+													return Promise.reject( etablissementNameError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementName } */
+								>
+									< Input
+										name  = "etablissementNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ signUp_namePlaceholder }
+										type="text" 
+										value={ etablissementName }
+										onChange = { e => handleChangeEtablissementName(e) }
+									/>
+								</Form.Item>
+								<Form.Item
+									name  = "EtablissementPresentation"
+									rules = {[
+										{
+											message: etablissementPresentationError,
+											validator: ( value ) => {
+												if ( etablissementPresentationError ) {
+													return Promise.reject( etablissementPresentationError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementPresentation } */
+								>
+									<Input 
+										name  = "etablissementPresentationInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ 'profile_presentationPlaceholder' }
+										value={ etablissementPresentation }
+										onChange = { e => handleChangeEtablissementPresentation(e) }
+									/>
+								</Form.Item>
+								<Form.Item
+									name  = "EtablissementType"
+									rules = {[
+										{
+											message: etablissementTypeError,
+											validator: ( value ) => {
+												if ( etablissementTypeError ) {
+													return Promise.reject( etablissementTypeError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementPresentation } */
+								>
+									<ConfigProvider 
+										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
+									>
+									
+										<Select 
+											mode="multiple"
+											placeholder= { 'profileEtablissement_placeholderSelect' }
+											variant="borderless"
+											className="custom-select height40 rounded10 marginTop10"
+											value={selectedEtablissementTypes}
+											onChange={ e => handleChangeEtablissementType( e ) }
+											style={{ width: '100%' }}
+											suffixIcon={null} // This hides the arrow
+										>
+											{ 
+												allEtablissementTypes.map(( v, k ) => (
+													<Option key={v.id} value={v.id}>
+														<Checkbox checked={selectedEtablissementTypes.includes(v.id)}>
+															{v.nom}
+														</Checkbox>
+													</Option>
+												))
+											}
+										</Select>
+									</ConfigProvider>
+								</Form.Item>
+							</div>
+						</>
+					}
 					{ ( fieldName == "Opened" || fieldName == "Closed" ) &&
 						<>
 							<p>

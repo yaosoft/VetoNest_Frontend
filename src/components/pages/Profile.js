@@ -61,6 +61,7 @@ const Profile = ( params ) => {
 		userProfile,
 		setVisibleModalName,
 		visibleModalName,
+		visibleModalTitle,
 		profile_sexe_male,
 		profile_sexe_female,
 		profile_title,
@@ -304,7 +305,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 				return 'hollydays'
 		}
 		
-console.log( '---------- timeslot', timeslot )
+// console.log( '---------- timeslot', timeslot )
 		return(
 			timeslot.map( ( e, index ) => 
 				<div className="row singleFieldManager" key={index}>
@@ -472,7 +473,7 @@ console.log( '---------- timeslot', timeslot )
 			<Header />
 			<ModalProfile params={{
 					fieldName: visibleModalName,
-					title: 'FOo', //title,
+					title: visibleModalTitle,
 				}}
 			/>
 			<Modal
@@ -609,37 +610,76 @@ console.log( '---------- timeslot', timeslot )
 									</div>
 								</div>
 								<div className="col-md-6 row">
+								{ profileId == 1 ?
+									<>
+										<div className="col-md-3">
+											<b>profileMesAnimaux_MesAnimaux</b>
+										</div>
+										<div className="col-md-9">
+											<div className="row">
+												profileMesAnimaux_CarnetDeSanté
+											</div>
+											<div className="row">
+												<div className="col-md-9">
+													<div className="row singleFieldManager">
+														<SingleFieldManager params={{
+																fieldName: 	'Animaux',
+																title:		'Ajouter un animal',
+																placeholder: 'Animal ...',
+																value: 'Ajouter un animal',
+																type: 1, // 1 = create
+															}}
+														/>
+													</div>
+												</div>
+												<div className="col-md-9">
+													<br/>
+													<div className="row">
+														profileMesAnimaux_youHave { userTotalAnimal } animaux<br/>
+													</div>
+													<div className="row singleFieldManager">
+														<BuildUserPetsList />
+													</div>
+												</div>
+											</div>
+										</div>
+									</>
+								:
+									<>
 									<div className="col-md-3">
-										<b>Mes animaux</b>
+										<b>profile_clinique</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Carnet de santé
-										</div>
-										<div className="row">
-											<div className="col-md-9">
-												<div className="row singleFieldManager">
-													<SingleFieldManager params={{
-															fieldName: 	'Animaux',
-															title:		'Ajouter un animal',
-															placeholder: 'Animal ...',
-															value: 'Ajouter un animal',
-															type: 1, // 1 = create
-														}}
-													/>
+												profileClinique_zoneActivite
+											</div>
+											<div className="row">
+												<div className="col-md-9">
+													<div className="row singleFieldManager">
+														profileClinique_creerUneZoneActivite
+													</div>
+												</div>
+												<div className="col-md-9">
+													<br/>
+													<div className="row">
+														profileClinique_creerUneClinique
+													</div>
+													<div className="row">
+														profileClinique_creerUneClinique
+															<SingleFieldManager params={{
+																fieldName: 	'Etablissement',
+																title:		'Ajouter votre etablissement',
+																placeholder: 'Etablissement',
+																value: 'Ajouter un établissement',
+																type: 1, // 1 = create
+																}}
+															/>
+													</div>
 												</div>
 											</div>
-											<div className="col-md-9">
-												<br/>
-												<div className="row">
-													Vous avez { userTotalAnimal } animaux<br/>
-												</div>
-												<div className="row singleFieldManager">
-													<BuildUserPetsList />
-												</div>
-											</div>
-										</div>
 									</div>
+									</>
+								}
 								</div>
 							</div>
 							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
