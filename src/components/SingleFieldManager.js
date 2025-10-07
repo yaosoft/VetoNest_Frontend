@@ -20,6 +20,8 @@ const SingleFieldManager = ( params ) => {
 		userProfile,
 		setVisibleModalName,
 		visibleModalName,
+		visibleModalTitle,
+		setVisibleModalTitle,
 		setSelectedPetId, 
 		setSelectedAbsenceId,
 		setSelectedHollydayId,
@@ -117,18 +119,17 @@ const SingleFieldManager = ( params ) => {
 
 				setSelectedTimeslotOpen( selectedTimeslotOpen );
 			}
-			
 
 			// title
 			const title = await params.params.title;
-			setTitle( title );
+			setVisibleModalTitle( title );
 
 			setModalProfileIdentityOpen( true );
 			setVisibleModalName( params.params.fieldName );
 		}
 		a()
 	}
-	
+
 	const BuildTooltip = ( text ) => {
 		return(
 			<Tooltip placement="bottom" title={text}>

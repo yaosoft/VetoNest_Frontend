@@ -344,6 +344,7 @@ export const SiteProvider = ({ children }) => {
 
 	// profile - active modal
 	const [ visibleModalName, setVisibleModalName ] = useState( false );
+	const [ visibleModalTitle, setVisibleModalTitle ] = useState( false );
 
 	// profile payment modals
 	const [ modalPaymentMethodOpen, setModalPaymentMethodOpen ] = useState( false );
@@ -412,8 +413,20 @@ export const SiteProvider = ({ children }) => {
 
 	// list specialité
 	const [ allSpecialities, setAllSpecialities ] = useState( [] );
-	const getAllSpeciaLities = async () => {
+	const getAllSpecialities = async () => {
 		const url		= base_api_url + 'vetoSpecialite/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// list specialité
+	const [ allEtablissementTypes, setAllEtablissementTypes ] = useState( [] );
+	const getAllEtablissementTypes = async () => {
+		const url		= base_api_url + 'etablissementType/list';
 		const data 		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
@@ -512,6 +525,18 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
+
+	// etablissement edit
+	const etablissementUpdate = async ( etablissementData ) => {
+		const url		= base_api_url + 'etablissement/edit';
+		const data 		= etablissementData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 
 	// RPPS validator
 	const validateRppsNumber = (rppsNumber) => {
@@ -647,9 +672,12 @@ export const SiteProvider = ({ children }) => {
 			setEspeces( especes )
 			
 			// specialities
-			const specialities = await getAllSpeciaLities();
+			const specialities = await getAllSpecialities();
 			setAllSpecialities( specialities )
 			
+			// etablissement type
+			const etablissementTypes = await getAllEtablissementTypes();
+			setAllEtablissementTypes( etablissementTypes )
 			
 		}
 		
@@ -810,7 +838,9 @@ export const SiteProvider = ({ children }) => {
 				userPaymentMethodEdit,
 				userPaymentMethodRemove,
 				visibleModalName, 
+				visibleModalTitle,
 				setVisibleModalName,
+				setVisibleModalTitle,
 				languageList,
 				paymentMethodList,
 				isNew, 
@@ -1043,6 +1073,7 @@ export const SiteProvider = ({ children }) => {
 				country_germain,
 				setCountry_germain,
 				allSpecialities,
+				allEtablissementTypes,
 				validateRppsNumber,
 				validateSiretNumber,
 				getTimeslot,
@@ -1065,6 +1096,7 @@ export const SiteProvider = ({ children }) => {
 				timeSlotClosedDateRemove,
 				timeSlotDateUpdate,
 				timeSlotDayClose,
+				etablissementUpdate
 			}}
 		>
 
