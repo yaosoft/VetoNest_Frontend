@@ -11,7 +11,7 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import PasswordForgot from './pages/PasswordForgot';
 import PasswordForgotReset from './pages/PasswordForgotReset';
-
+import Etablissement from './pages/Etablissement';
 const AllRoutes = {
 
 	routes: [
@@ -58,6 +58,10 @@ const AllRoutes = {
 		{	// password forgot | reset
 			element:  <PasswordForgotReset />,
 			path: '/mot-de-passe-oublie/reset/:code/:userId',
+		},
+		{	// etablissement
+			element:  <Etablissement />,
+			path: '/etablissement',
 		},
 		{	// Not found page
 			element: <NotFound 

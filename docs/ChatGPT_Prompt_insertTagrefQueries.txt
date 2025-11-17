@@ -1,0 +1,26 @@
+Now I want you to help me with mysql queries that will be used to insert the generatedRandomCode codes into the table named tag_content. 
+
+The table fields are: 
+id, domain, tag_ref, content_type, date_updated, description
+
+Some fields have static values for this inserts batch: 
+domain       -> vetonest.com,
+content_type -> 1,
+date_updated -> 2025-11-16 17:30:23,
+description  -> '' // null
+
+The dynamic fields:
+- id: starts from 107 and auto increment til the end
+Note: we'll use those ids as foreign keys in another set of queries to insert translations in their table
+- tag_ref: it's the generatedRandomCode you created. Exemple: cmp_vetonest.com_TrN9a8bKzV
+
+
+Examples of query:
+INSERT INTO `tag_content` VALUES 
+(1,'vetonest.com','cmp_vetonest.com_TrN9a8bKzV',1,'2025-11-16 17:30:23',NULL),
+(2,'vetonest.com','cmp_vetonest.com_Tk5QwY1LhZ',1,'2025-07-17 17:18:08',NULL),
+(3,'vetonest.com','cmp_vetonest.com_Lf7mU3vRpQ',1,'2025-07-17 17:26:07',NULL),
+(4,'vetonest.com','cmp_vetonest.com_Pa8Rk2sYnB',1,'2025-07-17 17:30:23',NULL)
+...
+
+Can you do this please.

@@ -90,7 +90,12 @@ const Profile = ( params ) => {
 		hollydays,
 		absences,
 		fieldName,
-		modalProfileIdentityOpen
+		modalProfileIdentityOpen,
+		getVetoCliniqueInfo,
+		setVetoCliniqueInfo,
+		vetoCliniqueInfo,
+		getAContent,
+		siteContent
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -135,8 +140,6 @@ const Profile = ( params ) => {
 				setFileList( newFileList );
 				setProfilePhoto( info.file );
 
-// console.log( 'info.file', info.file );
-
 				// open the modal
 				await setIsModalPhotoOpen(true);
 			}
@@ -150,6 +153,7 @@ const Profile = ( params ) => {
 	// modal photo
 	const [ isModalPhotoOpen, setIsModalPhotoOpen ] = useState(false);
 	useEffect(() => {
+console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getAContent('cmp_vetonest.com_Yp3Qm9rKsD') );
 		const a = async() => {
 			if ( isModalPhotoOpen ) {
 				const dataUri = await getBase64( profilePhoto.originFileObj );
@@ -158,22 +162,25 @@ const Profile = ( params ) => {
 			}
 		}
 		a();
-	}, [fileList]); // Dependency array ensures effect runs when isModalOpen changes
+	}, [fileList, profileFormUpdated]); // Dependency array ensures effect runs when isModalOpen changes
 
 
 	const modalPhotoHandleOk = async() => {
-		var data = {};
-		data[ 'profileId' ] = profileId;
+		const data = {
+			profileId: profileId,
+			userId: userId
+		};
+		// data[ 'profileId' ] = profileId;
 		const rep = await profileUpdate ( data, profilePhoto, profileTypeId );
 		
 		if( rep ){
-			message.success( 'Updated!' );
+			message.success( getAContent('cmp_vetonest.com_TrN9a8bKzV') );
 			const random = generateRandomDigits(3);
 			// setFormUpdated( random );
 			setProfileFormUpdated( random );
 		}
 		else{
-			message.error( 'not Updated!' )
+			message.error( getAContent('cmp_vetonest.com_Tk5QwY1LhZ') )
 		}
 		setIsModalPhotoOpen( false );
 	}
@@ -185,10 +192,10 @@ const Profile = ( params ) => {
 		console.log( 'modalPhotoHandleOkClosed' )
 	}
 	const modalPhotoConfirmText = () => {
-		return "D'accord"
+		return getAContent('cmp_vetonest.com_Lf7mU3vRpQ')
 	}
 	const modalPhotoCancelText = () => {
-		return "Annuler"
+		return getAContent('cmp_vetonest.com_Pa8Rk2sYnB')
 	}
 
 	const handleClickRemoveAnimal = ( animalId )  => {		
@@ -211,61 +218,43 @@ const Profile = ( params ) => {
 			return
 		// get user profile info
 		const a = async () => {
-// console.log( '>>> user', user );
-// console.log( 'profileId: ' + profileId + 'profileTypeId: ' + profileTypeId );
+			// veto clinic info
+			if( profileTypeId == 2 ){
+				const vetoCliniqueInfo = await getVetoCliniqueInfo( profileId );
+				setVetoCliniqueInfo( vetoCliniqueInfo );
+			}
 			const profile = await profileGet( profileId, profileTypeId );
-// console.log( '>>> profile', profile );
 			setUserProfile( profile );
-			// setSiteLocale( siteLocale );
-			// name
 			const name = profile.nom;
 			setName( name );
-			// first name
 			const firstName = profile.prenom;
 			setFirstName( firstName );
-			// siteLocale
-			// const siteLocale = siteLanguage ? siteLanguage + '-' + siteLanguage.toUpperCase() : 'en-EN';
-			// birth date
 			const birthDate = profile.dateNaissance ? profile.dateNaissance.date : ''; 
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
-			// biography
 			const biography = profile.biography
 			setBiography( biography );
-			// profile nom texte
 			const profileNom = profile.nom && truncateString( profile.nom, 12 );
 			setProfileNom( profileNom )
-			// veto timeslot
 			const timeslotObj = await getTimeslot( profile.id );
 			const timeslot = await Object.entries( timeslotObj );
-// console.log( '*********** timeslot', timeslot );
 			setTimeslot( timeslot );
-			// veto absences
 			const absences = await getAbsences( profile.id );
-// console.log( '*********** absences', absences );
 			setAbsences( absences ); 
 			setCountAbsence( absences.length );
-			// system hollydays
 			const hollydays = await getHollydays( profile.id );
-// console.log( '*********** hollydays', hollydays );
 			setHollydays( hollydays );
 			setCountHollydays( hollydays.length );
-console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen );
 		}
 		a();
-	}, [ modalProfileIdentityOpen ] ); // Dependency array ensures effect runs when changes
-
-//  [ visibleModalName, profile_sexe_male, profile_sexe_female, siteLanguage, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
+	}, [ modalProfileIdentityOpen, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
 
 	useEffect(() => {
 		// get user pet'
 		const a = async() => {
 			const userPets = await getUserPets( profileId );
-// console.log( '>>>>>>>>>> profile', profile );
 			if( userPets.length ){
-				// profile.userPets = userPets;
 				setUserPets( userPets );
-				// count user animal
 				const countUserAnimal = userPets.length;
 				setUserTotalAnimal( countUserAnimal );
 			}
@@ -305,7 +294,6 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 				return 'hollydays'
 		}
 		
-// console.log( '---------- timeslot', timeslot )
 		return(
 			timeslot.map( ( e, index ) => 
 				<div className="row singleFieldManager" key={index}>
@@ -313,13 +301,13 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 						key={'timeslot_' + index}
 						params={{
 							fieldName: 		getFieldName( e[1].type ),
-							title:			e[1].opened ? 'Opened' : 'Closed',
+							title:			e[1].opened ? getAContent('cmp_vetonest.com_Yh8Qk1rVtA') : getAContent('cmp_vetonest.com_Zn3Lm6sWpR'),
 							nom:			e[1].nom ? e[1].nom : '',
 							description:	e[1].description ? e.description : '',
-							placeholder:	'Horaire',
+							placeholder:	getAContent('cmp_vetonest.com_Ho2Kx9bFmC'),
 							value: 			e[1].opened ? getDayName( e[0] ) + ': ' +   
 												getHoraire( e[1].startTime.date, e[1].endTime.date ) :
-											getDayName( e[0] ) + ' ' + ( e[1].closedDate ?  ' ' + dayjs( e[1].closedDate.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].closedDate.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ) : ': closed' ),
+											getDayName( e[0] ) + ' ' + ( e[1].closedDate ?  ' ' + dayjs( e[1].closedDate.date ).format( 'DD' ) + ' ' + getMonthName( dayjs( e[1].closedDate.date ).format( 'MM' ) ) + ': ' + getStatus( e[1].type ) : ': ' + getAContent('cmp_vetonest.com_qM4sV8kUdE') ),
 							style:			e[1].opened ? 'opened' : 'closed',
 							selectedAbsenceId:	e[1].type == 3 ? e[1].id : '',
 							startTime:		e[1].opened ? e[1].startTime.date : '',
@@ -349,11 +337,11 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 						key={'absence_' + index}
 						params={{
 							fieldName: 		'Absence',
-							title:			'Modifier une absence',
+							title:			getAContent('cmp_vetonest.com_Bz7Nq4wYpJ'),
 							nom:			e.nom,
 							selectedAbsenceId:	e.id,
 							description:	e.description ? e.description : '',
-							placeholder:	'Absence',
+							placeholder:	getAContent('cmp_vetonest.com_Wr2Hc9vXsK'),
 							value: 			dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
 							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ) + ', ' + truncateString( e.nom, 10 ),
 							style:			'closed',
@@ -377,11 +365,11 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 						key={'hollydays_' + index}
 						params={{
 							fieldName: 		'Hollydays',
-							title:			'Hollydays',
+							title:			getAContent('cmp_vetonest.com_Lv5Jm2nRqT'),
 							nom:			e.nom,
 							selectedHollyday:	e.id,
 							description:	e.description ? e.description : '',
-							placeholder:	'Hollydays',
+							placeholder:	getAContent('cmp_vetonest.com_Sf8Yc1pWkZ'),
 							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
 							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ),
 							style:			'closed',
@@ -396,26 +384,16 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 
 	// Get a day name from day number
 	const getDayName = ( dayNumber, locale = siteLocale ) => {
-		// Create a Date object. The specific date doesn't matter as we only need the day of the week.
-		// We set it to a Sunday (e.g., January 1, 2000) and then adjust the day.
-		const date = new Date(2000, 0, 1); // January 1, 2000 was a Saturday, so we adjust.
-		date.setDate(date.getDate() + dayNumber); // Add the dayNumber to get the correct day of the week.
-		// Use toLocaleDateString to get the day name in the specified locale.
-		// The 'weekday: "long"' option ensures the full name is returned.
-		
+		const date = new Date(2000, 0, 1);
+		date.setDate(date.getDate() + dayNumber);
 		const dayName = date.toLocaleDateString( locale, { weekday: 'long' } );
-
-// console.log( `>>>>>> Day number: ${dayNumber} Day name: ${dayName}` );
-		
 		return dayName;
-		
 	}
 
 	// get a month name from month number
 	const getMonthName = ( monthNumber, locale = siteLocale ) => {
 		const date = new Date();
 		const monthName = date.toLocaleDateString( locale, { month: 'short' } );
-
 		return monthName;
 	}
 
@@ -430,7 +408,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 			<p>
 				{
 					userPets.map( e => 
-						<div className='row' style={{marginBottom:'15px'}}>
+						<div className='row' style={{marginBottom:'15px'}} key={e.id}>
 							<div className='col-md-3'>
 								<img  
 									className='photoAnimalThumbnail'
@@ -442,15 +420,15 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 								<a 
 									onClick={ ( ev ) => handleClickRemoveAnimal( e.id ) }
 								>
-									<i className="fa fa-trash text-danger">&nbsp;<span className='text-info'>delete</span></i> 
+									<i className="fa fa-trash text-danger"></i>&nbsp; <span className='text-info'>{ getAContent('cmp_vetonest.com_Xb2Qp5mNcD') }</span>
 								</a>
 							</div>
 							
 							<div className='col-md-9'>
 								<SingleFieldManager params={{
 										fieldName: 	'Animaux',
-										title:		'Update ' + e.nom + ' info',
-										placeholder: 'Edit pet data',
+										title:		getAContent('cmp_vetonest.com_Ek7Wm0vHtP') + ' ' + e.nom + ' ' + getAContent('cmp_vetonest.com_Uy3Zr9qLsM'),
+										placeholder: getAContent('cmp_vetonest.com_Fc6Tz1bVnR'),
 										selectedPetId: e.id,
 										value: e.nom,
 										type: 2, // 2 = update
@@ -480,7 +458,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 				title={
 				  <>
 					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
-					<span>Modifier votre photo</span> 
+					<span>{ getAContent('cmp_vetonest.com_Jk4Sd7nHrV') }</span> 
 				  </>
 				}
 				closable	= {{ 'aria-label': 'Custom Close Button' }}
@@ -505,69 +483,79 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 				</div>
 			</Modal>
 			<ModalRemoveAnimal />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			
-			<Title title = { profile_title } />
+
+			<Title title = { getAContent ( 'cmp_vetonest.com_9tk5GcZYkq' ) } />
 					<Form 
 						form = {form}
 					>
 					<div className="row">
-						
 						<div className="col-md-3 ">
-							<div className="row justify-content-center">
-								<b>Photo</b><br/>
+							<div>
+								<div className="row justify-content-center">
+									<b>{ getAContent( 'cmp_vetonest.com_t1gCGfRTd4' ) }</b><br/>
+								</div>
+								<div className="row">
+										<img 
+											className="marginTop10px profilePhotoContainer"
+											src={ userProfile.picture ? 
+												base_url + 'uploads/files/profile/' + userProfile.picture: 
+												photoDefaultSrc 
+											} 
+											style={{ width: '95%' }} 
+										/>
+								</div>
+								<div className="row justify-content-center marginTop10px">
+									<Dragger {...props} > 
+										<i className="fa fa-camera" aria-hidden="true"></i> { getAContent('cmp_vetonest.com_Su6Qp0zVtY') }
+									</Dragger> 
+								</div>
 							</div>
-							<div className="row">
-									<img 
-										className="marginTop10px profilePhotoContainer"
-										src={ userProfile.picture ? 
-											base_url + 'uploads/files/profile/' + userProfile.picture: 
-											photoDefaultSrc 
-										} 
-										style={{ width: '95%' }} 
+							{ profileTypeId == 2 &&
+							<div>
+								<div className="singleFieldManager">
+									<SingleFieldManager params={{
+										fieldName: 	'Biography',
+										title:		getAContent('cmp_vetonest.com_Mn2Vr7sLpQ'),
+										placeholder: getAContent('cmp_vetonest.com_Pq8Xk4bHtS'),
+										value: 'Biography',
+										type: 2, // 2 = update
+										}}
 									/>
+								</div>
 							</div>
-							<div className="row justify-content-center marginTop10px">
-								<Dragger {...props} > 
-									<i className="fa fa-camera" aria-hidden="true"></i> Modifier
-								</Dragger> 
-							</div>
+							}
 						</div>
 						<div className="col-md-9">
 							
 							<div className="row">
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Mon compte</b>
+										<b>{ getAContent('cmp_vetonest.com_Ra1Kp8mYvZ') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											{ profileTypeId == 1 ? 'Profile' : 'Profile Pro' } 
+											{ profileTypeId == 1 ? getAContent('cmp_vetonest.com_hJ9Wv2qXsL') : getAContent('cmp_vetonest.com_Tk6Nm4bPrF') } 
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	profileTypeId == 1 ? 'Profile' : 'ProfileVeto',
-													title:		'Modifier mon profile',
-													placeholder: 'Nom, age, address ...',
-													value: profileNom,
+													title:		getAContent('cmp_vetonest.com_Yp3Qm9rKsD'),
+													placeholder: getAContent('cmp_vetonest.com_Gt4Vz6nLjH'),
+													value: '',
 													type: 2, // 2 = update
 												}}
 											/>
 										</div>
 										<br/>
 										<div className="row">
-											Connexion
+											{ getAContent('cmp_vetonest.com_Vb2Wm0pHyC') }
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Email',
-													title:		'Modifier mon email',
-													placeholder: 'Email ...',
-													value: 'Modify my email',
+													title:		getAContent('cmp_vetonest.com_Er7Hk3sBnQ'),
+													placeholder: getAContent('cmp_vetonest.com_Um6Jp2vKdL'),
+													value: getAContent('cmp_vetonest.com_Zq1Nc8rMbX'),
 													type: 2, // 2 = update
 												}}
 											/>
@@ -575,23 +563,23 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'PasswordReset',
-													title:		'Modifier mon mot de passe',
-													placeholder: 'Password reset',
-													value: 'Modify my password',
+													title:		getAContent('cmp_vetonest.com_Pa5Ls9nQvW'),
+													placeholder: getAContent('cmp_vetonest.com_Ct3Xy6mKrV'),
+													value: getAContent('cmp_vetonest.com_Sn0Bd4pYtJ'),
 													type: 2, // 2 = update
 												}}
 											/>
 										</div>
 										<br/>
 										<div className="row">
-											Langue et pays
+											{ getAContent('cmp_vetonest.com_Lk8Vm1pYsQ') }
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Language',
-													title:		'Langue du compte',
-													placeholder: 'Langue du compte ...',
-													value: 'Langue du compte',
+													title:		getAContent('cmp_vetonest.com_Mr6Qh2vLpS'),
+													placeholder: getAContent('cmp_vetonest.com_Ty9Nc3wKbD'),
+													value: getAContent('cmp_vetonest.com_Jv4Pm7sQxF'),
 													type: 1, // 2 = update
 												}}
 											/>
@@ -599,9 +587,9 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Country',
-													title:		'Pays du compte',
-													placeholder: 'Pays du compte',
-													value: 'Pays du compte',
+													title:		getAContent('cmp_vetonest.com_Gq5Vc1nLsZ'),
+													placeholder: getAContent('cmp_vetonest.com_Rm2Xk8pJdH'),
+													value: getAContent('cmp_vetonest.com_Bt7Nq4vPfY'),
 													type: 2, // 2 = update
 												}}
 											/>
@@ -610,23 +598,23 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 									</div>
 								</div>
 								<div className="col-md-6 row">
-								{ profileId == 1 ?
+								{ profileTypeId == 1 &&
 									<>
 										<div className="col-md-3">
-											<b>profileMesAnimaux_MesAnimaux</b>
+											<b>{ getAContent('cmp_vetonest.com_Zr3Hq6mLpT') }</b>
 										</div>
 										<div className="col-md-9">
 											<div className="row">
-												profileMesAnimaux_CarnetDeSanté
+												{ getAContent('cmp_vetonest.com_Dp8Kx1vQmS') }
 											</div>
 											<div className="row">
 												<div className="col-md-9">
 													<div className="row singleFieldManager">
 														<SingleFieldManager params={{
 																fieldName: 	'Animaux',
-																title:		'Ajouter un animal',
-																placeholder: 'Animal ...',
-																value: 'Ajouter un animal',
+																title:		getAContent('cmp_vetonest.com_Bx9Lm3pQsW'),
+																placeholder: getAContent('cmp_vetonest.com_Vn2Yq8kHrZ'),
+																value: getAContent('cmp_vetonest.com_Hc4Pt7mLsK'),
 																type: 1, // 1 = create
 															}}
 														/>
@@ -635,7 +623,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 												<div className="col-md-9">
 													<br/>
 													<div className="row">
-														profileMesAnimaux_youHave { userTotalAnimal } animaux<br/>
+														{ getAContent('cmp_vetonest.com_Aq5Fm2vNsR') } { userTotalAnimal } { getAContent('cmp_vetonest.com_Nz7Xk4pTbL') }<br/>
 													</div>
 													<div className="row singleFieldManager">
 														<BuildUserPetsList />
@@ -644,37 +632,68 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 											</div>
 										</div>
 									</>
-								:
+								}
+								{ profileTypeId == 2 &&
 									<>
 									<div className="col-md-3">
-										<b>profile_clinique</b>
+										<b>{ getAContent('cmp_vetonest.com_Fn1Qp8vMrT') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-												profileClinique_zoneActivite
+												{ getAContent('cmp_vetonest.com_Oc4Kx2mLpS') }
 											</div>
 											<div className="row">
 												<div className="col-md-9">
 													<div className="row singleFieldManager">
-														profileClinique_creerUneZoneActivite
+														{ getAContent('cmp_vetonest.com_Lp6Vz3nQmR') }
 													</div>
 												</div>
 												<div className="col-md-9">
 													<br/>
 													<div className="row">
-														profileClinique_creerUneClinique
+														{ getAContent('cmp_vetonest.com_Yr7Hk1vPsD') }
 													</div>
 													<div className="row">
-														profileClinique_creerUneClinique
+														{ getAContent('cmp_vetonest.com_Yr7Hk1vPsD') }
 															<SingleFieldManager params={{
 																fieldName: 	'Etablissement',
-																title:		'Ajouter votre etablissement',
-																placeholder: 'Etablissement',
-																value: 'Ajouter un établissement',
+																title:		getAContent('cmp_vetonest.com_Ms8Qp2vLrT'),
+																placeholder: getAContent('cmp_vetonest.com_Cn3Xk9bHwV'),
+																value: getAContent('cmp_vetonest.com_Zp5Ln6mQrS'),
 																type: 1, // 1 = create
 																}}
 															/>
 													</div>
+													{
+														vetoCliniqueInfo &&
+														<div className="row">
+															{ getAContent('cmp_vetonest.com_Ty4Qc7nLmP') }
+																<SingleFieldManager params={{
+																	fieldName: 		'Etablissement_lieu',
+																	title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
+																	placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
+																	value: 			getAContent('cmp_vetonest.com_Fn2Qp7mLsV'),
+																	cliniqueId: 	vetoCliniqueInfo.cliniqueId,
+																	type: 1, // 1 = create
+																	}}
+																/>
+														</div>
+													}
+													{
+														vetoCliniqueInfo &&
+														<div className="row">
+															{ getAContent('cmp_vetonest.com_Gq5Vn2mPrT') }
+																<SingleFieldManager params={{
+																	fieldName: 		'Etablissement_veto',
+																	title:			getAContent('cmp_vetonest.com_Rm8Kp1vLsJ'),
+																	placeholder: 	getAContent('cmp_vetonest.com_Hn4Xq9bMvS'),
+																	value: 			getAContent('cmp_vetonest.com_Bp3Ln6mQrV'),
+																	cliniqueId: 	vetoCliniqueInfo.cliniqueId,
+																	type: 1, // 1 = create
+																	}}
+																/>
+														</div>
+													}
 												</div>
 											</div>
 									</div>
@@ -682,21 +701,23 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 								}
 								</div>
 							</div>
+							{ profileTypeId == 2 &&
+							<>
 							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
 							</div>
 							<div className="row">
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Ouverture</b>
+										<b>{ getAContent('cmp_vetonest.com_Uy2Kp6mQrS') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Horaires
+											{ getAContent('cmp_vetonest.com_Ox5Qm1vLpT') }
 										</div>
 										<BuildTimeslot />
 										<p>&nbsp;</p>
 										<div className="row">
-											Devise
+											{ getAContent('cmp_vetonest.com_Wr3Hn8vKsD') }
 										</div>
 										<div className="row profileLanguageSelector">
 											<CurrencySelector />
@@ -705,23 +726,22 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 									</div>
 								</div>
 								<div className="col-md-6 row">
-								{ profileTypeId == 2 &&
-								<>
+								
 									<div className="col-md-3">
-										<b>Fermetures</b>
+										<b>{ getAContent('cmp_vetonest.com_Pq9Xk2mLsV') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Absence
+											{ getAContent('cmp_vetonest.com_Bn6Lp3vQrS') }
 										</div>
 										<div className="row">
 											<div className="col-md-9">
 												<div className="row singleFieldManager">
 													<SingleFieldManager params={{
 															fieldName: 	'Absence',
-															title:		'Ajouter une absence',
-															placeholder: 'Absence',
-															value: 'Ajouter une absence',
+															title:		getAContent('cmp_vetonest.com_Lm7Qp4vHrT'),
+															placeholder: getAContent('cmp_vetonest.com_Gn2Xk8bPsV'),
+															value: getAContent('cmp_vetonest.com_Ar5Ft9mQsL'),
 															type: 1, // 1 = create
 														}}
 													/>
@@ -730,32 +750,32 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 											<div className="col-md-9">
 												<br/>
 												<div className="row">
-													Vous avez { countAbsence } absence programmée<br/>
+													<>{ getAContent('cmp_vetonest.com_Cq1Vm8nLsP') } { countAbsence } { getAContent('cmp_vetonest.com_Zr4Kp6mQtW') }<br/></>
 												</div>
 													<BuildAbsence />
 											</div>
 										</div>
 									</div>
-								</>
-								}
 								</div>
 							</div>
+							</>
+							}
 							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
 							</div>
 							<div className="row">
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Identité</b>
+										<b>{ getAContent('cmp_vetonest.com_Hr3Wk6mLpS') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											User identification
+											{ getAContent('cmp_vetonest.com_Jn5Qv2mLpR') }
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Name',
-													title:		'Update user name',
-													placeholder: 'No name',
+													title:		getAContent('cmp_vetonest.com_Nq8Lp3vMtS'),
+													placeholder: getAContent('cmp_vetonest.com_Rt4Vn1bKsD'),
 													value: name,
 													type: 2, // 2 = update
 												}}
@@ -764,8 +784,8 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'FirstName',
-													title:		'Update user first name',
-													placeholder: 'No firstname',
+													title:		getAContent('cmp_vetonest.com_Pm6Qv2nLsR'),
+													placeholder: getAContent('cmp_vetonest.com_St9Xk1bHvW'),
 													value: firstName,
 													type: 2, // 2 = update
 												}}
@@ -774,8 +794,8 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Sexes',
-													title:		'Your genre',
-													placeholder: 'Please Select sexe',
+													title:		getAContent('cmp_vetonest.com_Yr7Qp1vLsD'),
+													placeholder: getAContent('cmp_vetonest.com_Mn2Xk8bPrV'),
 													value: eval(userProfile.userSexeTagClass),
 													type: 2, // 2 = update
 												}}
@@ -784,8 +804,8 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'BirthDate',
-													title:		'Update the date',
-													placeholder: 'Your birth date',
+													title:		getAContent('cmp_vetonest.com_Oq4Vp2mLsR'),
+													placeholder: getAContent('cmp_vetonest.com_Ur1Xk6bPsM'),
 													value: dateNaissance,
 													type: 2, // 2 = update
 												}}
@@ -794,8 +814,8 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'Biography',
-													title:		'Something about you',
-													placeholder: 'Biographie',
+													title:		getAContent('cmp_vetonest.com_Wq2Lp9vMrT'),
+													placeholder: getAContent('cmp_vetonest.com_Vn5Xk3bHsD'),
 													value: biography,
 													type: 2, // 2 = update
 												}}
@@ -810,7 +830,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 										</div>
 										<p>&nbsp;</p>
 										<div className="row">
-											Devise
+											{ getAContent('cmp_vetonest.com_Lk8Vm1pYsQ') }
 										</div>
 										<div className="row profileLanguageSelector">
 											<CurrencySelector />
@@ -820,15 +840,15 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 								</div>
 								<div className="col-md-6 row">
 									<div className="col-md-3">
-										<b>Payment</b>
+										<b>{ getAContent('cmp_vetonest.com_Xp6Qv2mLsR') }</b>
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											Payment Methods
+											{ getAContent('cmp_vetonest.com_Bn6Lp3vQrS') }
 										</div>
 										<div className="row">
 											<div className="col-md-9">
-												Foo
+												foo
 											</div>
 										</div>
 									</div>
@@ -837,27 +857,7 @@ console.log( '+++++++++++++ ModalProfileIdentityOpen', modalProfileIdentityOpen 
 						</div>
 					</div>
 				</Form>
-				<div className="displayNone">
-					<span 
-						id = "cmp_vetonest.com_XdIUc8X4MG"
-						className ="profile_sexe_male" 
-					>
-						Homme
-					</span>
-					<span 
-						id = "cmp_vetonest.com_PuaOtP8HrQ"
-						className ="profile_sexe_female" 
-					>
-						Femme
-					</span>
-					<span 
-						id = "cmp_vetonest.com_Cdm1dvyDO1"
-						className ="profile_title" 
-					>
-						Mon profile
-					</span>
-
-				</div>							
+				
 			<div>&nbsp;</div>
 			<Footer />
 		</>

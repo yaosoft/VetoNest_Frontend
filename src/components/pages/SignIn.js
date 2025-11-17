@@ -48,7 +48,8 @@ const SignIn = ( params ) => {
 		signUp_emailPlaceholder,
 		signUp_passwordPlaceholder,
 		signUp_btnSubmit,
-		signIn_passwordForgot
+		signIn_passwordForgot,
+		getLanguagePreference
 	}	= useContext( SiteContext );
 
 
@@ -178,21 +179,43 @@ const SignIn = ( params ) => {
 			
 			return
 		}
-		
-		// const logInData = {
-			// password: 	signInPassword,
-			// email: 		signInEmail,
-			// userId: 	resp.userId
-		// };
 
 		// stop login button's spin
 		setSignInSpin( 'none' );
 
 		// Frontend login
-console.log( 'resp', resp );
+console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 		await logIn( resp );	
+
+		// Set language and content
+		if( resp.languageId )
+			await languageSetup( resp.languageId );
 		
-		languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
+//const data = {
+//	userId: user.userId,
+//}	
+//const resp = await getLanguagePreference ( data );
+		
+//if( resp !== null )
+				//	languageId = resp.id;	 
+
+	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh favourite language id', resp  );
+	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh languageId', languageId  );
+	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh selectedLanguageId', selectedLanguageId  );
+
+				// set user language
+				//if( selectedLanguageId == languageId ){ // Selected language id == user's favourite language id
+					// setSelectedLanguageId( languageId );			// update languagelist boxes
+				//	await languageSetup( languageId ); 					// Update language flag
+				//}
+				//else{
+				//	setSelectedLanguageId( selectedLanguageId );	// update languagelist boxes
+				//	await languageSetup( selectedLanguageId ); 			// Update language flag
+				//}
+
+
+		// languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
+		//setSelectedLanguageId( selectedLanguageId );
 		
 		// goto validation
 		const path	= getReferrer() ? getReferrer() : '/profile';
@@ -218,14 +241,10 @@ console.log( 'resp', resp );
 		<>
 
 		<Header />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
 
             <Title title = { signIn_title } />
-
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">

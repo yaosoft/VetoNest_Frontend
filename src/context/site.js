@@ -171,14 +171,23 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// List all languages
+	// List all site countries
 	const countryList = async () => {
 		const url		= base_api_url + 'pays/list';
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+		return rep;
+	}
+
+	// list all pays villes
+	const getPaysVilles = async ( countryId ) => {
+		const url		= base_api_url + 'pays/villes?countryId=' + countryId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
 		return rep;
 	}
 
@@ -221,6 +230,16 @@ export const SiteProvider = ({ children }) => {
 		setLanguageFlag( flag );
 		setSiteLanguage( languageCode );
 		setSiteLocale( languageCode ? languageCode + '-' + languageCode.toUpperCase() : 'fr-FR' ); // en-En
+		
+
+		// get content
+		const siteContentData = {
+			siteLanguage: languageCode,
+		}
+		const siteContent = await getSiteContent( siteContentData );
+
+		setSiteContent( siteContent ); // to use in secondary DOMs ( modal )
+		
 	}
 
 	const getLanguagePreference = async ( userData ) => {
@@ -267,7 +286,7 @@ export const SiteProvider = ({ children }) => {
 
 	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
 	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // dev
-	const [ siteContent, setSiteContent ] = useState( '' );
+	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
 		
@@ -282,6 +301,18 @@ export const SiteProvider = ({ children }) => {
 
 		setSpiner( 'none' );
 		return rep;
+	}
+	// Get a content locally from site siteContent. For contents inside modal.
+	const getAContent = ( tagRef ) => {
+		if( !siteContent.length )
+			return '...'
+
+		const content = siteContent.filter( v => v.tagRef == tagRef )[0];
+
+		if( !content )
+			return 'bar'
+		
+		return content.contents[0].textContent
 	}
 	
 	// insert space at position x
@@ -355,6 +386,39 @@ export const SiteProvider = ({ children }) => {
 	
 	const [ isNew, setIsNew ] = useState( false ) 
 
+	// Notifications - veto invitation to join a facility
+	const getVetoInvitationNotification = async ( vetoProfileId ) => {
+		const url		= base_api_url + 'vetoEtablissementStatus/invitationNotification/?vetoProfileId=' + vetoProfileId;
+		const data 		= "";
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Notifications - post
+	const postNotification = async ( notificationData ) => {
+		const url		= base_api_url + 'notification/post';
+		const data 		= notificationData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Notifications - post
+	const notificationViewed = async ( notificationData ) => {
+		const url		= base_api_url + 'notification/viewed';
+		const data 		= notificationData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// profile - get user payment methods
 	const userPaymentMethodList = async ( userId ) => {
 		const url		= base_api_url + 'user/payment-method/list/?userId=' + userId;
@@ -415,6 +479,18 @@ export const SiteProvider = ({ children }) => {
 	const [ allSpecialities, setAllSpecialities ] = useState( [] );
 	const getAllSpecialities = async () => {
 		const url		= base_api_url + 'vetoSpecialite/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// list vetos
+	const [ vetos, setVetos ] = useState( [] );
+	const getVetos = async () => {
+		const url		= base_api_url + 'profileVeto/list';
 		const data 		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
@@ -503,6 +579,112 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// get vetos's etablissement
+	const [ vetoCliniqueInfo, setVetoCliniqueInfo ] = useState( [] );
+	const getVetoCliniqueInfo = async ( profileVetoId ) => {
+		const url		= base_api_url + 'etablissement/getVetoEtablissement?profileVetoId=' + profileVetoId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+	// set veto etablissement
+	const setCliniqueVetos = async ( cliniqueVetoData ) => {
+		const url		= base_api_url + 'vetoEtablissementStatus/edit';
+		const data 		= cliniqueVetoData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a user notifications
+	const getUserNotifications = async ( userId ) => {
+		const url		= base_api_url + 'notification/user/get?userId=' + userId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a veto's etablissement invitation status
+	const getVetoEtablissementStatus = async ( profileVetoId ) => {
+		const url		= base_api_url + 'vetoEtablissementStatus/user/get?profileVetoId=' + profileVetoId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get a veto's etablissement invitation status update
+	const updateVetoEtablissementStatus = async ( updateData ) => { 
+		const url		= base_api_url + 'vetoEtablissementStatus/update';
+		const data 		= updateData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// List an etablissement's vetos
+	const getEtablissementVeto = async ( statusId, etablissementId ) => { 
+		const url		= base_api_url + 'vetoEtablissementStatus/listVeto?statusId=' + statusId + '&etablissementId=' + etablissementId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// List an etablissement's current invitation
+	const getEtablissementInvitations = async ( etablissementId ) => { 
+		const url		= base_api_url + 'vetoEtablissementStatus/etablissementInvitation?etablissementId=' + etablissementId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// get etablissement info
+	const getEtablissementInfo = async ( etablissementId ) => {
+		const url		= base_api_url + 'etablissement/show?etablissementId=' + etablissementId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+
+
+	// selected veto's clinique
+	const [ selectedVetoClinique, setSelectedVetoClinique ] = useState( '' ); 
+	
+	// Transports list
+	const [ transports, setTransports ] = useState( [] );
+	const getTransports = async ( ) => {
+		const url		= base_api_url + 'transport/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
 	// close a day
 	const timeSlotDayClose = async ( timeSlotData ) => {
 		const url		= base_api_url + 'timeSlotClosedDay/edit';
@@ -513,7 +695,6 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
-	
 
 	// delete veto absence
 	const timeSlotClosedDateRemove = async ( timeSlotData ) => {
@@ -537,6 +718,27 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// etablissement lieu edit
+	const etablissementLieuUpdate = async ( etablissementLieuData ) => {
+		const url		= base_api_url + 'lieu/edit';
+		const data 		= etablissementLieuData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Lieu Transport edit lieu /edit
+	const lieuTransportUpdate = async ( lieuTransportData ) => {
+		const url		= base_api_url + 'lieuTransport/edit';
+		const data 		= lieuTransportData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
 
 	// RPPS validator
 	const validateRppsNumber = (rppsNumber) => {
@@ -644,6 +846,7 @@ export const SiteProvider = ({ children }) => {
 	const [ languages, setLanguages ] = useState( [] );
 	// const [ countries, setCountries ] = useState( [] );
 	const [ countriesAllowed, setCountriesAllowed ] = useState( [] );
+
 	
 	useEffect(() => {
 		const a = async () =>{
@@ -679,8 +882,16 @@ export const SiteProvider = ({ children }) => {
 			const etablissementTypes = await getAllEtablissementTypes();
 			setAllEtablissementTypes( etablissementTypes )
 			
+			// transport
+			const transports = await getTransports();
+			setTransports( transports )
+
+			// veto list
+			const vetos = await getVetos();
+			setVetos( vetos )
+
 		}
-		
+
 		a()
 	}, []);
 	
@@ -739,7 +950,6 @@ export const SiteProvider = ({ children }) => {
 	const [ signUp_codeIncorrect, setSignUp_codeIncorrect ] = useState( '' );	
 	const [ signUp_codeIntro, setSignUp_codeIntro ] = useState( '' );	
 	const [ signUp_codeResend, setSignUp_codeResend ] = useState( '' );
-	
 	const [ signUp_popConfirmVetTitle, setSignUp_popConfirmVetTitle ] = useState( '' );
 	const [ signUp_popConfirmPetTitle, setSignUp_popConfirmPetTitle ] = useState( '' );
 	const [ signUp_popConfirmVetDescription, setSignUp_popConfirmVetDescription ] = useState( '' );
@@ -748,9 +958,9 @@ export const SiteProvider = ({ children }) => {
 	const [ signUp_popConfirmNo, setSignUp_popConfirmNo ] = useState( '' );
 	const [ signUp_popConfirmDeleteBtn, setSignUp_popConfirmDeleteBtn ] = useState( '' );
 	const [ signUp_accountCreationSuccess, setSignUp_accountCreationSuccess ] = useState( '' );
-	
 	const [ signUp_title, setSignUp_title ] = useState( '' );
 	const [ signIn_title, setSignIn_title ] = useState( '' );
+	const [ profile_title, setProfile_title ] = useState( '' );
 	const [ signUp_btnSubmit, setSignUp_btnSubmit ] = useState( '' );
 	const [ signUp_termsUsage, setSignUp_termsUsage ] = useState( '' );
 	const [ signUp_accountCreationFails, setSignUp_accountCreationFails ] = useState( '' );
@@ -859,6 +1069,7 @@ export const SiteProvider = ({ children }) => {
 				setSelectedLanguageId,
 				truncateString,
 				getSiteContent,
+				getAContent,
 				siteContent,
 				setSiteContent,
 				searchInputVeto, 
@@ -985,6 +1196,8 @@ export const SiteProvider = ({ children }) => {
 				setSignIn_passwordForgot,
 				signIn_title,
 				setSignIn_title,
+				profile_title,
+				setProfile_title,
 				passwordForgot_updateSuccess,
 				setPasswordForgot_updateSuccess,
 				passwordForgotReset_title, 
@@ -1096,7 +1309,27 @@ export const SiteProvider = ({ children }) => {
 				timeSlotClosedDateRemove,
 				timeSlotDateUpdate,
 				timeSlotDayClose,
-				etablissementUpdate
+				etablissementUpdate,
+				etablissementLieuUpdate,
+				getVetoCliniqueInfo,
+				vetoCliniqueInfo, 
+				setVetoCliniqueInfo,
+				setCliniqueVetos,
+				selectedVetoClinique,
+				setSelectedVetoClinique,
+				transports,
+				lieuTransportUpdate,
+				vetos,
+				getVetoInvitationNotification,
+				getUserNotifications,
+				getVetoEtablissementStatus,
+				getEtablissementInfo,
+				updateVetoEtablissementStatus,
+				postNotification,
+				getPaysVilles,
+				getEtablissementVeto,
+				getEtablissementInvitations,
+				notificationViewed
 			}}
 		>
 

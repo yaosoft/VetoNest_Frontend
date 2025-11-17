@@ -23,6 +23,7 @@ import 'dayjs/locale/it';
 
 import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import InputCode from "./InputCode";
+
 const ModalProfile = ( params ) => {
 	const { 
 		getUser,
@@ -35,6 +36,7 @@ const ModalProfile = ( params ) => {
 	} = useContext( AuthContext );
 
 	const {
+		base_url,
 		siteName,
 		siteEmail,
 		siteUrl,
@@ -155,11 +157,23 @@ const ModalProfile = ( params ) => {
 		timeSlotClosedDateRemove,
 		selectedTimeslotOpen,
 		timeSlotDayClose,
-		etablissementUpdate
+		etablissementUpdate,
+		etablissementLieuUpdate,
+		selectedVetoClinique,
+		transports,
+		vetoCliniqueInfo,
+		lieuTransportUpdate,
+		vetos,
+		setCliniqueVetos,
+		countryList,
+		getPaysVilles,
+		getAContent
 	} = useContext( SiteContext )
 
 	// Animal photo
 	const [ animalPhotoDefaultSrc, setAnimalPhotoPhotoDefaultSrc ] = useState( '/img/user/2.jpg' );
+	// user photo
+	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
 	// File upload
 	const { Dragger } = Upload;
 	const [ uploading, setUploading ] = useState(false);
@@ -326,6 +340,57 @@ const ModalProfile = ( params ) => {
 		}
 		// signUpEtablissementNameErrorText = 'Your etablissementName seems incorect'
 		setEtablissementNameError( etablissementNameErrorText );
+	}
+
+	// etablissement parking
+	const [ etablissementParking, setEtablissementParking ] = useState( '' );
+	const [ etablissementParkingError, setEtablissementParkingError ] = useState( '' );
+	const handleChangeEtablissementParking = ( e ) => {
+		const data = e.target.value;
+		setEtablissementParking( data );
+
+		var etablissementParkingErrorText = '';
+		const test = absenceNameValidator( data )
+
+		if( data && test === false ){
+			etablissementParkingErrorText = 'profileEtablissement_etablissementParkingErrorText'
+		}
+		// signUpEtablissementParkingErrorText = 'Your etablissementParking seems incorect'
+		setEtablissementParkingError( etablissementParkingErrorText );
+	}
+
+	// etablissement info
+	const [ etablissementInfo, setEtablissementInfo ] = useState( '' );
+	const [ etablissementInfoError, setEtablissementInfoError ] = useState( '' );
+	const handleChangeEtablissementInfo = ( e ) => {
+		const data = e.target.value;
+		setEtablissementInfo( data );
+
+		var etablissementInfoErrorText = '';
+		const test = absenceNameValidator( data )
+
+		if( data && test === false ){
+			etablissementInfoErrorText = 'profileEtablissement_etablissementInfoErrorText'
+		}
+		// signUpEtablissementInfoErrorText = 'Your etablissementInfo seems incorect'
+		setEtablissementInfoError( etablissementInfoErrorText );
+	}
+
+	// etablissement address
+	const [ etablissementAddress, setEtablissementAddress ] = useState( '' );
+	const [ etablissementAddressError, setEtablissementAddressError ] = useState( '' );
+	const handleChangeEtablissementAddress = ( e ) => {
+		const data = e.target.value;
+		setEtablissementAddress( data );
+
+		var etablissementAddressErrorText = '';
+		const test = addressValidator( data )
+
+		if( data && test === false ){
+			etablissementAddressErrorText = 'profileEtablissement_etablissementAddressErrorText'
+		}
+		// signUpEtablissementAddressErrorText = 'Your etablissementAddress seems incorect'
+		setEtablissementAddressError( etablissementAddressErrorText );
 	}
 
 	// Veto etablissement presentation
@@ -767,6 +832,12 @@ console.log( '>>>>>>>>>>> date', date );
 	const [ biography, setBiography ] = useState( '' );
 	const handleChangeBiography = ( e ) => {
 		const data = e.target.value;
+		
+
+		// sync to Form so its rules/validation see the new value
+		form.setFieldsValue({ Biography: data });
+		
+		//
 		setBiography( data );
 
 		var biographyErrorText = '';
@@ -774,6 +845,9 @@ console.log( '>>>>>>>>>>> date', date );
 			biographyErrorText = 'Please add a few words to your biography';
 
 		setBiographyError( biographyErrorText );
+
+		// optional: validate field immediately
+		form.validateFields(['Biography']).catch(() => {});
 	}
 	// Biography validation
 	const { TextArea } = Input;
@@ -806,7 +880,8 @@ console.log( '>>>>>>>>>>> date', date );
 		setAddressError( addressErrorText );
 	}
 	const addressValidator = ( address ) => {
-		const rep = /^[a-zA-Z0-9,.'-]*$/.test( address );
+		const rep = /^[A-Za-z0-9À-ÿ\s,'\.\-]+$/.test( address );
+
 		return rep
 	}
 
@@ -893,6 +968,30 @@ console.log( '>>>>>>>>>>> date', date );
 		)
 	}
 
+	// Build lieu countries options
+	const BuildLieuCountriesOptions = () => {
+		return(
+			lieuCountries.map( ( country, index ) => 
+				({
+					value: country.id,
+					label: country.nom,
+				})
+			)
+		)
+	}
+
+	// Build lieu countries options
+	const BuildLieuCitiesOptions = () => {
+		return(
+			lieuCities.map( ( country, index ) => 
+				({
+					value: country.id,
+					label: country.nom,
+				})
+			)
+		)
+	}
+
 	// Build states options
 	const BuildStatesOptions = () => {
 		return(
@@ -928,7 +1027,7 @@ console.log( '>>>>>>>>>>> date', date );
 			)
 		)
 	}
-
+	
 	// clear form error
 	const clearFormErrors = () => {
 		setFormError01( 'none' );
@@ -995,10 +1094,129 @@ console.log( '>>>>>>>>>>> date', date );
 	}
 
 	// save
-	const handleClickSave = async () => {
+	const handleClickSave = async ( e ) => {
+		// Etablissement_veto
+		if( fieldName == 'Etablissement_veto' ){
+			const data = {
+				vetoEtablissementStatusId: '',
+				etablissementId: vetoCliniqueInfo.id,
+				profileVetoIdStr: checkedVetoList.join( '*' ),
+				status: 1,	// 1 - pending, 2 - active.
+				enabled: 1,
+			}
+console.log( '>>>>>>>>>>> data', data );
+			const rep = await setCliniqueVetos( data );	// save
+			if( rep === false ){ //
+				message.error( 'Veto profile cannot be updated' );
+			}
+			else{
+				const random = await generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( 'Profile updated' );
+				setModalProfileIdentityOpen( false );
+			}			
+		}
+		// Etablissement_lieu
+		if( fieldName == 'Etablissement_lieu' ){
+			// check the form errors
+			const checkFormErrors = async() => { 
+				var errorsExist = false;
+				if( etablissementAddressError != '' ){
+					errorsExist = true
+				}
+				else if( etablissementParkingError != '' ){
+					errorsExist = true
+				}
+				else if( etablissementInfoError != '' ){
+					errorsExist = true
+				}
+				form.validateFields();
+				return errorsExist
+			}
+
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				return
+			}
+			// check empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = async( ) => {
+				if( !etablissementAddress ){
+					formHasEmpty = 'profileEtablissement_addressEmpty';
+					setEtablissementAddressError( formHasEmpty );
+				}
+				// if( !etablissementParking ){
+				//	formHasEmpty = 'profileEtablissement_parkingEmpty';
+				//	setEtablissementParkingError( formHasEmpty );
+				// }
+				// if( !etablissementInfo ){
+				//	formHasEmpty = 'profileEtablissement_infoEmpty';
+				//	setEtablissementInfoError( formHasEmpty );
+				// }
+				if( !lieuCountries.length ){
+					formHasEmpty = 'profileEtablissement_countryEmpty';
+					setLieuCountryError( formHasEmpty );
+				}
+				// if( !lieuCities.length ){
+				//	formHasEmpty = 'profileEtablissement_countryEmpty';
+				//	setLieuCityError( formHasEmpty );
+				// }
+				form.validateFields();
+			}
+			await checkFormEmpty();
+			// check form empty fields
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setPwResetSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
+			const etablissementLieuData = {
+                adresse: etablissementAddress,
+                info: etablissementInfo,
+				parking: etablissementParking,
+				etablissementId: vetoCliniqueInfo.id,
+				paysId: lieuCountrySelected,
+				villeId: lieuCitySelected,
+                enabled: true,
+			}
+
+			const lieuId = await etablissementLieuUpdate( etablissementLieuData );
+			if( lieuId === false ){ //
+				message.error( 'Veto cannot be updated' );
+				return;
+			}
+			else{
+				const etsTransport = transports.map( ( v, k ) => {
+					const elt = document.getElementsByName( v.nom )[0];
+					const description = elt.value; // user's details
+					const transportId = elt.dataset.customId;
+					const data = {
+						'lieuId': lieuId,
+						'transportId': transportId,
+						'description': description,
+						'profileVetoId': profileId,
+					}
+					return data;
+				})
+				for ( const transport of etsTransport ){
+					const rep = await lieuTransportUpdate( transport );
+				}
+			}
+			
+			message.success( 'Profile updated' );
+			setModalProfileIdentityOpen( false );
+			const random = generateRandomDigits(3);
+			// setFormUpdated( random );
+			setProfileFormUpdated( random );
+			return;
+		}
+
 		// Etablissement
 		if( fieldName == 'Etablissement' ){
-// check the form errors
+			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( etablissementNameError != '' ){
@@ -1069,7 +1287,6 @@ console.log( '>>>>>>>>>>> date', date );
 				setProfileFormUpdated( random );
 				return;
 			}
-			
 		}
 		
 		// Opened
@@ -1183,7 +1400,7 @@ console.log( '>>>>>>>>>>> date', date );
 			// check form empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = () => {
-// console.log( 'phoneNumber', phoneNumber );
+
 				if( absenceName == '' ){
 					formHasEmpty = 'profileAbssence_emptyNameErrorText';
 					setPhoneNumberError( formHasEmpty );
@@ -1203,7 +1420,7 @@ console.log( '>>>>>>>>>>> date', date );
 				// setSendingDisabled( false );
 				return
 			}
-console.log( '++++++++++ dateAbsence', dateAbsence );
+
 			const sendData = {
 				timeSlotClosedDateId:	absence ? absence.id : '',
 				closedDate: 			dateAbsence.format('YYYY-MM-DD'),
@@ -1269,7 +1486,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 			// check form empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = () => {
-// console.log( 'phoneNumber', phoneNumber );
+
 				if( phoneNumber == '' ){
 					formHasEmpty = 'phoneNumberEmptyErrorText';
 					setPhoneNumberError( formHasEmpty );
@@ -1358,30 +1575,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 				return;
 			}
 		}
-		
-		// if( fieldName == 'Language' ){
-			
-			// const languagePreferenceData = {
-				// userId: 	userId,
-				// languageId: lastSelectedLanguage
-			// }
-			
-			// const rep = await updateLanguagePreference( languagePreferenceData )
-			// if( rep !== false ){
-				// await setSelectedLanguageId( lastSelectedLanguage ); // update the listbox via context
-				// await languageSetup( lastSelectedLanguage ); // Update flag and user locale
-				// user.languageId = lastSelectedLanguage; // update user
-				// setUser( user );
-				// const random = generateRandomDigits(3);
-				// setProfileFormUpdated( random );
-				// message.success( 'Default language updated' );
-				// return
-			// }
-			// else{
-				// message.error( 'Default language not updated' );
-				// return
-			// }
-		// }
+
 		
 		if( fieldName == 'Language' ){
 			
@@ -1640,6 +1834,62 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 			
 			return
 		}
+	
+		// Biography
+		if( fieldName == 'Biography' ){
+
+			// check the form errors
+			const checkFormErrors = async( ) => {
+				var errorsExist = false;
+				if( biographyError != '' )
+					errorsExist = true
+				return errorsExist
+			}
+			
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				setPwResetSpin( 'none' );
+				setSendingDisabled( false );
+				return
+			}
+
+			// check empty fields
+			var formHasEmpty = '';
+			const checkFormEmpty = async( ) => {
+				if( biography == '' ){
+					formHasEmpty = 'biographyEmptyErrorText';
+					setBiographyError( formHasEmpty );
+				}
+			}
+			
+			await checkFormEmpty();
+			// check form empty fields
+			if( formHasEmpty ){
+				message.error( formHasEmpty );
+				// setPwResetSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
+			const profileData = {
+				userId: 	userId,
+				profileId: 	profileId,
+				biography: biography
+			}
+			
+			const rep = await profileUpdate( profileData )
+			if( rep !== false ){
+
+				const random = generateRandomDigits(3);
+				message.success( 'Biography updated' );
+				return
+			}
+			else{
+				message.error( 'Default language not updated' );
+				return
+			}
+		}
 
 		// Profile
 		if( fieldName == 'Profile' ){	
@@ -1762,7 +2012,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 	const { Option } = Select;
 	const [ selectedLanguages, setSelectedLanguages ] = useState([]);
 
-	const MAX_LANGUAGES = 2; // Define your maximum limit
+	const MAX_LANGUAGES = 3; // Define your maximum limit
 	const handleChangeLanguage = (value) => {
 		if (value.length > MAX_LANGUAGES) {
 		  // If the new selection exceeds the limit, take only the allowed number
@@ -1790,6 +2040,16 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 	const [ countryCode, setCountryCode ] = useState( '' );	
 	const [ flagCode, setFlagCode ] = useState( '' );
 
+	const [ lieuCountryError, setLieuCountryError ] = useState( '' );
+	const [ lieuCountryDefault, setLieuCountryDefault ] = useState( 'Select a country' );
+	const [ lieuCountrySelected, setLieuCountrySelected ] = useState( '' );
+	const [ lieuCountries, setLieuCountries ]  = useState( [] ); 	
+	
+	const [ lieuCityError, setLieuCityError ] = useState( '' );
+	const [ lieuCityDefault, setLieuCityDefault ] = useState( 'Select a city' );
+	const [ lieuCitySelected, setLieuCitySelected ] = useState( '' );
+	const [ lieuCities, setLieuCities ]  = useState( [] ); 
+
 	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 	const handleChangeFlag = ( countryIso ) => {
 // console.log( '>>>>>>>> countryIso', countryIso );
@@ -1816,7 +2076,30 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		setStateSelected( '' );
 		setCitySelected( '' );
 	}
-	
+
+	const [ displayLieuCity, setDisplayLieuCity ] = useState( 'none' );
+	const handleChangeLieuCountrySelected = async ( countryId ) => {
+
+		setLieuCountrySelected( countryId );
+		// const countryStates = State.getStatesOfCountry( countryCode );
+		// setCountryCode( countryCode );
+		const lieuVilles = await getPaysVilles( countryId ); 
+		
+		if( lieuVilles.length ){
+			setDisplayLieuCity( 'block' );
+			setLieuCities( lieuVilles );
+		}
+		else{
+			setDisplayLieuCity( 'none' )
+		}
+	}
+
+	const handleChangeLieuCitySelected = ( cityId ) => {
+
+		setLieuCitySelected( cityId );
+
+	}
+
 	// states
 	const [ stateError, setStateError ] = useState( '' );
 	const [ stateDefault, setStateDefault ] = useState( 'Select a state' );
@@ -2052,6 +2335,13 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 	// veto absence
 	const [ absence, setAbsence ]= useState( '' );
 
+	// veto List
+	const [checkedVetoList, setCheckedVetoList] = useState([]);
+	const onVetoListChange = (list) => {
+console.log( '>>>> CheckedVetoList', checkedVetoList );
+		setCheckedVetoList(list);
+	};
+
 	// veto hollyday
 	const [ hollyday, setHollyday ]= useState( '' );
 	
@@ -2062,6 +2352,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 	// form
 	const [form] = Form.useForm();
 	useEffect(() => {
+console.log( '>>>>>>>> vetos', vetos )
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
@@ -2252,6 +2543,16 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 				setTimeSlotId( timeSlotId );
 				setTitle( 'Modifier un horaire' );
 			}
+			
+			// lieu Countries
+			if( fieldName == "Etablissement_lieu" ){
+				setLieuCountries( countriesAllowed );
+			}
+			
+			// Biography
+			if( fieldName == "Biography" ){
+				form.setFieldsValue({ Biography: userProfile.biography });
+			}
 		}
 		a()
 
@@ -2287,6 +2588,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 		setCloseThisDay( false );
 	}
 
+	const dynamicStyle = fieldName == "Etablissement_veto" ? { body: { overflowY: 'auto', overflowX: 'hidden', maxHeight: '350px' }} : '';
 
 	return (
 		 <> 
@@ -2298,6 +2600,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 				onOk		= { modalProfileIdentityOk }
 				onCancel	= { () => modalProfileIdentityCancel( false ) }
 				afterClose	= { modalProfileIdentityClosed }
+				maskClosable= {false}
 				// zIndex={1005} // Custom z-index
 				
 				footer={
@@ -2325,17 +2628,218 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 				}
 				okText		= { 'Ok' }
 				cancelText	= { 'Cancel' }
-				styles 		= {{
-					body: {
-						
-					},
-				}}
+				styles 		= { dynamicStyle }
 			>
 				
 				<Form 
 					className=""
 					form = {form}
+					layout="vertical"
 				>
+					{ fieldName == "Etablissement_veto" &&
+					<Checkbox.Group onChange={onVetoListChange} value={checkedVetoList}>
+						<Space direction="vertical">
+							<div className="d-flex flex-wrap justify-content-center vetos" >
+								{
+									vetos.map( ( v, k ) => 
+										<div className="card mb-3 mx-2 backgroundYellow listVetoLine" key = {'a' + k}>
+										  
+										  <div className="row g-0" key = {'a' + k}>
+											<div className="align-items-center justify-content-center" key = { '3' + k}>
+											  <img src={ v.picture ? base_url + 'uploads/files/profile/' + v.picture: 
+													photoDefaultSrc } className="listVetoImg" alt="User Photo" key = {'2' + k}/>
+											</div>
+											<div className="col-md-8" key = {'b' + k}>
+											  <div className="card-body" key = {'74' + k}>
+												<h5 className="card-title" key = {'r4' + k}>{ v.nom } { v.prenom }</h5>
+												<p className="card-text" key = {'c' + k}>{v.vetoSpecialiteTab.nom ? v.vetoSpecialiteTab.nom : 'profileVetos_veto'} </p>
+												<p className="card-text" key = {'d' + k}><small className="text-muted" key = {'e9' + k}>{'profile_dateCreated ' + dayjs( v.dateCreated.date ).format( getDateFormatLocale() )}</small></p>
+												<p style={{textAlign: 'center'}} key = {'e' + k}>
+													<Checkbox value={v.id} style={{ outline: 'none' }} key = {'j8' + k}/>
+												</p>
+											  </div>
+											</div>
+										  </div>
+										</div>
+										
+									)
+								}
+							</div>
+					      </Space>
+					</Checkbox.Group>
+					}
+					{ fieldName == "Etablissement_lieu" &&
+						<>
+							<div className="profilIdentityField">
+								<Form.Item
+									name  = "Address"
+									rules = {[
+										{
+											message: etablissementAddressError,
+											validator: ( value ) => {
+												if ( etablissementAddressError ) {
+													return Promise.reject( etablissementAddressError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementName } */
+								>
+									< Input
+										name  = "AddressInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40" 
+										placeholder={ 'profileAddress_placeholder' }
+										type="text" 
+										value={ etablissementAddress }
+										onChange = { e => handleChangeEtablissementAddress(e) }
+									/>
+								</Form.Item>
+								{ transports.map( ( transport, index ) => 
+									<Input
+										id		= { transport.nom }
+										name 	= { transport.nom }
+										key  	= { index }
+										data-custom-id = { transport.id }
+										placeholder={ transport.description }
+										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
+										type="text"
+									/>
+								) }
+								<Form.Item
+									name  = "Parking"
+									rules = {[
+										{
+											message: etablissementParkingError,
+											validator: ( value ) => {
+												if ( etablissementParkingError ) {
+													return Promise.reject( etablissementParkingError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementName } */
+								>
+									< Input
+										name  = "parkingInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
+										placeholder={ 'profileParking_placeholder' }
+										type="text" 
+										value={ etablissementParking }
+										onChange = { e => handleChangeEtablissementParking(e) }
+									/>
+								</Form.Item>
+								<Form.Item
+									name  = "Info"
+									rules = {[
+										{
+											message: etablissementInfoError,
+											validator: ( value ) => {
+												if ( etablissementInfoError ) {
+													return Promise.reject( etablissementInfoError );
+												} 
+												else {
+													return Promise.resolve();
+												}
+											}
+										}
+									]}
+									/* initialValue  = { etablissementName } */
+								>
+									< TextArea 
+										rows={3}
+										name  = "infoInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
+										placeholder={ 'profileInfo_placeholder' }
+										type="text" 
+										value={ etablissementInfo }
+										onChange = { e => handleChangeEtablissementInfo(e) }
+									/>
+								</Form.Item>
+								<div className="row">
+									<div className="col-sm-12 col-md-6">
+										<Form.Item
+											name="LieuCountry"
+											rules={[
+												{
+													message: lieuCountryError,
+													validator: (value) => {
+														if (lieuCountryError) {
+															return Promise.reject(lieuCountryError);
+														} else {
+															return Promise.resolve();
+														}
+													},
+												},
+											]}
+											initialValue={lieuCountrySelected ? lieuCountrySelected : lieuCountryDefault}
+										>
+											<Select
+												variant="borderless"
+												className="custom-select-rounded"
+												style={{ width: '100%' }}
+												bordered={false}
+												value={countrySelected}
+												onChange={(e) => handleChangeLieuCountrySelected(e)}
+												showSearch
+												optionFilterProp="label"
+												filterSort={(optionA, optionB) =>
+													(optionA?.label ?? '')
+														.toLowerCase()
+														.localeCompare((optionB?.label ?? '').toLowerCase())
+												}
+												options={BuildLieuCountriesOptions()}
+												notFoundContent={lieuCountryDefault}
+											/>
+										</Form.Item>
+									</div>
+
+									<div className="col-sm-12 col-md-6">
+										<Form.Item
+											name="LieuCity"
+											rules={[
+												{
+													message: lieuCityError,
+													validator: (value) => {
+														if (lieuCityError) {
+															return Promise.reject(lieuCityError);
+														} else {
+															return Promise.resolve();
+														}
+													},
+												},
+											]}
+											initialValue={lieuCitySelected ? lieuCitySelected : lieuCityDefault}
+										>
+											<Select
+												variant="borderless"
+												className="custom-select-rounded"
+												style={{ width: '100%', display: displayLieuCity }}
+												bordered={false}
+												value={citySelected}
+												onChange={(e) => handleChangeLieuCitySelected(e)}
+												showSearch
+												optionFilterProp="label"
+												filterSort={(optionA, optionB) =>
+													(optionA?.label ?? '')
+														.toLowerCase()
+														.localeCompare((optionB?.label ?? '').toLowerCase())
+												}
+												options={BuildLieuCitiesOptions()}
+												notFoundContent={lieuCityDefault}
+											/>
+										</Form.Item>
+									</div>
+								</div>
+
+							</div>
+						</>
+					}
 					{ fieldName == "Etablissement" &&
 						<>
 							<div className="profilIdentityField">
@@ -2621,345 +3125,298 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 							</p>
 						</>
 					}
-					{ fieldName == "Profile" && 
-					<div className="container">	
-						<div className="row gy-2">
-							<div className="col-6">
-								<Form.Item
-									name  = "Name"
-									rules = {[
-										{
-											message: nameError,
-											validator: ( value ) => {
-												if ( nameError ) {
-													return Promise.reject( nameError );
-												} 
-												else {
+
+					{fieldName === "Profile" && (
+						<div className="container">
+							<div className="row">
+								<div className="col-6">
+									<Form.Item
+										label={signUp_namePlaceholder}
+										name="Name"
+										rules={[
+											{
+												message: nameError,
+												validator: (value) => {
+													if (nameError) return Promise.reject(nameError);
 													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { name }
-								>
-									<Input 
-										name  = "nameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_namePlaceholder }
-										type="text" 
-										value={ name }
-										onChange = { e => handleChangeName(e) }
-									/>
-								</Form.Item>
-							</div>
-							<div className="col-6">
-								<Form.Item
-									name  = "firstName"
-									
-									rules = {[
-										{
-											message: firstNameError,
-											validator: ( value ) => {
-												if ( firstNameError ) {
-													return Promise.reject( firstNameError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { firstName }
-								>
-									<Input 
-										name  = "firstNameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_firstNamePlaceholder }
-										type="text" 
-										value={ firstName }
-										onChange = { e => handleChangeFirstName(e) }
-									/>
-								</Form.Item>
-							</div>
-						</div>
-						<div className="row">
-							<div className="col-6">
-								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "male"
-									rules = {[
-										{
-											message: sexeError,
-											validator: ( value ) => {
-												if ( sexeError ) {
-													return Promise.reject( sexeError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-								>
-									<div className='row' >
-										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-											Male
-										</div>
-										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-											<Input
-												className=''
-												type="checkbox" 
-												name="signUpTypeUser"
-												id="sexeType1"
-												value={ 1 }
-												defaultChecked= { userProfile.userSexeId == 1 ? true : false }
-												onChange = { e => handleChangeSexes(1) }
-												style={{ outline: 'none' }}
-											/>
-										</div>
-									</div>
-								</Form.Item>
-							</div>
-							<div className="col-6">
-								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "female"
-								>
-									<div className='row'>
-										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-											Female
-										</div>
-										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-											<Input
-												type="checkbox" 
-												name="signUpTypeUser"
-												id="sexeType2"
-												value={ 2 }
-												defaultChecked= { userProfile.userSexeId == 2 ? true : false }
-												onChange = { e => handleChangeSexes(2) }
-												style={{ outline: 'none' }}
-											 />
-										</div>
-									</div>
-								</Form.Item>
-							</div>
-						</div>
-						<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
-							<div className="col-6">
-								<span>Birth date &nbsp; { dateNaissance }</span>
-							</div>
-							<div className="col-6 justify-content-end dateField">
-								<ConfigProvider 
-									locale={ getDatePickerlocale() }
-								>
-									<DatePicker 
-										defaultValue={ datePickerDefaultValue }
-										onChange={ (e) => handleBirthDateChange(e) }
-									/>
-								</ConfigProvider>
-							</div>
-						</div>
-						<div className="row height40 width100per100 selectLanguage rounded10">
-							<div className="col-3">
-								Language
-							</div>
-							<div className="col-9">
-								
-								<ConfigProvider 
-									theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
-								>
-								
-									<Select 
-										mode="multiple"
-										placeholder="Select languages"
-										variant="borderless"
-										className="custom-select"
-										value={selectedLanguages}
-										onChange={handleChangeLanguage}
-										style={{ width: '100%' }}
-										suffixIcon={null} // This hides the arrow
+												},
+											},
+										]}
+										initialValue={name}
 									>
-										{ 
-											languages.map(( v, k ) => (
-												<Option key={v.id} value={v.id}>
-												  <Checkbox checked={selectedLanguages.includes(v.id)}>
-													{eval( v.tagClass )}
-												  </Checkbox>
-												</Option>
-											))
-										}
-									</Select>
-									</ConfigProvider>
-								 
-							</div>
-						</div>
-						<div className="row backgroundYellow rounded10 height40 width100per100 profilIdentityField">
-							<Form.Item
-								name  = "address"
-								rules = {[
-									{
-										message: addressError,
-										validator: ( value ) => {
-											if ( addressError ) {
-												return Promise.reject( addressError );
-											} 
-											else {
-												return Promise.resolve();
-											}
-										}
-									}
-								]}
-								initialValue  = { address }
-							>
-								<Input 
-									name= "addressInput"
-									className="backgroundYellow rounded10 width100per100 borderNone height40" 
-									placeholder={ profileIdentity_addressPlaceholder }
-									type="text" 
-									value={ address }
-									onChange = { e => handleChangeAddress(e) }
-								/>
-							</Form.Item>
-						</div>
-						<div className="row marginTop2percent">
-							<div className="col-6">
-								<Form.Item
-									name  = "CodePostal"
-									rules = {[
-										{
-											message: codePostalError,
-											validator: ( value ) => {
-												if ( codePostalError ) {
-													return Promise.reject( codePostalError );
-												} 
-												else {
+										<Input
+											name="nameInput"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={signUp_namePlaceholder}
+											type="text"
+											value={name}
+											onChange={(e) => handleChangeName(e)}
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item
+										label={signUp_firstNamePlaceholder}
+										name="firstName"
+										rules={[
+											{
+												message: firstNameError,
+												validator: (value) => {
+													if (firstNameError) return Promise.reject(firstNameError);
 													return Promise.resolve();
-												}
-											}
-										}
+												},
+											},
+										]}
+										initialValue={firstName}
+									>
+										<Input
+											name="firstNameInput"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={signUp_firstNamePlaceholder}
+											type="text"
+											value={firstName}
+											onChange={(e) => handleChangeFirstName(e)}
+										/>
+									</Form.Item>
+								</div>
+							</div>
+							<div className="row customLabel01">
+								<span >{ getAContent( 'cmp_vetonest.com_ZEuz13yjyi' ) }</span>
+							</div>
+							<div className="row">
+								<div className="col-6">
+									<Form.Item name="male" className="backgroundYellow rounded10 height40">
+										<div className="row">
+											<div className="col-9" style={{ paddingTop: "4%", paddingLeft: "14%" }}>
+												Male
+											</div>
+											<div className="col-2" style={{ paddingTop: "4%", paddingLeft: "0%" }}>
+												<Input
+													type="checkbox"
+													name="signUpTypeUser"
+													id="sexeType1"
+													value={1}
+													defaultChecked={userProfile.userSexeId == 1}
+													onChange={() => handleChangeSexes(1)}
+													style={{ outline: "none" }}
+												/>
+											</div>
+										</div>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item name="female" className="backgroundYellow rounded10 height40">
+										<div className="row">
+											<div className="col-9" style={{ paddingTop: "4%", paddingLeft: "14%" }}>
+												Female
+											</div>
+											<div className="col-2" style={{ paddingTop: "4%", paddingLeft: "0%" }}>
+												<Input
+													type="checkbox"
+													name="signUpTypeUser"
+													id="sexeType2"
+													value={2}
+													defaultChecked={userProfile.userSexeId == 2}
+													onChange={() => handleChangeSexes(2)}
+													style={{ outline: "none" }}
+												/>
+											</div>
+										</div>
+									</Form.Item>
+								</div>
+							</div>
+							<div >
+								<Form.Item label="Birth Date" >
+									<ConfigProvider locale={getDatePickerlocale()}>
+										<DatePicker
+											defaultValue={datePickerDefaultValue}
+											onChange={handleBirthDateChange}
+											className="backgroundYellow birthdateField width100per100 height40"
+											format={getDateFormatLocale()}
+										/>
+									</ConfigProvider>
+								</Form.Item>
+							</div>
+							<div className="">
+								<Form.Item label="Languages (3 max)" name="languages">
+									<ConfigProvider theme={{ token: { colorPrimary: "#000", border: "none" } }}>
+										<Select
+											mode="multiple"
+											placeholder="Select languages"
+											variant="borderless"
+											className="custom-select height40 width100per100 selectLanguage rounded10"
+											value={selectedLanguages}
+											onChange={handleChangeLanguage}
+											style={{ width: "100%" }}
+											suffixIcon={null}
+										>
+											{languages.map((v) => (
+												<Option key={v.id} value={v.id}>
+													<Checkbox checked={selectedLanguages.includes(v.id)}>
+														{eval(v.tagClass)}
+													</Checkbox>
+												</Option>
+											))}
+										</Select>
+									</ConfigProvider>
+								</Form.Item>
+							</div>
+
+							<div className="">
+								<Form.Item
+									label="Address"
+									name="address"
+									className="width100per100"
+									rules={[
+										{
+											message: addressError,
+											validator: (value) => {
+												if (addressError) return Promise.reject(addressError);
+												return Promise.resolve();
+											},
+										},
 									]}
-									initialValue  = { codePostal }
+									initialValue={address}
 								>
-									<Input 
-										name  = "codePostalInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40"  
-										placeholder={ profileIdentity_codePostalPlaceholder }
-										type="text" 
-										value={ codePostal }
-										onChange = { e => handleChangeCodePostal(e) }
+									<Input
+										name="addressInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={profileIdentity_addressPlaceholder}
+										type="text"
+										value={address}
+										onChange={(e) => handleChangeAddress(e)}
 									/>
 								</Form.Item>
 							</div>
-							<div className="col-6">
-								<Form.Item
-											
-											name  = "country"
-											rules = {[
-												{
-													message: countryError,
-													validator: ( value ) => {
-														if ( countryError ) {
-															return Promise.reject( countryError );
-														} 
-														else {
-															return Promise.resolve();
-														}
-													}
-												}
-											]}
-											initialValue  = { countrySelected ? countrySelected : countryDefault }
-										>
-											<Select
-												variant="borderless"
-												className="custom-select-rounded"
-												style={{ width: '100%' }}
-												bordered={false}
-												value			= { countrySelected }
-												onChange		= { e => handleChangeCountrySelected( e ) }
-												showSearch
-												optionFilterProp="label"
-												filterSort={(optionA, optionB) =>
-												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-												}
-												options = { BuildCountriesOptions() }
-												notFoundContent = { countryDefault }
-											/>
-										</Form.Item>
+
+							<div className="row marginTop2percent">
+								<div className="col-6">
+									<Form.Item
+										label="Postal Code"
+										name="CodePostal"
+										rules={[
+											{
+												message: codePostalError,
+												validator: (value) => {
+													if (codePostalError) return Promise.reject(codePostalError);
+													return Promise.resolve();
+												},
+											},
+										]}
+										initialValue={codePostal}
+									>
+										<Input
+											name="codePostalInput"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={profileIdentity_codePostalPlaceholder}
+											type="text"
+											value={codePostal}
+											onChange={(e) => handleChangeCodePostal(e)}
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item
+										label="Country"
+										name="Country"
+										rules={[
+											{
+												message: countryError,
+												validator: (value) => {
+													if (countryError) return Promise.reject(countryError);
+													return Promise.resolve();
+												},
+											},
+										]}
+										initialValue={countrySelected || countryDefault}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded"
+											style={{ width: "100%" }}
+											bordered={false}
+											value={countrySelected}
+											onChange={handleChangeCountrySelected}
+											showSearch
+											optionFilterProp="label"
+											filterSort={(a, b) =>
+												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
+											}
+											options={BuildCountriesOptions()}
+											notFoundContent={countryDefault}
+										/>
+									</Form.Item>
+								</div>
+							</div>
+
+							<div style={{ display: showStatesCities }} className="row marginTop2percent">
+								<div className="col-6">
+									<Form.Item
+										label="State"
+										name="state"
+										rules={[
+											{
+												message: stateError,
+												validator: (value) => {
+													if (stateError) return Promise.reject(stateError);
+													return Promise.resolve();
+												},
+											},
+										]}
+										initialValue={stateSelected || stateDefault}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded"
+											style={{ width: "100%" }}
+											value={stateSelected}
+											onChange={handleChangeStateSelected}
+											showSearch
+											optionFilterProp="label"
+											filterSort={(a, b) =>
+												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
+											}
+											options={BuildStatesOptions()}
+											notFoundContent={stateNotFound}
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item
+										label="City"
+										name="city"
+										rules={[
+											{
+												message: cityError,
+												validator: (value) => {
+													if (cityError) return Promise.reject(cityError);
+													return Promise.resolve();
+												},
+											},
+										]}
+										initialValue={citySelected || cityDefault}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded"
+											size="middle"
+											value={citySelected}
+											onChange={handleChangeCitySelected}
+											showSearch
+											optionFilterProp="label"
+											filterSort={(a, b) =>
+												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
+											}
+											options={BuildCitiesOptions()}
+											notFoundContent={cityNotFound}
+										/>
+									</Form.Item>
+								</div>
 							</div>
 						</div>
-						<div style={{ display: showStatesCities }} className="row marginTop2percent">
-								<div className="col-6">
-									<Form.Item
-											name  = "state"
-											rules = {[
-												{
-													message: stateError,
-													validator: ( value ) => {
-														if ( stateError ) {
-															return Promise.reject( stateError );
-														} 
-														else {
-															return Promise.resolve();
-														}
-													}
-												}
-											]}
-											initialValue  = { stateSelected ? stateSelected : stateDefault }
-										>
-											<Select
-												variant="borderless"
-												className="custom-select-rounded"
-												style={{ width: '100%' }}
-												value			= { stateSelected }
-												onChange		= { e => handleChangeStateSelected( e ) }
-												showSearch
-												optionFilterProp="label"
-												filterSort={(optionA, optionB) =>
-												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-												}
-												options = { BuildStatesOptions() }
-												notFoundContent = { stateNotFound }
-											/>
-										</Form.Item>
-								</div>
-								<div className="col-6">
-									<Form.Item
-											name  = "city"
-											rules = {[
-												{
-													message: cityError,
-													validator: ( value ) => {
-														if ( cityError ) {
-															return Promise.reject( cityError );
-														} 
-														else {
-															return Promise.resolve();
-														}
-													}
-												}
-											]}
-											initialValue  = { citySelected ? citySelected : cityDefault }
-										>
-											<Select
-												variant="borderless"
-												className="custom-select-rounded"
-												size 		 	= 'middle'
-												value			= { citySelected }
-												onChange		= { e => handleChangeCitySelected( e ) }
-												showSearch
-												optionFilterProp="label"
-												filterSort={(optionA, optionB) =>
-												  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-												}
-												options = { BuildCitiesOptions() }
-												notFoundContent = { cityNotFound }
-											/>
-										</Form.Item>
-								</div>
-						</div>
-					</div>
-					
-					}
+					)}
+
+
 
 					{
 						fieldName == "ProfileVeto" &&
@@ -3754,32 +4211,26 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 					}
 					{ fieldName == "Biography" &&
 						<Form.Item
-							name  = "Biography"
+							name="Biography"
 							style = {{ marginBottom: '0px' }}
 							rules = {[
 								{
 									message: biographyError,
-									validator: ( value ) => {
-										if ( biographyError ) {
-											return Promise.reject( biographyError );
-										} 
-										else {
-											return Promise.resolve();
-										}
+									validator: (_, value) => {
+										if (biographyError) return Promise.reject(biographyError);
+										return Promise.resolve();
 									}
 								}
 							]}
+							validateTrigger="onChange"
 						>
 							<TextArea 
-								type		= "text" 
-								className	= "" 
-								placeholder	= "About you"
-								value		= { biography }
-								onChange	= { e => handleChangeBiography( e ) }
-								style		= {{
-												width: '100%', 
-												height: '90px'
-								}}
+								rows={3}
+								name  = "biographyInput"
+								className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
+								placeholder={ 'profileInfo_biography' }
+								value={ biography }
+								onChange	= { e => handleChangeBiography( e ) }	
 							/>
 						</Form.Item>
 					}
@@ -3828,7 +4279,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 							cancelText	= { signUp_popConfirmDeleteBtn }
 						>
 							<>
-							{ user.profileTypeId == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
+							{ user && user.profileTypeId == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
 							}
 							</>
 						</Modal>
@@ -4046,6 +4497,7 @@ console.log( '++++++++++ dateAbsence', dateAbsence );
 							</span>
 							profileAnimal_animalNamePlaceHolder
 					</div>
+					
 		</>
 	);
 };

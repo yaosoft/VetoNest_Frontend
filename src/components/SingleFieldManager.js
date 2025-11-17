@@ -28,6 +28,7 @@ const SingleFieldManager = ( params ) => {
 		setSelectedTimeslotId,
 		selectedTimeslotOpen,
 		setSelectedTimeslotOpen,
+		setSelectedVetoClinique 
 	} = useContext( SiteContext );
 
 	// context
@@ -82,7 +83,7 @@ const SingleFieldManager = ( params ) => {
 			setBackgroundColor( 'backgroundInactive03' )
 		else setBackgroundColor( 'backgroundOlive' )
 
-	}, [title] );
+	}, [title, params.params] );
 
 
 	const handleClickField = ( fieldName ) => {
@@ -143,7 +144,7 @@ const SingleFieldManager = ( params ) => {
 		{
 			user &&
 			<>
-				<div key={'timeslot_' + title} className='row singleFieldManager'>
+				<div key={'timeslot_' + title} className='row singleFieldManager height40'>
 					<div className={ 'dataDiv textAlignLeft ' + backgroundColor } >
 						<span>{ value ? value : placeholder } &nbsp; { description && BuildTooltip(description) }</span>
 					</div> 
