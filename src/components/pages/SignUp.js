@@ -585,18 +585,15 @@ console.log( 'Check email', rep );
 			</Modal>
 		
 		<Header />
-			
+			<Title title = { signUp_title } />
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-            <Title title = { signUp_title } />
+           
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-
 										 <Form 
 											className=""
 											form = {form}
@@ -621,8 +618,8 @@ console.log( 'Check email', rep );
 													]}
 												>
 													<div className='row'>
-														<div className='col-8 marginLeft20'>
-															<i className='fa fa-paw marginTop10'></i> <span id = "cmp_vetonest.com_6avWG2reFU"			className ="signUp_formOption1"			>
+														<div className='col-8 paddingLeft25'>
+															&nbsp;&nbsp;&nbsp;<i className='fa fa-paw marginTop10'></i> <span id = "cmp_vetonest.com_6avWG2reFU"			className ="signUp_formOption1">
 																I have a pet
 															</span>
 														</div>

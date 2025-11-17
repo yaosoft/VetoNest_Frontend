@@ -50,7 +50,7 @@ console.log(languageId);
 
 			return
 		}
-		
+
 		const languagePreferenceData = {
 			userId: 	user.userId,
 			languageId: languageId
@@ -68,11 +68,10 @@ console.log(languageId);
 		
 
 		await setSelectedLanguageId( languageId ); // update the listbox via context
-		await setSelected( languageId ) 			 // update the listbox
+		// await setSelected( languageId ) 			 // update the listbox
 		
 		await languageSetup( languageId ); // Update flag and user locale
-		user.languageId = languageId; // update user
-		setUser( user );
+
 	}
 	
 	const [ languages, setLanguages ] = useState( [] );
@@ -98,6 +97,7 @@ console.log(languageId);
 		// get all language
 		const getAllLanguage = async() => {
 			const languages = await languageList();
+console.log( '+++++++++++ languages', languages );
 			setLanguages( languages );
 		}
 		getAllLanguage();

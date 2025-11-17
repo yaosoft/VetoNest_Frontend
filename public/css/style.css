@@ -280,7 +280,7 @@ input[type="checkbox"]:checked {
     padding-top: 1%;
 }
 
-.profilIdentityField{
+.-{
     margin-top: 3%;
 	margin-left: 0%;
 }
@@ -291,7 +291,7 @@ input[type="checkbox"]:checked {
 
 .selectLanguage {
     margin-left: 0%;
-    margin-top: 3%;
+    margin-top: 5px;
     border-bottom: #FFDE59 solid 1px;
     background-color: #ffde59;
     /* padding-left: 3%; */
@@ -322,6 +322,34 @@ input[type="checkbox"]:checked {
 	transform: scale(1.05);
 	max-width: 150px;
 	max-height: 180px;
+}
+
+.profilePhotoVetoList{
+	width: 90px;
+	height: 70px;
+	border-radius: 10%; /* Makes a circular image */
+	display: block;
+	margin: 10px auto;
+	object-fit: cover;
+	border: 0px;
+	/* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+	transition: transform 0.3s ease;
+	transform: scale(1.05);
+	max-width: 90px;
+	max-height: 90px;
+	margin-left: 1%;
+}
+
+.listVetoLine{
+	width: 100%;
+}
+
+.listVetoImg{
+	max-width: 90px;
+	max-height: 70px;
+    margin-top: 6px;
+    margin-left: 20px;
+	min-width: 53px;
 }
 
 .profilePhotoContainerModal{
@@ -362,8 +390,9 @@ input[type="checkbox"]:checked {
     border-bottom-right-radius: 10px;
 }
 
-.marginLeft20 {
-	margin-left: 20px;
+.customLabel01 {
+	margin-left: 0px;
+	margin-bottom: 10px;
 }
 
 .padding20px{
@@ -374,8 +403,13 @@ input[type="checkbox"]:checked {
 	padding-left: 20px;
 }
 
+^
 .paddingLeft30px{
 	padding-left: 30px;
+}
+
+.paddingLeft25px{
+	padding-left: 25px;
 }
 
 .width100per100{
@@ -407,7 +441,13 @@ input[type="checkbox"]:checked {
 	color: #146f12
 }
 
+.vetos .card-body{
+	padding: 1.5%;
+}
 
+.vetos .card-title {
+    margin-bottom: 0px;
+}
 
 .smallTitleGreen{
 	color: #146f12 !important;
@@ -548,7 +588,7 @@ input[type=password]:hover {
 }
 
 .singleFieldManager > div{
-    height: 35px;
+    height: 40px;
     padding-left: 5%;
     padding-top: 3%;
 	margin-bottom: 10px;
@@ -677,6 +717,13 @@ a,
 img {
      max-width: 100%;
      height: auto;
+}
+
+.profile-img {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px !important;
+    object-fit: cover;
 }
 
 .height15{
@@ -836,6 +883,22 @@ button {
      padding: 15px 0px 15px 0px;
      background: #00BF63;
 }
+
+.notifications{
+	padding: 8px 16px;
+	display: flex;
+	alignItems: center;
+	justifyContent: space-between;
+	borderBottom: 1px solid #eee;
+}
+
+.notificationsRigth{
+	display: flex;
+	alignItems: center;
+	gap: 16px;
+}
+
+className="notificationsRigth" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
 
 .stick {
     position: fixed;
@@ -1491,7 +1554,7 @@ color: #05331d;
 font-size: 22px;
 padding: 25px 0;
 font-weight: 600;
-text-transform: uppercase;
+/* text-transform: uppercase; */
 line-height: 0px;
 }
 .margin_0 {

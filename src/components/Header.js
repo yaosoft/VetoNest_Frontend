@@ -9,9 +9,16 @@ import { SiteContext } from "../context/site";
 import { Space, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
 
 import LanguageSelector from './LanguageSelector';
+
+import Notifications from "./Notifications.js";
+
+
 const Header = () => {
 
-	const { 
+	const {
+		getUser,
+		profileTypeId,
+		profileId,
 		isAuthenticated, 
 		logOut, 
 		user, 
@@ -24,6 +31,8 @@ const Header = () => {
 		siteUrl,
 		siteDomain,
 		siteDomainName,
+		getSiteContent,
+		setSiteContent,
 		getLanguagePreference,
 		defaultLanguageId,
 		defaultLanguage,
@@ -35,6 +44,7 @@ const Header = () => {
 		siteLanguage,
 		flag,
 		userProfile,
+		getVetoInvitationNotification,
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -87,49 +97,38 @@ const Header = () => {
 
 	// get the profile data
 	useEffect( () => {
-		if( user === null ){
-			if( siteLanguage == '' ){
-				setSelectedLanguageId( defaultLanguageId );	// update languagelist boxes
-				languageSetup( defaultLanguageId ); 			// Update language flag
-			}
 
-			// navigate( '/connexion' )
-			return
-		}
-
-		// const path = window.location.pathname.replace( '/', '' );
-		// const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
-		// setActive( newActiveArr );	
-		
 		// Get user preference
 		const a = async () => {
-
-			// if( user === null ){
-// console.log( '*************** user === null ***************' );
-				// await navigate( '/connexion' );
-
-				// return
-			// }
-console.log( '*************** user != null ***************' );
-			const data = {
-				userId: user.userId,
-			}
-
-			const resp = await getLanguagePreference ( data );
+			// default site language
 			var languageId = defaultLanguageId;
-			if( resp !== null )
-				languageId = resp.id;
+			
+			// user is not loged in
+			if( user === null ){
+				if( selectedLanguageId == defaultLanguageId )
+					languageId = defaultLanguageId
+				else
+					languageId = selectedLanguageId
 
-console.log( '>>> languageId', languageId  );
-
-			setSelectedLanguageId( languageId );	// update languagelist boxes
-			languageSetup( languageId ); 			// Update language flag
-			user.languageId = languageId; 			// update user
-			setUser( user );
-		}		
+				setSelectedLanguageId( languageId );			// update languagelist boxes
+				await languageSetup( languageId ); 
+			}
+			else{
+				// user's favourite language
+				const data = {
+					userId: user.userId,
+				}	
+				const resp = await getLanguagePreference ( data );
+				if( resp !== null )
+					await languageSetup( resp.id ) 
+				else
+					await languageSetup( selectedLanguageId ) 
+				
+			}			
+		}	
 		a()
 
-	}, [] );
+	}, [] ); // [user, userProfile, siteLanguage]
 	
 	return (
 		<>
@@ -179,35 +178,40 @@ console.log( '>>> languageId', languageId  );
 								</button>
 								<div className="collapse navbar-collapse" id="navbarsExample04">
 									<ul className="navbar-nav mr-auto">
+									 <li style={{marginTop: '10px', width: '50px'}}>
+										<Notifications />
+									 </li>
 									 <li className={ "nav-item " + active[4].actif }>
 										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'blog' )} >
 											Blog
 										</Link>
 									</li>
 									 <li className={ "nav-item " + active[2].actif }>
-										
-												
 											<ul>{ isAuthenticated() ? 
 												<>	
 													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>{ userProfile && truncateString( userProfile.nom, 10 ) }</li>
+														<li>{ user && truncateString( user.userNom, 10 ) }</li>
 													</Link>
 												</>
 												: 
-													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'inscription' ) }>
-														<li id="cmp_vetonest.com_bL1MO9LnVv">S'inscrire</li>
+													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'connexion' ) }> 
+														<li id="cmp_vetonest.com_adWeBARABI">Connexion</li>
 													</Link>
 											}
 											</ul>
 									  </li>
 									 <li className={ "nav-item " + active[2].actif }>
-										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickLogInOut( e ) }>
-											<ul>{ isAuthenticated() ? 
+										<ul>
+											{ isAuthenticated() ? 
+												<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickLogInOut( e ) }>
 													<li id="cmp_vetonest.com_mzCrCgj9rj">Déconnexion</li>
-												: 
-													<li id="cmp_vetonest.com_adWeBARABI">Connexion</li>
-											}</ul>
-										</Link>
+												</Link>
+											:
+												<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
+													<li id="cmp_vetonest.com_MsXXu6zXy2">Inscription</li>
+												</Link>
+											}
+											</ul>
 									  </li>
 									<li className={ "nav-item " + active[4].actif } className="paddingTop4px"  >
 										<span className="colorBlack" id="cmp_vetonest.com_QrnuvOuzwI">Choix de la langue</span><br/>
@@ -292,19 +296,20 @@ console.log( '>>> languageId', languageId  );
 				>
 					Belgique
 				</span>
+				<span 
+					id="cmp_vetonest.com_c3XMo9aZSc"
+					className ="country_spain" 
+				>
+					Espagne
+				</span>
+				<span 
+					id="cmp_vetonest.com_bkNRecc1Tq"
+					className ="country_germain" 
+				>
+					Allemagne
+				</span>
 			</div>
-			<span 
-				id="cmp_vetonest.com_c3XMo9aZSc"
-				className ="country_spain" 
-			>
-				Espagne
-			</span>
-			<span 
-				id="cmp_vetonest.com_bkNRecc1Tq"
-				className ="country_germain" 
-			>
-				Allemagne
-			</span>
+			
 		</>
 	);
 };

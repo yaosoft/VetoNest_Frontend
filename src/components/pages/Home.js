@@ -56,21 +56,15 @@ const Home = () => {
 	return (
 		<>
 	<Header />
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		
 		<div 
 			className= 'row backgroundYellow padding10 textAlignCenter myh2 justify-content-center'
 			style={{
 				paddingTop: '3px',
 				paddingBottom: '3px',
-				marginTop: '10px',
 				fontSize: '25px',
 				color: '#000',
 				marginBottom: '10px',
-				marginTop: '20px',
+				marginTop: '0px',
 			}}
 		>
 			<span id='cmp_vetonest.com_y50xzTXzES'>Bienvenue sur Veto Nest</span>
