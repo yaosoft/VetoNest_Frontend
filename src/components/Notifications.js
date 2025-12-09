@@ -53,7 +53,7 @@ const Notifications = ( params ) => {
 		// get user's notification
 		const a = async() => {
 			const userNotifications = await getUserNotifications( userId );
-
+console.log( '>>>>> userNotifications', userNotifications );
 			var notificationText 	= '';
 			var notificationUrl 	= '';
 			var notifications 		= [];

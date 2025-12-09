@@ -27,6 +27,7 @@ const SecuredPagesAuth = () => {
 		'/connexion',
 		'/mot-de-passe-oublie',
 		'/mot-de-passe-oublie/reset',
+		'/etablissement'
 	]
 	
 	// register current page

@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
 
 import { Country, State, City }  from 'country-state-city';
-import { Form, Input, Select, Checkbox, List, TimePicker  } from 'antd';
+import { Form, Input, Select, Checkbox, List, TimePicker, Radio  } from 'antd';
 
 import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
 import dayjs from 'dayjs';
@@ -33,6 +33,7 @@ const ModalProfile = ( params ) => {
 		userId,
 		user,
 		isValidPassword,
+		logIn
 	} = useContext( AuthContext );
 
 	const {
@@ -73,6 +74,7 @@ const ModalProfile = ( params ) => {
 		signUp_popConfirmPetTitle,
 		profileIdentity_sexeErrorText,
 		setProfileFormUpdated,
+		profileFormUpdated,
 		generateRandomDigits,
 		siteLanguage,
 		dateFormater,
@@ -167,9 +169,10 @@ const ModalProfile = ( params ) => {
 		setCliniqueVetos,
 		countryList,
 		getPaysVilles,
-		getAContent
+		getAContent,
+		getUserPets
 	} = useContext( SiteContext )
-
+	
 	// Animal photo
 	const [ animalPhotoDefaultSrc, setAnimalPhotoPhotoDefaultSrc ] = useState( '/img/user/2.jpg' );
 	// user photo
@@ -236,12 +239,12 @@ const ModalProfile = ( params ) => {
 	const modalPhotoHandleOkClosed = () => {
 		console.log( 'modalPhotoHandleOkClosed' )
 	}
-	const modalPhotoConfirmText = () => {
-		return "D'accord"
-	}
-	const modalPhotoCancelText = () => {
-		return "Annuler"
-	}
+	// const modalPhotoConfirmText = () => {
+		// return "D'accord"
+	// }
+	// const modalPhotoCancelText = () => {
+		// return "Annuler"
+	// }
 	
 	// flags
 	const [ selectedFlag, setSelectedFlag ] = useState( 'fr' ); // ToDo create default country in site context
@@ -270,9 +273,12 @@ const ModalProfile = ( params ) => {
 		
 			nameErrorText = signUp_nameErrorText
 		}
-		// signUpNameErrorText = 'Your name seems incorect'
+
 		setNameError( nameErrorText );
 	}
+
+	// veto to invite ( all veto minus current veto )
+	const [ vetosToInvite, setVetosToInvite ] = useState( [] );
 
 	// veto name
 	const [ vetoName, setVetoName ] = useState( '' );
@@ -280,7 +286,6 @@ const ModalProfile = ( params ) => {
 	const handleChangeVetoName = ( e ) => {
 		const data = e.target.value;
 		setVetoName( data );
-
 		var vetoNameErrorText = '';
 		const test = nameValidator( data )
 
@@ -318,10 +323,8 @@ const ModalProfile = ( params ) => {
 		const test = nameValidator( data )
 
 		if( data && test === false ){
-		
-			animalNameErrorText = 'profileAnimal_animalNameErrorText'
+			animalNameErrorText = getAContent('cmp_vetonest.com_c9QpA2mLfs');
 		}
-		// signUpAnimalNameErrorText = 'Your animalName seems incorect'
 		setAnimalNameError( animalNameErrorText );
 	}
 
@@ -336,9 +339,8 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-			etablissementNameErrorText = 'profileEtablissement_etablissementNameErrorText'
+			etablissementNameErrorText = getAContent('cmp_vetonest.com_Bv7kHp29zX');
 		}
-		// signUpEtablissementNameErrorText = 'Your etablissementName seems incorect'
 		setEtablissementNameError( etablissementNameErrorText );
 	}
 
@@ -353,9 +355,8 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-			etablissementParkingErrorText = 'profileEtablissement_etablissementParkingErrorText'
+			etablissementParkingErrorText = getAContent('cmp_vetonest.com_Qm3tLf89Ra');
 		}
-		// signUpEtablissementParkingErrorText = 'Your etablissementParking seems incorect'
 		setEtablissementParkingError( etablissementParkingErrorText );
 	}
 
@@ -370,9 +371,8 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-			etablissementInfoErrorText = 'profileEtablissement_etablissementInfoErrorText'
+			etablissementInfoErrorText = getAContent('cmp_vetonest.com_Rp8cKw41Nd');
 		}
-		// signUpEtablissementInfoErrorText = 'Your etablissementInfo seems incorect'
 		setEtablissementInfoError( etablissementInfoErrorText );
 	}
 
@@ -387,9 +387,8 @@ const ModalProfile = ( params ) => {
 		const test = addressValidator( data )
 
 		if( data && test === false ){
-			etablissementAddressErrorText = 'profileEtablissement_etablissementAddressErrorText'
+			etablissementAddressErrorText = getAContent('cmp_vetonest.com_Mk5rUz72Pw');
 		}
-		// signUpEtablissementAddressErrorText = 'Your etablissementAddress seems incorect'
 		setEtablissementAddressError( etablissementAddressErrorText );
 	}
 
@@ -404,14 +403,12 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-			etablissementPresentationErrorText = 'profileEtablissement_etablissementPresentationErrorText'
+			etablissementPresentationErrorText = getAContent('cmp_vetonest.com_Js2eDc09Vb');
 		}
 
-		// signUpEtablissementPresentationErrorText = 'Your etablissementPresentation seems incorect'
 		setEtablissementPresentationError( etablissementPresentationErrorText );
 		form.validateFields();
 	}
-
 
 	// Veto absence name
 	const [ absenceName, setAbsenceName ] = useState( '' );
@@ -424,18 +421,18 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-			absenceNameErrorText = 'profileAbsence_absenceNameErrorText'
+			absenceNameErrorText = getAContent('cmp_vetonest.com_Zx4pGt11Sy');
 		}
-		// signUpAbsenceNameErrorText = 'Your absenceName seems incorect'
 		setAbsenceNameError( absenceNameErrorText );
 	}
 
 	// absence name validator
-	const absenceNameValidator = ( name ) => {
-		const rep = /^(([A-Za-zéàèêêâäë\d\s]+[\-\']?)*([A-Za-zéàèêêâäë]+)?(\s)?)+([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?$/.test( name );
-		return rep
+	const absenceNameValidator = (name) => {
+		// Allowed: letters (with accents), numbers, spaces, '-', ''', '&'
+		const rep = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s&'\-]+$/.test(name);
+		return rep;
 	}
-
+	
 	// Veto absence description
 	const [ absenceDescription, setAbsenceDescription ] = useState( '' );
 	const [ absenceDescriptionError, setAbsenceDescriptionError ] = useState( '' );
@@ -447,19 +444,18 @@ const ModalProfile = ( params ) => {
 		const test = absenceNameValidator( data )
 
 		if( data && test === false ){
-		
-			absenceDescriptionErrorText = 'profileAbsence_absenceDescriptionErrorText'
+			absenceDescriptionErrorText = getAContent('cmp_vetonest.com_Dw9aQf63Mu');
 		}
-		// signUpAbsenceDescriptionErrorText = 'Your absenceDescription seems incorect'
 		setAbsenceDescriptionError( absenceDescriptionErrorText );
 	}
 
+	// Absence remove action
 	const handleAbsenceRemove = async () => {
 		const timeSlotData = { timeSlotClosedDateId: selectedAbsenceId  };
-		const rep = await timeSlotClosedDateRemove( timeSlotData );	// save
+		const rep = await timeSlotClosedDateRemove( timeSlotData );
 			
-		if( rep === false ){ //
-			message.error( 'Veto profile cannot be updated' );
+		if( rep === false ){
+			message.error( getAContent('cmp_vetonest.com_Hr1mPx54Tb') );
 			return;
 		}
 		else{
@@ -467,14 +463,13 @@ const ModalProfile = ( params ) => {
 			setAbsence('');
 			const random = generateRandomDigits(3);
 			setProfileFormUpdated( random );
-			message.success( 'Profile updated' );
+			message.success( getAContent('cmp_vetonest.com_Fg6kVs22Qe') );
 			setModalProfileIdentityOpen( false );
 		}
 
-		// This is the function that runs when the user confirms the removal.
-		console.log('Item removed!');
-		message.success('Item has been successfully removed.');
-		setIsModalOpen(false); // Close the main modal after the action is complete
+console.log('Item removed!');
+		message.success( getAContent('cmp_vetonest.com_Lb4kZw98Ds') );
+		setIsModalOpen(false);
 	}
 
 	// Timeslot opened
@@ -490,7 +485,7 @@ const ModalProfile = ( params ) => {
 		setStartTime(time);
 		var openedErrorText = '';
 		if( timeValidator( time, endTime ) === false ){
-			openedErrorText = 'profileOpened_OpenedError';
+			openedErrorText = getAContent('cmp_vetonest.com_Yq2nFt77Wc');
 console.log( openedError );
 		}
 		setOpenedError( openedErrorText );
@@ -500,7 +495,7 @@ console.log( openedError );
 		setEndTime(time);
 		var openedErrorText = '';
 		if( timeValidator( startTime, time ) === false ){
-			openedErrorText = 'profileOpened_OpenedError';
+			openedErrorText = getAContent('cmp_vetonest.com_Yq2nFt77Wc');
 console.log( openedError );
 		}
 		setOpenedError( openedErrorText );
@@ -515,28 +510,39 @@ console.log( openedError );
 	}
 
 	// animal espece
-	const [ animalEspece, setAnimalEspece ] = useState( '' );
+	// const [ animalEspece, setAnimalEspece ] = useState( '' );
 	const [ animalEspeceError, setAnimalEspeceError ] = useState( '' );
+	const [ breedSpinner, setBreedSpinner ] = useState( false );
 	const handleChangeAnimalEspece = async ( specieId ) => {
-		// set selcted specie
-		setAnimalEspece( specieId );
+		// show spinner
+		setBreedSpinner(true);  
 		// get specie's breeds		
 		const breeds = await speciesBreedList( specieId );
 		setRaces( breeds );
 		// display breed Select
-		setShowBreeds( '' )
+		setShowBreeds( '' );	
+		// set selcted specie
+		setEspeceSelectedId( specieId );
+		// hide breed spiner
+		setBreedSpinner( false );
+		
+		setAnimalEspeceError( '' );
+		form.validateFields();
 	}
 
 	// animal race
-	const [ animalRace, setAnimalRace ] = useState( '' );
+	// const [ animalRace, setAnimalRace ] = useState( '' );
 	const [ animalRaceError, setAnimalRaceError ] = useState( '' );
 	const handleChangeAnimalRace = ( raceId ) => {
-		setAnimalRace( raceId );
+		setRaceSelectedId( raceId );
+
+		setAnimalRaceError( '' );
+		form.validateFields();
 	}
 
 	// name validator
 	const nameValidator = ( name ) => {
-		const rep = /^(([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?(\s)?)+([A-Za-zéàèêêâäë]+[\-\']?)*([A-Za-zéàèêêâäë]+)?$/.test( name );
+		const rep = /^[A-Za-z0-9éàèêêâäë]+([-' ]?[A-Za-z0-9éàèêêâäë]+)*$/.test( name );
 		return rep
 	}
 
@@ -548,8 +554,8 @@ console.log( openedError );
 
 		return true;
 	}
-	const [ signUpEmail, setSignUpEmail ] = useState();
-	const [ signUpEmailDefault, setEmailDefault ] = useState( 'Email' );
+	const [ signUpEmail, setSignUpEmail ] = useState( user ? user.email : '' );
+	const [ signUpEmailDefault, setEmailDefault ] = useState( getAContent('cmp_vetonest.com_Po5mAz66Kj') );
 	const [ signUpEmailError, setSignUpEmailError ] = useState( '' );
 	const handleChangeEmail = ( e ) => {
 		const data = e.target.value;
@@ -591,12 +597,12 @@ console.log( openedError );
 // console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
 		if( countLetters == maxCodeLength ){
 			if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
+				message.error( getAContent('cmp_vetonest.com_Xc8rBn55Je') );
 				setDisplayCodeIncorrect( 'block' );
 				setEmailVerificationResult( false );
 			}
 			else{
-				message.success( 'Your code is correct' );
+				message.success( getAContent('cmp_vetonest.com_Jd9hPw10Rt')  );
 				setEmailVerificationResult( true );
 				setDisplayCodeCorrect( 'block' );
 				setTimeout( setIsModalOpen, 2000, false );
@@ -652,7 +658,7 @@ console.log( openedError );
 
 		const emailData = {
 			email: signUpEmail,
-			userId: userId
+			userId: user.userId
 		}
 		const rep = await updateEmail( emailData );
 
@@ -663,14 +669,15 @@ console.log( openedError );
 			message.error( profileIdentity_updateEmailError )
 		}
 		else{
-			message.success( profileIdentity_updateEmailSuccess );
+			user['email'] = signUpEmail;
+			await logIn( user );
 			
 			const random = generateRandomDigits(3);
 			setProfileFormUpdated( random );
-			message.success( 'Profile updated' );
+			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 			setModalProfileIdentityOpen( false );
 		}
-	}
+	} 
 
 	// first name
 	const [ firstName, setFirstName ] = useState( '' );
@@ -683,8 +690,7 @@ console.log( openedError );
 		const test = firstNameValidator( data )
 		if( data && test === false )
 			firstNameErrorText = signUp_firstNameErrorText
-
-// signUpFirstNameErrorText = 'Your firstname seems incorect'
+		
 		setFirstNameError( firstNameErrorText );
 	}
 
@@ -695,130 +701,87 @@ console.log( openedError );
 
 	// sexe
 	const [ sexes, setSexes ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ sexe, setSexe ] = useState( userProfile.userSexeId );// 1 for male, 2 for female
+	const [ sexe, setSexe ] = useState( '' ); // 1 for male, 2 for female
 	const [ sexeError, setSexeError ] 	= useState( '' );
-	const handleChangeSexes = async ( sexeType ) => {
-		setSexeError( '' );
-		const elt01 = document.getElementById( 'sexeType' + sexeType ); // current elt
-		const elt02 = sexeType == 1 ? document.getElementById( 'sexeType' + 2) :   document.getElementById( 'sexeType' + 1 );
-
-		//setSexe_formOption1Error( '' );
-		//setSexe_formOption2Error( '' );
 	
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
-		
-		if( elt01.checked == true && sexeType == 1 ){
-			// message.info( sexe_type1 );
-			setSexe( 1 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == true && sexeType == 2 ){
-			// message.info( sexe_type2 );
-			setSexe( 2 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == false && elt02.checked == false ){
-			setSexe( '' );
-			//setSexe_formOption1Error( sexe_formOption1ErrorText );
-			//setSexe_formOption2Error( sexe_formOption2ErrorText );
-		}
+	const handleChangeProfileSex = (e) => {
+		const sexId = e.target.value;
+		setSexe( sexId );
+		setSexeError( '' );
 	}
 
 	// animal sexe
 	const [ animalSexes, setAnimalSexes ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
 	const [ animalSexe, setAnimalSexe ] = useState( userProfile.userAnimalSexeId );// 1 for male, 2 for female
 	const [ animalSexeError, setAnimalSexeError ] 	= useState( '' );
-	const handleChangeAnimalSexes = async ( animalSexeType ) => {
-		const elt01 = document.getElementById( 'animalSexeType' + animalSexeType ); // current elt
-		const elt02 = animalSexeType == 1 ? document.getElementById( 'animalSexeType' + 2) :   document.getElementById( 'animalSexeType' + 1 );
-
-		//setAnimalSexe_formOption1Error( '' );
-		//setAnimalSexe_formOption2Error( '' );
 	
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
+	const handleChangeAnimalSex = (e) => {
+		const sexId = e.target.value;
+// alert(sexId);
+		setAnimalSexe( sexId );
 		
-		if( elt01.checked == true && animalSexeType == 1 ){
-			// message.info( animalSexe_type1 );
-			setAnimalSexe( 1 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == true && animalSexeType == 2 ){
-			// message.info( animalSexe_type2 );
-			setAnimalSexe( 2 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == false && elt02.checked == false ){
-			setAnimalSexe( '' );
-			//setAnimalSexe_formOption1Error( animalSexe_formOption1ErrorText );
-			//setAnimalSexe_formOption2Error( animalSexe_formOption2ErrorText );
-		}
+		setAnimalSexeError( '' );
+		form.validateFields();
 	}
 
 	// animalInsurance
 	const [ animalInsurances, setAnimalInsurances ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
 	const [ animalInsurance, setAnimalInsurance ] = useState( userProfile.userAnimalInsuranceId );// 1 for male, 2 for female
 	const [ animalInsuranceError, setAnimalInsuranceError ] 	= useState( '' );
-	const handleChangeAnimalInsurances = async ( animalInsuranceType ) => {
-		const elt01 = document.getElementById( 'animalInsuranceType' + animalInsuranceType ); // current elt
-		const elt02 = animalInsuranceType == 1 ? document.getElementById( 'animalInsuranceType' + 2) :   document.getElementById( 'animalInsuranceType' + 1 );
-
-		//setAnimalInsurance_formOption1Error( '' );
-		//setAnimalInsurance_formOption2Error( '' );
 	
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
+	const handleChangeAnimalInsurance = (e) => {
+		const insurance = e.target.value;
+		setAnimalInsurance( insurance ); 
 		
-		if( elt01.checked == true && animalInsuranceType == 1 ){
-			// message.info( animalInsurance_type1 );
-			setAnimalInsurance( 1 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == true && animalInsuranceType == 2 ){
-			// message.info( animalInsurance_type2 );
-			setAnimalInsurance( 2 );
-			// showModalOptionType();
-		}
-		else if( elt01.checked == false && elt02.checked == false ){
-			setAnimalInsurance( '' );
-			//setAnimalInsurance_formOption1Error( animalInsurance_formOption1ErrorText );
-			//setAnimalInsurance_formOption2Error( animalInsurance_formOption2ErrorText );
-		}
+		setAnimalInsuranceError( '' );
+		form.validateFields();
 	}
 
+
 	// Birth date
-	const [ dateDeNaissance, setDateDeNaissance ] = useState( '' );
-	const handleBirthDateChange = ( date, dateString ) => {
-// console.log( 'date', date.format('YYYY-MM-DD') );
-		// const day 	= dateString.$D;
-		// const month = dateString.$M;
-		// const year 	= dateString.$y;
+	const [ dateDeNaissance, setDateDeNaissance ] 		= useState( '' );
+	const [ dateDeNaissanceRaw, setDateDeNaissanceRaw ] = useState( '' );
+	const [ dateDeNaissanceError, setDateDeNaissanceError ] = useState( '' );
+	const handleBirthDateChange = async ( date, dateString ) => {
+		if( !date ){
+			setDateDeNaissance( null );
+			setDateDeNaissanceRaw( null );
+			return
+		}
 		const dateStr = date.format('YYYY-MM-DD');
-		if( dateStr < "2020-01-01" )						// todo: dynamic
-			setDateDeNaissance( dateStr )
-		else
-			message.error( 'Age limit of 10 is not reached' )	// todo
+		if( dateStr < "2020-01-01" ){						// todo: dynamic
+			const dateNaissance = dayjs( dateStr );
+			setDateDeNaissance( dateNaissance );
+			setDateDeNaissanceRaw( dateStr );
+		}
+		else{
+			message.error( getAContent('cmp_vetonest.com_Ru6sKa87Xp') )	// todo
+		}
+		
+		setDateDeNaissanceError( '' );
+		form.validateFields();
 	}
 
 	// Animal Birth date
+	const [ animalBirthDatePickerValue, setAnimalBirthDatePickerValue ] = useState(null);
 	const [ animalDateNaissance, setAnimalDateNaissance ] = useState( '' );
-	const handleAnimalBirthDateChange = ( date, dateString ) => {
-// console.log( 'date', date.format('YYYY-MM-DD') );
-		// const day 	= dateString.$D;
-		// const month = dateString.$M;
-		// const year 	= dateString.$y;
+	const [ animalDateNaissanceRaw, setAnimalDateNaissanceRaw ] = useState( '' );
+	const [ animalDateNaissanceError, setAnimalDateNaissanceError ] = useState( '' );
+	const handleAnimalBirthDateChange = async ( date, dateString ) => {
+
 		const dateStr = date.format('YYYY-MM-DD');
-		setAnimalDateNaissance( dateStr )
+		const formatedDate = await dateFormater( dateStr );
+		setAnimalDateNaissance( formatedDate );
+		setAnimalDateNaissanceRaw( dateStr );
+		setAnimalBirthDatePickerValue( null );
+		
+		setAnimalDateNaissanceError( '' );
+		form.validateFields();
 	}
 
 	// Absence
 	const [ dateAbsence, setDateAbsence ] = useState( '' );
 	const handleDateAbsenceChange = ( date ) => {
-console.log( '>>>>>>>>>>> date', date );
 		// const dateStr = date.format('YYYY-MM-DD');
 		setDateAbsence( date )
 	}
@@ -842,7 +805,7 @@ console.log( '>>>>>>>>>>> date', date );
 
 		var biographyErrorText = '';
 		if( !isValidBiography( data ) )
-			biographyErrorText = 'Please add a few words to your biography';
+			biographyErrorText = getAContent('cmp_vetonest.com_Vm3fHt24Ls');
 
 		setBiographyError( biographyErrorText );
 
@@ -874,7 +837,7 @@ console.log( '>>>>>>>>>>> date', date );
 
 		if( data && test === false ){
 		
-			addressErrorText = profileIdentity_addressErrorText
+			addressErrorText = profileIdentity_addressErrorText // cmp_vetonest.com_Wq7eNk90Bs
 		}
 		// signUpAddressErrorText = 'Your address seems incorect'
 		setAddressError( addressErrorText );
@@ -897,7 +860,7 @@ console.log( '>>>>>>>>>>> date', date );
 
 		if( data && test === false ){
 		
-			codePostalErrorText = 'Code postal Error'; // profileIdentity_codePostalErrorText;
+			codePostalErrorText = getAContent('cmp_vetonest.com_Kt8vGd33Qw'); // profileIdentity_codePostalErrorText;
 		}
 		// signUpCodePostalErrorText = 'Your codePostal seems incorect'
 		setCodePostalError( codePostalErrorText );
@@ -918,7 +881,7 @@ console.log( '>>>>>>>>>>> date', date );
 		const test = villeValidator( data )
 
 		if( data && test === false ){
-			villeErrorText = profileIdentity_villeErrorText
+			villeErrorText = profileIdentity_villeErrorText // getAContent('cmp_vetonest.com_Sp1cMe44Uv');
 		}
 		// signUpVilleErrorText = 'Your ville seems incorect'
 		setVilleError( villeErrorText );
@@ -1104,15 +1067,15 @@ console.log( '>>>>>>>>>>> date', date );
 				status: 1,	// 1 - pending, 2 - active.
 				enabled: 1,
 			}
-console.log( '>>>>>>>>>>> data', data );
+
 			const rep = await setCliniqueVetos( data );	// save
 			if( rep === false ){ //
-				message.error( 'Veto profile cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 			}
 			else{
 				const random = await generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}			
 		}
@@ -1177,15 +1140,16 @@ console.log( '>>>>>>>>>>> data', data );
                 adresse: etablissementAddress,
                 info: etablissementInfo,
 				parking: etablissementParking,
-				etablissementId: vetoCliniqueInfo.id,
 				paysId: lieuCountrySelected,
 				villeId: lieuCitySelected,
+				...( userProfile.atHome  && { vetoAtHome: userProfile.id } ),
+				...( !userProfile.atHome  && { etablissementId: vetoCliniqueInfo.id } ),
                 enabled: true,
 			}
 
 			const lieuId = await etablissementLieuUpdate( etablissementLieuData );
 			if( lieuId === false ){ //
-				message.error( 'Veto cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
 				return;
 			}
 			else{
@@ -1206,7 +1170,7 @@ console.log( '>>>>>>>>>>> data', data );
 				}
 			}
 			
-			message.success( 'Profile updated' );
+			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 			setModalProfileIdentityOpen( false );
 			const random = generateRandomDigits(3);
 			// setFormUpdated( random );
@@ -1274,16 +1238,16 @@ console.log( '>>>>>>>>>>> data', data );
 
 			const resp = await etablissementUpdate( etablissementData );
 			if( resp === false ){ //
-				message.error( 'Veto cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
 				return;
 			}
 			else{
 				//const random = generateRandomDigits(3);
 				//setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 				const random = generateRandomDigits(3);
-				// setFormUpdated( random );
+
 				setProfileFormUpdated( random );
 				return;
 			}
@@ -1302,12 +1266,12 @@ console.log( '>>>>>>>>>>> data', data );
 				const rep = await timeSlotDayClose( sendData );	// save
 
 				if( rep === false ){ //
-					message.error( 'Veto profile cannot be updated' );
+					message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 				}
 				else{
 					const random = await generateRandomDigits(3);
 					setProfileFormUpdated( random );
-					message.success( 'Profile updated' );
+					message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 					setModalProfileIdentityOpen( false );
 				}
 				return;
@@ -1369,7 +1333,7 @@ console.log( '>>>>>>>>>>> data', data );
 			else{
 				const random = await generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}			
 		}
@@ -1441,7 +1405,7 @@ console.log( '>>>>>>>>>>> data', data );
 				setAbsence('');
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}
 		}
@@ -1484,47 +1448,57 @@ console.log( '>>>>>>>>>>> data', data );
 			}
 
 			// check form empty fields
-			var formHasEmpty = '';
+			var formHasEmpty = false;
 			const checkFormEmpty = () => {
 
-				if( phoneNumber == '' ){
-					formHasEmpty = 'phoneNumberEmptyErrorText';
-					setPhoneNumberError( formHasEmpty );
+				if( !phoneNumber ){
+					const error = getAContent( 'cmp_vetonest.com_Fa92Ld10Xp' );
+					setPhoneNumberError( error );
+					formHasEmpty = true
 				}
-				if( vetoName == '' ){
-					formHasEmpty = signUp_nameEmpty;
-					setVetoNameError( formHasEmpty );
+				if( !vetoName ){
+					const error = getAContent( 'cmp_vetonest.com_Wp17Qk83Mz' );
+					setVetoNameError( error );
+					formHasEmpty = true
 				}
-				if( vetoFirstName == '' ){
-					formHasEmpty = signUp_firstNameErrorText;
-					setVetoFirstNameError( formHasEmpty );
+				if( !vetoFirstName ){
+					const error = getAContent( 'cmp_vetonest.com_Bt63Xa1Npe' );
+					setVetoFirstNameError( error );
+					formHasEmpty = true
 				}
-				// if( vetoRpps == '' ){
-					// formHasEmpty = 'vetoRppsEmptyErrorText';
-					// rppsErrorTextDisplay( 'block' );
-				// }
-				// if( vetoSiret == '' ){
-					// formHasEmpty = 'vetoSiretEmptyErrorText';
-					// setSiretEmptyTextDisplay( 'block' );
-				// }
-
+				if( !vetoRpps ){
+					const error = getAContent( 'cmp_vetonest.com_Ds85Mv9Rlt' ); 
+					setVetoRppsError( error ); 
+					formHasEmpty = true;
+				}
+				if( !vetoSiret ){
+					const error = getAContent( 'cmp_vetonest.com_Fr20Bh6Wqp' ); 
+					setVetoSiretError( error ); 
+					formHasEmpty = true;
+				}
 				if( vetoSelectedSpecialities.length == 0 ){
-					formHasEmpty = 'vetoSpecialiteEmptyErrorText';
-					setVetoSpecialiteError( formHasEmpty );
+					const error = getAContent( 'cmp_vetonest.com_Mv72Qd98Pl' ); 
+					setVetoSpecialiteError( error );
+					formHasEmpty = true;
+				}  
+				
+				if( vetoType == null ){ 
+					const error = getAContent( 'cmp_vetonest.com_Kp48Qs91Lm' );
+					setVetoTypeError( error );
+					formHasEmpty = true
 				}
-				if( !vetoType ){ 
-					formHasEmpty = 'checkboxesAtHomeError';
-					setCheckboxesAtHomeError( formHasEmpty );
-				}
-				form.validateFields();
+				
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
 			}
 			
 			await checkFormEmpty();
 			
 			if( formHasEmpty ){
-				message.error( formHasEmpty );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
 				return
 			}
 
@@ -1536,20 +1510,20 @@ console.log( '>>>>>>>>>>> data', data );
 				siret:				vetoSiret,
 				rpps: 				vetoRpps,
 				specialiteId: 		vetoSelectedSpecialities[0],
-				atHome: 			document.getElementById( 'vetoType1' ).checked ? true : false,
+				atHome: 			vetoType,
 				profileId:			profileId,
 			}
 			
 			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
 			
 			if( rep === false ){ //
-				message.error( 'Veto profile cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 				return;
 			}
 			else{
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}
 		}
@@ -1564,19 +1538,19 @@ console.log( '>>>>>>>>>>> data', data );
 			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
 			
 			if( rep === false ){ //
-				message.error( 'Profile cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
 			else{
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  ); 
 				setModalProfileIdentityOpen( false );
 				return;
 			}
 		}
 
-		
+		// Language
 		if( fieldName == 'Language' ){
 			
 			const languagePreferenceData = {
@@ -1592,11 +1566,11 @@ console.log( '>>>>>>>>>>> data', data );
 				setUser( user );
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Default language updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Qb7tHr52Nv' ) );
 				return
 			}
 			else{
-				message.error( 'Default language not updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Wk1cPv64Ts' ) );
 				return
 			}
 		}
@@ -1619,67 +1593,89 @@ console.log( '>>>>>>>>>>> data', data );
 			}
 
 			// check empty fields
-			var formHasEmpty = '';
 			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+				if( !animalName ){
+					// setFormError06( 'block' );
+					// const error = showAFormError( 'formError06' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Na82Lm51Qw' );
+					setAnimalNameError( error );
+					formHasEmpty = true
+				}
+				if( !animalSexe ){
+					// setFormError06( 'block' );
+					// const error = showAFormError( 'formError06' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Rp84Bt62Mn' );
+					setAnimalSexeError( error );
+					formHasEmpty = true
+				}
 
-				if( ! animalSexe ){
-					setFormError06( 'block'  );
-					const error = showAFormError( 'formError06' ); // return error's tag inner text
-					formHasEmpty = error
-				}
 				if( !animalDateNaissance ){
-					setFormError07( 'block'  );
-					const error = showAFormError( 'formError07' ); // return error's tag inner text
-					formHasEmpty = error
+					// setFormError07( 'block' );
+					// const error = showAFormError( 'formError07' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Zu38Qp10Fx' );
+					setAnimalDateNaissanceError( error );
+					formHasEmpty = true
 				}
-				if( !animalEspece ){
-					setFormError08( 'block'  );
-					const error = showAFormError( 'formError08' ); // return error's tag inner text
-					formHasEmpty = error
+				if( !especeSelectedId ){
+					// setFormError08( 'block' );
+					// const error = showAFormError( 'formError08' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Wv62Ak55Lo' );
+					setAnimalEspeceError( error );
+					formHasEmpty = true
 				}
-				if( !animalRace ){
-					setFormError09( 'block'  );
-					const error = showAFormError( 'formError09' ); // return error's tag inner text
-					formHasEmpty = error
+				if( !raceSelectedId ){
+					// setFormError09( 'block' );
+					// const error = showAFormError( 'formError09' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Mf29Dz83Qr' );
+					setAnimalRaceError( error );
+					formHasEmpty = true
 				}	
-				if( !animalInsurance ){
-					setFormError10( 'block'  );
-					const error = showAFormError( 'formError10' ); // return error's tag inner text
-					formHasEmpty = error
+				if( animalInsurance == null ){
+					// setFormError10( 'block' );
+					// const error = showAFormError( 'formError10' ); // return error's tag inner text
+					const error = getAContent( 'cmp_vetonest.com_Ba82Hr60Qn' );
+					setAnimalInsuranceError( error );
+					formHasEmpty = true
 				}
+				
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
 			}
 			
-			await checkFormEmpty();
-			// check form empty fields
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
-				message.error( formHasEmpty );
-				// setPwResetSpin( 'none' );
-				// setSendingDisabled( false );
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
 				return
 			}
-			const date = dayjs(); // Creates a Day.js object for the current date and time
-
+			
+			// send data
 			const animalData = {
                 nomAnimal: animalName,
                 sexeId: animalSexe,
-                dateDeNaissance: dayjs( animalDateNaissance, "YYYY-MM-DD+h:mm" ).format('YYYY-MM-DD') ,
-                especeId: animalEspece,
-				raceId: animalRace,
+                dateDeNaissance:  dayjs( animalDateNaissanceRaw ).format("YYYY-MM-DD"),
+                especeId: especeSelectedId,
+				raceId: raceSelectedId,
                 profileUserId: profileId,
                 assurance: animalInsurance, 
                 active: 1,
 				...( selectedPetId && { carnetAnimalId: selectedPetId, } )
 			}
 			
-			const resp = await editUserPets( animalData, animalPhoto.originFileObj );
+			const originFileObj = animalPhoto ? animalPhoto.originFileObj : null;
+			const resp = await editUserPets( animalData, originFileObj );
 			if( resp === false ){ //
-				message.error( 'Pet book cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Jm3eXy90Pa' ) );
 				return;
 			}
 			else{
 				//const random = generateRandomDigits(3);
 				//setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 				const random = generateRandomDigits(3);
 				// setFormUpdated( random );
@@ -1767,12 +1763,10 @@ console.log( '>>>>>>>>>>> data', data );
 			const checkEmailData = {
 				email: signUpEmail
 			}
-
 			// check the form errors
 			const checkFormErrors = async( ) => {
 				if( signUpEmailError != '' )
 					return true
-
 			}
 			// check form erors
 			const formHasErrors = await checkFormErrors();
@@ -1789,8 +1783,10 @@ console.log( '>>>>>>>>>>> data', data );
 			if(checkEmailExist){
 				setFormError02( 'block' );	// display form error
 				message.error( showAFormError( 'formError02' ) );	// display ant error
-				setSignUpSpin( 'none' );
 				setSendingDisabled( false );
+				setSignUpEmail( '' );	// reset
+				setSignUpSpin( 'none' );
+				
 				return
 			}
 
@@ -1799,10 +1795,9 @@ console.log( '>>>>>>>>>>> data', data );
 
 			const code = await generateRandomDigits( maxCodeLength );
 			setCode( code );
-	// console.log( 'genCode: ' + genCode );
+
 			const domainName 	= signUpEmail.split( '@' )[1];
 			const subject 		= signUp_verifyEmailSubjet + siteName;
-	// const subject 		= 'Verify your email address for ' + siteName;
 			const userName 		= user.nom;
 			
 			const sendEmailData = {
@@ -1817,7 +1812,6 @@ console.log( '>>>>>>>>>>> data', data );
 				code  			: insertSpaceAtPosition ( code, 3 ),
 				emailTemplate	: 'email_verification'
 			}
-	// console.log( 'sendEmailData', sendEmailData );
 
 			const rep = await sendEmail( sendEmailData );	// send the code by email
 			
@@ -1828,8 +1822,7 @@ console.log( '>>>>>>>>>>> data', data );
 				setSendingDisabled( false );
 				return;
 			}
-	// console.log( 'Check email', rep );
-			setSignUpSpin( 'none' );
+
 			setIsModalOpen(true);
 			
 			return
@@ -1882,44 +1875,130 @@ console.log( '>>>>>>>>>>> data', data );
 			if( rep !== false ){
 
 				const random = generateRandomDigits(3);
-				message.success( 'Biography updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Va8rTk27Qf' ) );
 				return
 			}
 			else{
-				message.error( 'Default language not updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Wk1cPv64Ts' ) ); 
 				return
 			}
 		}
 
 		// Profile
-		if( fieldName == 'Profile' ){	
-			// check form erors
-			const formHasErrors = await checkFormErrors();
+		if( fieldName == 'Profile' ){
 
-			if( formHasErrors ){
-				message.error( signUp_correctErrors );
-	// message.error( 'Please correct the errors before continuing.' );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
-				return
+			// check the form errors
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( nameError != '' ){
+					errorsExist = true
+					await setNameError( nameError );
+					form.validateFields()
+				}
+				else if( firstNameError != '' ){
+					errorsExist = true
+					await setFirstNameError( firstNameError );
+					form.validateFields()
+				}
+				else if( addressError != '' ){
+					errorsExist = true
+					await setAddressError( addressError );
+					form.validateFields()
+				}
+				else if( codePostalError != '' ){
+					errorsExist = true
+					await setCodePostalError( codePostalError );
+					form.validateFields()
+				}
+
+				return errorsExist
 			}
 
-			// check form empty fields
-			const formHasEmpty = await checkFormEmpty();
+			// check the form empty fields
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+				// name
+				if( !name ){
+					const errorMessage = signUp_nameEmpty;
+					await setNameError( errorMessage );
+					formHasEmpty = true
+				}
+				// first name
+				if( !firstName ){
+					const errorMessage = getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' );
+					await setFirstNameError( errorMessage );
+					formHasEmpty = true
+				}
+				// sexe
+				if( !sexe ){
+					const errorMessage = getAContent( 'cmp_vetonest.com_Mn2Xk8bPrV' );
+					await setSexeError( errorMessage );
+					formHasEmpty = true
+				}
+				// birthdate
+				if( !dateDeNaissance ){
+					const error = getAContent( 'cmp_vetonest.com_Bt82Lm50Hv' );
+					setDateDeNaissanceError( error );
+					formHasEmpty = true
+				}
+				// languages
+				if( !selectedLanguages.length ){
+					const error = getAContent( 'cmp_vetonest.com_D82ka01LsM' );
+					setLanguageError( error );
+					formHasEmpty = true
+				} 
+				// address
+				if( !address ){
+					const error = getAContent( 'cmp_vetonest.com_Mv84Px6Zrt' );
+					setAddressError( error );
+					formHasEmpty = true
+				} 
+				// code postal
+				if( !codePostal ){
+					const error = getAContent( 'cmp_vetonest.com_Jk51Pv7Mra' );
+					setCodePostalError( error );
+					formHasEmpty = true
+				}
+				// country
+				if( !countrySelected ){
+					const error = getAContent( 'cmp_vetonest.com_Td93Qa1Zpl' );
+					setCountryError( error );
+					formHasEmpty = true
+				} 
+				// state
+				if( !stateSelected ){
+					const error = getAContent( 'cmp_vetonest.com_Ms28Ht4Cvo' );
+					setStateError( error );
+					formHasEmpty = true
+				} 
+				// city
+				if( !citySelected ){
+					const error = getAContent( 'cmp_vetonest.com_Bq67Rn3Wks' );
+					setCityError( error );
+					formHasEmpty = true
+				} 
 
-			if( formHasEmpty ){
-				message.error( formHasEmpty );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
-				return
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
 			}
 			
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
+			if( formHasEmpty ){
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
+				return
+			}
+
+			// send data
 			const sendData = {
 				nom: 				name,
 				prenom:				firstName,
 				sexeId:				sexe ? sexe : userProfile.userSexeId,
 				profileId: 			profileId,
-				dateDeNaissance: 	dateDeNaissance,
+				dateDeNaissance: 	dayjs( dateDeNaissanceRaw ).format("YYYY-MM-DD"),
 				langues: 			selectedLanguages.join( ',' ),
 				adresse:			address,
 				codePostal:			codePostal,
@@ -1931,55 +2010,243 @@ console.log( '>>>>>>>>>>> data', data );
 			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
 			
 			if( rep === false ){ //
-				message.error( 'Profile cannot be updated' );
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
+				return;
+			}
+			else{
+				user['userPrenom'] = firstName;
+				user['userNom'] = name;
+				logIn( user );
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
+				setModalProfileIdentityOpen( false );
+			}
+		}
+		
+		// FirstName
+		if( fieldName == 'FirstName' ){
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( firstNameError != '' ){
+					errorsExist = true
+					await setNameError( nameError );
+					form.validateFields()
+				}
+				return errorsExist
+			}
+
+			// check form erors
+			const formHasErrors = await checkFormErrors();
+
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
+			
+			// check the form empty fields
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+				// first name
+				if( !firstName ){
+					const errorMessage = getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' );
+					await setFirstNameError( errorMessage );
+					formHasEmpty = true
+				}
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
+			}
+			
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
+			if( formHasEmpty ){
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
+				return
+			}
+			
+			const sendData = {
+				prenom:	firstName,
+				profileId: profileId
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+
+			if( rep === false ){ //
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
+				return;
+			}
+			else{
+				user[ 'userPrenom' ] = firstName;
+				logIn( user );
+				
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
+				setModalProfileIdentityOpen( false );
+			}
+		}
+
+		// Name
+		if( fieldName == 'Name' ){
+			const checkFormErrors = async( ) => { 
+				var errorsExist = false;
+				if( nameError != '' ){
+					errorsExist = true
+					await setNameError( nameError );
+					form.validateFields()
+				}
+				return errorsExist
+			}
+
+			// check form erors
+			const formHasErrors = await checkFormErrors();
+
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+	// message.error( 'Please correct the errors before continuing.' );
+				// setSignUpSpin( 'none' );
+				// setSendingDisabled( false );
+				return
+			}
+
+			// check the form empty fields
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+				// name
+				if( !name ){
+					const errorMessage = signUp_nameEmpty;
+					await setNameError( errorMessage );
+					formHasEmpty = true
+				}
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
+			}
+			
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
+			if( formHasEmpty ){
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
+				return
+			}
+			
+			const sendData = {
+				nom:		name,
+				profileId: profileId
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+
+			if( rep === false ){ //
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
+				return;
+			}
+			else{
+				user[ 'userNom' ] = name;
+				logIn( user );
+				
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
+				setModalProfileIdentityOpen( false );
+			}
+		}
+		
+		// Sexes
+		if( fieldName == 'Sexes' ){
+			// check if empty field
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+			
+				if( !sexe ){
+					const errorMessage = getAContent( 'cmp_vetonest.com_Mn2Xk8bPrV' );
+					await setSexeError( errorMessage );
+					formHasEmpty = true
+				}
+			}
+			
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
+			if( formHasEmpty ){
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
+				return
+			}
+			
+			const sendData = {
+				sexeId:	sexe ? sexe : userProfile.userSexeId,
+				profileId: profileId
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+
+			if( rep === false ){ //
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
 			else{
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( 'Profile updated' );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}
 		}
+		
+		// birth date Shortcut
+		if( fieldName == 'BirthDate' ){
+			
+			// check the form empty fields
+			const checkFormEmpty = async( ) => {
+				var formHasEmpty = false;
+				// birthdate
+				if( !dateDeNaissance ){
+					const error = getAContent( 'cmp_vetonest.com_Bt82Lm50Hv' );
+					setDateDeNaissanceError( error );
+					formHasEmpty = true
+				}
 
+				if( formHasEmpty )
+					form.validateFields(); 
+				
+				return formHasEmpty;
+			}
+			
+			// check if form has empty fields
+			const formHasEmpty = await checkFormEmpty();
+			if( formHasEmpty ){
+				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
+				return
+			}
+			
+			const sendData = {
+				dateDeNaissance: 	dateDeNaissanceRaw,
+				profileId: 			profileId
+			}
+
+			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
+
+			if( rep === false ){ //
+				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
+				return;
+			}
+			else{
+				const random = generateRandomDigits(3);
+				setProfileFormUpdated( random );
+				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
+				setModalProfileIdentityOpen( false );
+			}
+		}
 	}
 
-	// check the form errors
-	const checkFormErrors = async( ) => { 
-		var errorsExist = false;
-		if( nameError != '' ){
-			errorsExist = true
-			await setNameError( nameError );
-			form.validateFields()
-		}
-		return errorsExist
-	}
-
-	// check the form empty fields
-	const checkFormEmpty = async( ) => {
-		var formHasEmpty = '';
-		// name
-		if( name == '' ){
-			const errorMessage = signUp_nameEmpty;
-			await setNameError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		// first name
-		if( firstName == '' ){
-			const errorMessage = profileIdentity_firstNameEmpty;
-			await setNameError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		// sexe
-		if( sexe == '' ){
-			const errorMessage = 'To translate';//profileIdentity_sexeEmpty;
-			await setSexeError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-// console.log( '>>>>>> sexe', sexe );
-		form.validateFields()
-		return formHasEmpty
-	}
 
 	// Modal
 	const modalProfileIdentityOk = async( ) => {
@@ -2006,26 +2273,31 @@ console.log( '>>>>>>>>>>> data', data );
 	const [ datePickerDefaultValue, setDatePickerDefaultValue ] = useState( '' ); 
 	// const  modalActiveFieldName = params.params.fieldName;
 	const [ fieldName, setFieldName ] = useState( '' );
-	const [ dateNaissance, setDateNaissance ] = useState( '' );
+	// const [ dateNaissance, setDateNaissance ] = useState( '' );
 	
 	// user language selector
 	const { Option } = Select;
 	const [ selectedLanguages, setSelectedLanguages ] = useState([]);
 
+	const [ languageError, setLanguageError ] = useState( '' );
 	const MAX_LANGUAGES = 3; // Define your maximum limit
 	const handleChangeLanguage = (value) => {
-		if (value.length > MAX_LANGUAGES) {
-		  // If the new selection exceeds the limit, take only the allowed number
-		  setSelectedLanguages( value.slice(0, MAX_LANGUAGES) );
+		if ( value.length > MAX_LANGUAGES ) {
+			// If the new selection exceeds the limit, take only the allowed number
+			setSelectedLanguages( value.slice(0, MAX_LANGUAGES) );
+			message.info( getAContent( 'cmp_vetonest.com_Wn84Bx2Kqt' ) );
 		} 
 		else {
-		  setSelectedLanguages(value);
+			setSelectedLanguages(value);
 		}
+		
+		setLanguageError('');
+		form.validateFields()
 	}
 
 	// countries
 	// const [ countryError, setCountryError ] = useState( '' );
-	// const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
+	// const [ countryDefault, setCountryDefault ] = useState( 'getAContent(  'cmp_vetonest.com_k3a92hFsP1'  ) ' );
 	// const [ countrySelected, setCountrySelected ] = useState( '' );
 	// const [ allCountries, setAllCountries ]  = useState( [] ); 
 	// const [ siteCountries, setSiteCountries ]  = useState( [] ); 
@@ -2034,19 +2306,19 @@ console.log( '>>>>>>>>>>> data', data );
 	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 
 	const [ countryError, setCountryError ] = useState( '' );
-	const [ countryDefault, setCountryDefault ] = useState( 'Select a country' );
+	const [ countryDefault, setCountryDefault ] = useState( getAContent(  'cmp_vetonest.com_k3a92hFsP1'  )  );
 	const [ countrySelected, setCountrySelected ] = useState( '' );
 	const [ countries, setCountries ]  = useState( [] ); 
 	const [ countryCode, setCountryCode ] = useState( '' );	
 	const [ flagCode, setFlagCode ] = useState( '' );
 
 	const [ lieuCountryError, setLieuCountryError ] = useState( '' );
-	const [ lieuCountryDefault, setLieuCountryDefault ] = useState( 'Select a country' );
+	const [ lieuCountryDefault, setLieuCountryDefault ] = useState( getAContent(  'cmp_vetonest.com_k3a92hFsP1'  ) );
 	const [ lieuCountrySelected, setLieuCountrySelected ] = useState( '' );
 	const [ lieuCountries, setLieuCountries ]  = useState( [] ); 	
 	
 	const [ lieuCityError, setLieuCityError ] = useState( '' );
-	const [ lieuCityDefault, setLieuCityDefault ] = useState( 'Select a city' );
+	const [ lieuCityDefault, setLieuCityDefault ] = useState( getAContent(  'cmp_vetonest.com_Pq8x2VmAz9'  ) );
 	const [ lieuCitySelected, setLieuCitySelected ] = useState( '' );
 	const [ lieuCities, setLieuCities ]  = useState( [] ); 
 
@@ -2102,8 +2374,8 @@ console.log( '>>>>>>>>>>> data', data );
 
 	// states
 	const [ stateError, setStateError ] = useState( '' );
-	const [ stateDefault, setStateDefault ] = useState( 'Select a state' );
-	const [ stateNotFound, setStateNotFound ] = useState( 'Select a country first' );
+	const [ stateDefault, setStateDefault ] = useState( getAContent(  'cmp_vetonest.com_Rn3t7KcUy4'  )  );
+	const [ stateNotFound, setStateNotFound ] = useState( getAContent(  'cmp_vetonest.com_Hb2e8NvTs8'  )  );
 	const [ stateSelected, setStateSelected ] = useState( '' );
 	const [ states, setStates ]  = useState( [] );
 	const handleChangeStateSelected = ( stateCode ) => {
@@ -2119,8 +2391,8 @@ console.log( '>>>>>>>>>>> data', data );
 
 	// cities
 	const [ cityError, setCityError ] = useState( '' );
-	const [ cityDefault, setCityDefault ] = useState( 'Select a city' );
-	const [ cityNotFound, setCityNotFound ] = useState( 'Select a state first' );
+	const [ cityDefault, setCityDefault ] = useState( getAContent(  'cmp_vetonest.com_Pq8x2VmAz9'  ) );
+	const [ cityNotFound, setCityNotFound ] = useState( getAContent(  'cmp_vetonest.com_Rn3t7KcUy4'  ) );
 	const [ citySelected, setCitySelected ] = useState( '' );
 	const [ cities, setCities ]  = useState( [] ); 
 	const handleChangeCitySelected = ( value ) => {
@@ -2140,9 +2412,9 @@ console.log( '>>>>>>>>>>> data', data );
 		if( data.length == 0 )
 			phoneErrorText = '';
 		else if( data.length > 0 && data.length < 7 )
-			phoneErrorText = 'phoneNumberErrorText02' 	//'Your phone number seems incomplete';
+			phoneErrorText = getAContent( 'cmp_vetonest.com_Ee4b7YsRf1' ); 	//'Your phone number seems incomplete';
 		else if( !isValidPhoneNumber( selectedCountryCode + data ) )
-			phoneErrorText = 'phoneNumberErrorText' 	// 'Your phone number seems incorrect'
+			phoneErrorText = getAContent( 'cmp_vetonest.com_Uu5r3JdWg6' );  // 'Your phone number seems incorrect'
 			
 		setPhoneNumberError( phoneErrorText );
 	}
@@ -2251,14 +2523,14 @@ console.log( '>>>>>>>>>>> data', data );
 		const test = await validateRppsNumber( data );
 // console.log( '>>>> test', test );
 		if( data != '' && test === false ){
-			vetoRppsErrorText = 'profileVeto_vetoRppsErrorText';// profileAnimal_vetoRppsErrorText
+			vetoRppsErrorText = getAContent(  'cmp_vetonest.com_Di6c1XpMf4'  ) ; // profileAnimal_vetoRppsErrorText
 			// vetoRppsErrorText = 'block'
 		}
 		setVetoRppsError( vetoRppsErrorText );
 		form.validateFields();
 	}
 
-	// veto SIRET handleChangeVetoSiret
+	// veto SIRET 
 	const [ vetoSiret, setVetoSiret ] =  useState( '' );
 	const [ vetoSiretError, setVetoSiretError ] =  useState( '' );
 	const [ siretEmptyTextDisplay, setSiretEmptyTextDisplay ] =  useState( 'none' );
@@ -2266,19 +2538,12 @@ console.log( '>>>>>>>>>>> data', data );
 	const handleChangeVetoSiret = ( e ) => {
 		const data = e.target.value;
 
-		// if( data.length > 0 )
-			// setSiretEmptyTextDisplay( '' )
-
-		// if( data.length > 14 )
-			// return
-
-// console.log( '>>>> vetoSiret', vetoSiret );
 		setVetoSiret( data );
 		var vetoSiretErrorText = '';
 		const test = validateSiretNumber( data )
  
 		if( data != '' && test === false ){
-			vetoSiretErrorText = 'profileVeto_vetoSiretErrorText';// profileAnimal_vetoSiretErrorText
+			vetoSiretErrorText = getAContent( 'cmp_vetonest.com_Zz1k5BrTn8' ); // profileAnimal_vetoSiretErrorText
 			setVetoSiretError( vetoSiretErrorText )
 			//vetoSiretErrorText = 'block'
 		}
@@ -2286,49 +2551,15 @@ console.log( '>>>>>>>>>>> data', data );
 		form.validateFields();
 	}
 
-   
-    // const handleChangeVetoType = (e) => {
-		// console.log( 'foo' )
-	// }
-	// animal sexe
-	// const [ vetoType, setVetoType ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ vetoType, setVetoType ] = useState( userProfile.atHome );// 0 for home, 1 for facility
-	// const [ vetoTypeError, setVetoTypeError ] 	= useState( '' );
-		// 
-	const [ checkboxesAtHomeError, setCheckboxesAtHomeError ] = useState( '' ); 
-	const handleChangeVetoType = async ( vetoType ) => { 
-// console.log( 'userProfile.atHome', userProfile.atHome );
-// console.log( 'vetoType', vetoType );
-		const elt01 = document.getElementById( 'vetoType' + vetoType ); // current elt
-		const elt02 = vetoType == 1 ? document.getElementById( 'vetoType' + 2) :   document.getElementById( 'vetoType' + 1 );
-
-		//setVetoType_formOption1Error( '' );
-		//setVetoType_formOption2Error( '' );
-		setCheckboxesAtHomeError( '' );
-
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
-		
-		if( elt01.checked == true && vetoType == 1 ){
-			// message.info( vetoType_type1 );
-			setVetoType( 1 );
-			// showModalOptionType();
-			setCheckboxesAtHomeNoneSelectedDisplay( 'none' )
-		}
-		else if( elt01.checked == true && vetoType == 2 ){
-			// message.info( vetoType_type2 );
-			setVetoType( 2 );
-			// showModalOptionType();
-			setCheckboxesAtHomeNoneSelectedDisplay( 'none' )
-		}
-		if( elt01.checked == false && elt02.checked == false ){
-			setVetoType( '' );
-			setCheckboxesAtHomeError( 'checkboxesAtHomeError' );
-			
-		}
-		form.validateFields();
+	// Veto Type
+	const [ vetoType, setVetoType ] = useState( userProfile.atHome );
+	const [ vetoTypeError, setVetoTypeError ] = useState( userProfile.atHome );
+	const handleChangeVetoType =  ( e ) => { 
+		const vetoTypeId = e.target.value;
+		setVetoType( vetoTypeId );
+		setVetoTypeError( '' );
 	}
+
 	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
 
 	
@@ -2352,16 +2583,19 @@ console.log( '>>>> CheckedVetoList', checkedVetoList );
 	// form
 	const [form] = Form.useForm();
 	useEffect(() => {
-console.log( '>>>>>>>> vetos', vetos )
+		// if (!isOpen) return; // do nothing when closed
+		const vetosToInvite = vetos.filter( e => e.id != profileId ); // move out the current veto
+		setVetosToInvite( vetosToInvite );
+
 		// reset the form
 		form.resetFields();
 		clearFormErrors();
-// console.log( '>>>>>>>> allEtablissementTypes', allEtablissementTypes );
+		// title
 		setTitle( visibleModalTitle );
 		const fieldName = params.params.fieldName;
 		setFieldName( fieldName );
 		const openModal = ( fieldName === visibleModalName ) && modalProfileIdentityOpen;
-		
+		// display of the modal
 		if( hasModalBeenShown === false ){
 			if( openModal === true ){
 				setOpenModal( true );
@@ -2370,13 +2604,14 @@ console.log( '>>>>>>>> vetos', vetos )
 			if( openModal === false ){
 				setOpenModal( false );
 				setHasModalBeenShown( false );
+				return
 			}
 		}
 		else if( hasModalBeenShown === true ){
 			setOpenModal( false );
+			return
 			// setHasModalBeenShown( false );
 		}
-
 // console.log( 'fieldName', fieldName );
 // console.log( 'visibleModalName', visibleModalName );
 // console.log( 'fieldName === visibleModalName', ( fieldName === visibleModalName ) && modalProfileIdentityOpen );
@@ -2405,112 +2640,159 @@ console.log( '>>>>>>>> vetos', vetos )
 		const languageDefault = [ selectedLanguageId ]; // default
 		setLanguageSelected( languageDefault );
 
-		// veto open
+		// Reset Animals data
+		setAnimalName( null );
+		setAnimalDateNaissance( null );	// Placeholder
+		setAnimalSexes( null );
+		setShowBreeds( 'none' )
+		setEspeceSelectedId( null );
+		setRaceSelectedId( null );
+		setAnimalPhoto( '' )
+		setAnimalInsurance( null );
+		
+		// get form data
 		const a = async () => {
+			// Animals
+			if( fieldName == "Animaux" && selectedPetId ){
 
-			// default name
-			const name = userProfile.nom;
-			setName( name );
-			// default first name
-			const firstName = userProfile.prenom;
-			setFirstName( firstName );
-			// setDescription( 'Update ' + fieldName )
-			// birth date
-			const birthDate = userProfile.dateNaissance ? userProfile.dateNaissance.date : '';
-			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
-			setDateNaissance( dateNaissance );
-			setDatePickerDefaultValue( birthDate ? dayjs( birthDate ) : dayjs() );
-// console.log( '************ userProfile', userProfile );
-			const userLanguages = userProfile.langue ? userProfile.langue : [];
-// console.log( '************ userProfile.langue', userProfile.langue );
-			if( Array.isArray( userLanguages ) ){
-				const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
-				setSelectedLanguages( userLanguagesId )
-			}
+				// get user's animals
+				// const userPets = await getUserPets( profileId );
 
-			// address
-			const address = userProfile.adresse ? userProfile.adresse : '';
-			setAddress( address );
-			// code postalCode
-			const codePostal = userProfile.codePostal ? userProfile.codePostal : '';
-			setCodePostal( codePostal );
-			// Country
-			if( userProfile.country ){
-				const countryObj = await countries.filter( country => 
-					country.id == userProfile.country
-				)[0];
-				setCountrySelected( userProfile.country );
-				// setCountryDefault( userProfile.country );
-				const countryStates = await State.getStatesOfCountry( countryObj.isoCode )
-				setStates( countryStates );
-				// Country States
-				if( countryObj ){ 
-					setShowStatesCities( '' );
-					setStateSelected( userProfile.state );
-					// setStateDefault( userProfile.state );
-					const stateCities = City.getCitiesOfState( countryObj.isoCode, userProfile.state );
-					// console.log( 'stateCities', stateCities );
-					setCities( stateCities );
-				}
-				// State cities
-				if( countryObj ){ 
-					setCitySelected( userProfile.city )
-					// setCityDefault( userProfile.city );
-				}
-			}
-			if( !countrySelected )
-				setCountryDefault( profileIdentity_countryDefault )
-			if( !stateSelected )
-				setStateDefault( profileIdentity_stateDefault )
-			if( !citySelected )
-				setCityDefault( profileIdentity_cityDefault )
-			
-			// user pets
-			if( selectedPetId ){
 				const pets = userPets;
-// console.log( 'pets', pets );
 				const pet = pets.filter( e => e.id == selectedPetId )[0];
-				setAnimalName( pet.nom );
-				setEspeceSelectedId( pet.especeId );
-				setRaceSelectedId( pet.especeId );
+			
+				// animal name
+				const animalName = pet.nom;
+				setAnimalName( animalName );
+				form.setFieldsValue( {AnimalName: animalName} );
+				// animal specie
+				const especeId = pet.espece.id;
+				form.setFieldsValue( { Espece: especeId } );
+				setEspeceSelectedId( especeId );
+				// animal race
+				if( especeId ){
+					const breeds = await speciesBreedList( especeId );
+					setRaces( breeds );
+					const raceId = pet.race.id;
+					form.setFieldsValue( { Race: raceId } );		
+					setRaceSelectedId( raceId );
+					setShowBreeds( '' )
+				}
+				// animal birthDate
 				const dateStr = pet.dateNaissance.date;
-				setAnimalDateNaissance( dateStr )
-				if( pet.assurance )
-					setAnimalInsurance(1)
-				else
-					setAnimalInsurance(2)
-				
-				if( pet.sexe == 1 )
-					setAnimalSexe(1)
-				else
-					setAnimalSexe(2)
+				setAnimalDateNaissanceRaw( dateStr );
+				setAnimalDateNaissance( await dateFormater( dateStr ) );
+				// animal have Insurance
+				const haveInsurance = pet.assurance;
+				form.setFieldsValue( { HaveInsurance: haveInsurance } );
+				setAnimalInsurance( haveInsurance ); 
+				// animal sex
+				const sexId = pet.sexe.id;
+				form.setFieldsValue( { AnimalSex: sexId } );
+				setAnimalSexe( sexId );				
+				// animal photo
+				const picture = pet.picture;
+				// form.setFieldsValue( { AnimalSex: sexId } );
+				setAnimalPhoto( picture );
+			}
+			// User profile
+			if( fieldName == "Profile" ){
+
+				// default name
+				const name = userProfile.nom;
+				setName( name );
+				form.setFieldsValue( {Name: name} );
+				// default first name
+				const firstName = userProfile.prenom;
+				setFirstName( firstName );
+				form.setFieldsValue( {FirstName: firstName} );
+				// birth date
+				const birthDate = userProfile.birthDateFormated ? userProfile.birthDateFormated : null;
+				// form.setFieldsValue({
+					// BirthdateUser: birthDate ? dayjs(birthDate) : null
+				// });
+				const dateNaissance = birthDate ? await dayjs( birthDate ) : '';
+				setDateDeNaissance( dateNaissance );
+				setDateDeNaissanceRaw( birthDate )
+				// languages 
+				const userLanguages = userProfile.langue ? userProfile.langue : [];
+				if( Array.isArray( userLanguages ) ){
+					const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
+					setSelectedLanguages( userLanguagesId )
+				}
+				// address
+				const address = userProfile.adresse ? userProfile.adresse : '';
+				setAddress( address );
+				form.setFieldsValue( {Address: address} );
+				// code postalCode
+				const codePostal = userProfile.codePostal ? userProfile.codePostal : '';
+				setCodePostal( codePostal );
+				form.setFieldsValue( {CodePostal: codePostal} );
+				// Country
+				if( userProfile.country ){
+					const countryObj = await countries.filter( country => 
+						country.id == userProfile.country
+					)[0];
+					setCountrySelected( userProfile.country );
+					form.setFieldsValue( { Country: userProfile.country } );
+					// setCountryDefault( userProfile.country );
+					const countryStates = await State.getStatesOfCountry( countryObj.isoCode )
+					setStates( countryStates );
+					// Country States
+					if( countryObj ){ 
+						setShowStatesCities( '' );
+						setStateSelected( userProfile.state );
+						form.setFieldsValue( { State: userProfile.state } );
+						// setStateDefault( userProfile.state );
+						const stateCities = City.getCitiesOfState( countryObj.isoCode, userProfile.state );
+						// console.log( 'stateCities', stateCities );
+						setCities( stateCities );
+						
+					}
+					// State cities
+					if( countryObj ){ 
+						setCitySelected( userProfile.city );
+						form.setFieldsValue( { City: userProfile.city } );
+						// setCityDefault( userProfile.city );
+					}
+				}
+
+				// sex
+				const sex = userProfile.userSexeId;
+				form.setFieldsValue( { Sexe: sex ? sex : '' } );
+				setSexe( sex ? sex : '' );
 			}
 			
 			// veto profile
 			if( profileTypeId == 2 && userProfile.id ){
-
-// console.log( 'userProfile.phone', userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' );
 				setVetoName( userProfile.nom );
+				form.setFieldsValue( { VetoName: userProfile.nom } );
 				setVetoFirstName( userProfile.prenom );
+				form.setFieldsValue( { VetoFirstName: userProfile.prenom } );
 				const countryCode = userProfile.phone ? userProfile.phone.split( ' ' )[0] : '+33' // toDo
 				const phone = userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' // toDo
+				
 				const country = countriesAllowed.filter( e => e.countryCodc == countryCode )[0];
 				const countryIso = country ? country.iso : 'fr';
 				setSelectedCountryCode( countryCode ); // Todo
 				setSelectedFlag( countryIso );
 				setPhoneNumber( phone );
-				setVetoSiret( userProfile.siret ? userProfile.siret : '' );
-				setVetoRpps( userProfile.rpps ? userProfile.rpps : '' );
+				form.setFieldsValue( { PhoneNumber: phone } );
+				setVetoSiret( userProfile.siret );
+				form.setFieldsValue( { VetoSiret: userProfile.siret } );
+				setVetoRpps( userProfile.rpps );
+				form.setFieldsValue( { VetoRpps: userProfile.rpps } );
 				setVetoSelectedSpecialities( userProfile.specialites ? [ userProfile.specialites.id ] : [] );
-				const vetoType = userProfile.atHome == true ? 1 : 2
+				const vetoType = userProfile.atHome != null ? ( userProfile.atHome == true ? 1 : 0 ) : null;
 				setVetoType( vetoType );
+				form.setFieldsValue( { VetoType: vetoType } );
 			}
 			
 			// veto absence
 			if( fieldName == 'Absence' && selectedAbsenceId ){		// Edit an absence
 				const absence = absences.filter( e => e.id == selectedAbsenceId )[0];
 				setAbsence( absence );
-				setTitle( 'Modifier une absence' );
+				setTitle( getAContent( 'cmp_vetonest.com_Tt9f2BmLo7' ) );
 				const closeDate = absence.closedDate ? dayjs( absence.closedDate.date ) : '';
 				setDateAbsence( closeDate );
 				const nomAbsence = absence.nom ? absence.nom : '';
@@ -2520,7 +2802,7 @@ console.log( '>>>>>>>> vetos', vetos )
 				form.setFieldsValue( { AbsenceName: nomAbsence, AbsenceDescription: descriptionAbsence } );
 			}
 			else if( fieldName == 'Absence' && ! selectedAbsenceId ){ // Add an absence
-				setTitle( 'Ajouter une absence' );
+				setTitle( getAContent( 'cmp_vetonest.com_Oo3j6FwQy9' ) ); 
 				form.setFieldsValue( { AbsenceName: '', AbsenceDescription: '' } );
 			}
 
@@ -2541,7 +2823,7 @@ console.log( '>>>>>>>> vetos', vetos )
 				setDayId( dayId );
 				setOpened( opened );
 				setTimeSlotId( timeSlotId );
-				setTitle( 'Modifier un horaire' );
+				setTitle( getAContent( 'cmp_vetonest.com_Jj8n4HdCp6' )  ); 
 			}
 			
 			// lieu Countries
@@ -2553,19 +2835,49 @@ console.log( '>>>>>>>> vetos', vetos )
 			if( fieldName == "Biography" ){
 				form.setFieldsValue({ Biography: userProfile.biography });
 			}
+
+			// Email
+			if( fieldName == "Email" ){
+				form.setFieldsValue({ Email: user.email });
+			}
+
+			// Firstname shortcut
+			if( fieldName == "FirstName" ){
+				form.setFieldsValue( {FirstNameShortcut: userProfile.prenom} );
+			}
+			// Name shortcut
+			if( fieldName == "Name" ){
+				form.setFieldsValue( {NameShortcut: userProfile.nom} );
+			}
+
+			// Sex shortcut
+			if( fieldName == "Sexes" ){
+				// sex
+				const sex = userProfile.userSexeId;
+				form.setFieldsValue( { SexShortcut: sex ? sex : '' } );
+				setSexe( sex ? sex : '' );
+			}
+			
+			// Birth shortcut
+			if( fieldName == "BirthDate" ){
+				// birth date
+				const birthDate = userProfile.birthDateFormated ? userProfile.birthDateFormated : null;
+				const dateNaissance = birthDate ? await dayjs( birthDate ) : '';
+				setDateDeNaissance( dateNaissance );
+				setDateDeNaissanceRaw( birthDate )
+				
+				// const birthDate = userProfile.dateNaissance ? userProfile.dateNaissance.date : '';
+				// const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
+				// setDateNaissance( dateNaissance );
+				// form.setFieldsValue( { BirthShortcut: dateNaissance } );
+			}
 		}
 		a()
 
-	}, [ params.params, selectedTimeslotOpen ]) 
+	}, [ userProfile, params.params, selectedTimeslotOpen, form ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
-
-		if( especes.length ){
-			return(
-				([])
-			)
-		}
 		return(
 			especes.map( ( espece, index ) => 
 				({
@@ -2593,174 +2905,188 @@ console.log( '>>>>>>>> vetos', vetos )
 	return (
 		 <> 
 			<Modal
-				/* visible		= { fieldName === visibleModalName ? true : false }  */
-				title		= { <p style={{ textAlign: 'center' }}>{title}</p> }
-				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { openModal }
-				onOk		= { modalProfileIdentityOk }
-				onCancel	= { () => modalProfileIdentityCancel( false ) }
-				afterClose	= { modalProfileIdentityClosed }
-				maskClosable= {false}
-				// zIndex={1005} // Custom z-index
-				
+				title={<p style={{ textAlign: 'center' }}>{title}</p>}
+				closable={{ 'aria-label': 'Custom Close Button' }}
+				open={openModal}
+				onOk={modalProfileIdentityOk}
+				onCancel={() => modalProfileIdentityCancel(false)}
+				afterClose={modalProfileIdentityClosed}
+				maskClosable={false}
+				forceRender={true}
 				footer={
-				  <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-					{ selectedAbsenceId != '' &&
-						<Popconfirm
-							key="popconfirm"
-							title="profileAbsence_PopConfirmTitle"
-							description="profileAbsence_PopConfirmdescription"
-							onConfirm={handleAbsenceRemove}
-							okText="profileAbsenceRemove_YesDelete"
-							cancelText="profileAbsenceRemove_No"
-							okButtonProps={{ danger: true }}
+					<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+						{selectedAbsenceId != '' && (
+							<Popconfirm
+								key="popconfirm"
+								title={getAContent('cmp_vetonest.com_T81kP0sQw9')}
+								description={getAContent('cmp_vetonest.com_b03Xna81Qs')}
+								onConfirm={handleAbsenceRemove}
+								okText={getAContent('cmp_vetonest.com_P91ms6QaTf')}
+								cancelText={getAContent('cmp_vetonest.com_Wq71bn20Dx')}
+								okButtonProps={{ danger: true }}
+							>
+								<Button
+									key="delete"
+									className="btnModalProfileIdentity"
+									type="primary"
+									danger
+									icon={<DeleteOutlined />}
+								>
+									{getAContent('cmp_vetonest.com_f92LmQw81P')}
+								</Button>
+							</Popconfirm>
+						)}
+						<Button
+							key="submit"
+							type="success"
+							onClick={handleClickSave}
+							className="btnModalProfileIdentity"
 						>
-							<Button key="delete" className="btnModalProfileIdentity" type="primary" danger icon={<DeleteOutlined />}>
-								Remove
-							</Button>
-						</Popconfirm>
-					}
-					<Button key="submit" type="success" onClick={handleClickSave} className="btnModalProfileIdentity">
-						Confirmer
-					</Button>
-					
-				  </div>
+							{getAContent('cmp_vetonest.com_Zx71Pa91Qm')}
+						</Button>
+					</div>
 				}
-				okText		= { 'Ok' }
-				cancelText	= { 'Cancel' }
-				styles 		= { dynamicStyle }
+				okText={getAContent('cmp_vetonest.com_Ms51qAa28Y')}
+				cancelText={getAContent('cmp_vetonest.com_Jd02LmP91w')}
+				styles={dynamicStyle}
 			>
+
 				
 				<Form 
 					className=""
 					form = {form}
 					layout="vertical"
+					autoComplete="off"
 				>
 					{ fieldName == "Etablissement_veto" &&
-					<Checkbox.Group onChange={onVetoListChange} value={checkedVetoList}>
-						<Space direction="vertical">
-							<div className="d-flex flex-wrap justify-content-center vetos" >
-								{
-									vetos.map( ( v, k ) => 
-										<div className="card mb-3 mx-2 backgroundYellow listVetoLine" key = {'a' + k}>
-										  
-										  <div className="row g-0" key = {'a' + k}>
-											<div className="align-items-center justify-content-center" key = { '3' + k}>
-											  <img src={ v.picture ? base_url + 'uploads/files/profile/' + v.picture: 
-													photoDefaultSrc } className="listVetoImg" alt="User Photo" key = {'2' + k}/>
+						<Checkbox.Group onChange={onVetoListChange} value={checkedVetoList}>
+							<Space direction="vertical">
+								<div className="d-flex flex-wrap justify-content-center vetos" >
+									{
+										vetosToInvite.map((v, k) =>
+											<div className="card mb-3 mx-2 backgroundYellow listVetoLine" key={'a' + k}>
+												<div className="row g-0" key={'a' + k}>
+													<div className="align-items-center justify-content-center" key={'3' + k}>
+														<img
+															src={v.picture ? base_url + 'uploads/files/profile/' + v.picture : photoDefaultSrc}
+															className="listVetoImg"
+															alt={getAContent('cmp_vetonest.com_Fm92Ax04Lt')}
+															key={'2' + k}
+														/>
+													</div>
+													<div className="col-md-8" key={'b' + k}>
+														<div className="card-body" key={'74' + k}>
+															<h5 className="card-title" key={'r4' + k}>
+																{v.nom} {v.prenom}
+															</h5>
+
+															<p className="card-text" key={'c' + k}>
+																{v.vetoSpecialiteTab.nom ? v.vetoSpecialiteTab.nom : getAContent('cmp_vetonest.com_Ga83Kd92Lm')}
+															</p>
+
+															<p className="card-text" key={'d' + k}>
+																<small className="text-muted" key={'e9' + k}>
+																	{getAContent('cmp_vetonest.com_Qp17za92Bw') + dayjs(v.dateCreated.date).format(getDateFormatLocale())}
+																</small>
+															</p>
+
+															<p style={{ textAlign: 'center' }} key={'e' + k}>
+																<Checkbox value={v.id} style={{ outline: 'none' }} key={'j8' + k} />
+															</p>
+														</div>
+													</div>
+												</div>
 											</div>
-											<div className="col-md-8" key = {'b' + k}>
-											  <div className="card-body" key = {'74' + k}>
-												<h5 className="card-title" key = {'r4' + k}>{ v.nom } { v.prenom }</h5>
-												<p className="card-text" key = {'c' + k}>{v.vetoSpecialiteTab.nom ? v.vetoSpecialiteTab.nom : 'profileVetos_veto'} </p>
-												<p className="card-text" key = {'d' + k}><small className="text-muted" key = {'e9' + k}>{'profile_dateCreated ' + dayjs( v.dateCreated.date ).format( getDateFormatLocale() )}</small></p>
-												<p style={{textAlign: 'center'}} key = {'e' + k}>
-													<Checkbox value={v.id} style={{ outline: 'none' }} key = {'j8' + k}/>
-												</p>
-											  </div>
-											</div>
-										  </div>
-										</div>
-										
-									)
-								}
-							</div>
-					      </Space>
-					</Checkbox.Group>
+										)
+									}
+								</div>
+							</Space>
+						</Checkbox.Group>
 					}
+
 					{ fieldName == "Etablissement_lieu" &&
 						<>
 							<div className="profilIdentityField">
+
 								<Form.Item
-									name  = "Address"
-									rules = {[
+									name="LieuAddress"
+									rules={[
 										{
 											message: etablissementAddressError,
-											validator: ( value ) => {
-												if ( etablissementAddressError ) {
-													return Promise.reject( etablissementAddressError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementAddressError) return Promise.reject(etablissementAddressError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementName } */
 								>
-									< Input
-										name  = "AddressInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ 'profileAddress_placeholder' }
-										type="text" 
-										value={ etablissementAddress }
-										onChange = { e => handleChangeEtablissementAddress(e) }
+									<Input
+										name="AddressInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={getAContent('cmp_vetonest.com_Z19vb62Qpa')}
+										type="text"
+										value={etablissementAddress}
+										onChange={(e) => handleChangeEtablissementAddress(e)}
 									/>
 								</Form.Item>
-								{ transports.map( ( transport, index ) => 
+
+								{transports.map((transport, index) =>
 									<Input
-										id		= { transport.nom }
-										name 	= { transport.nom }
-										key  	= { index }
-										data-custom-id = { transport.id }
-										placeholder={ transport.description }
+										id={transport.nom}
+										name={transport.nom}
+										key={index}
+										data-custom-id={transport.id}
+										placeholder={transport.description} 
 										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
 										type="text"
 									/>
-								) }
+								)}
+
 								<Form.Item
-									name  = "Parking"
-									rules = {[
+									name="Parking"
+									rules={[
 										{
 											message: etablissementParkingError,
-											validator: ( value ) => {
-												if ( etablissementParkingError ) {
-													return Promise.reject( etablissementParkingError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementParkingError) return Promise.reject(etablissementParkingError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementName } */
 								>
-									< Input
-										name  = "parkingInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
-										placeholder={ 'profileParking_placeholder' }
-										type="text" 
-										value={ etablissementParking }
-										onChange = { e => handleChangeEtablissementParking(e) }
+									<Input
+										name="parkingInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
+										placeholder={getAContent('cmp_vetonest.com_Nd05La27Xq')}
+										type="text"
+										value={etablissementParking}
+										onChange={(e) => handleChangeEtablissementParking(e)}
 									/>
 								</Form.Item>
+
 								<Form.Item
-									name  = "Info"
-									rules = {[
+									name="Info"
+									rules={[
 										{
 											message: etablissementInfoError,
-											validator: ( value ) => {
-												if ( etablissementInfoError ) {
-													return Promise.reject( etablissementInfoError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementInfoError) return Promise.reject(etablissementInfoError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementName } */
 								>
-									< TextArea 
+									<TextArea
 										rows={3}
-										name  = "infoInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
-										placeholder={ 'profileInfo_placeholder' }
-										type="text" 
-										value={ etablissementInfo }
-										onChange = { e => handleChangeEtablissementInfo(e) }
+										name="infoInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
+										placeholder={getAContent('cmp_vetonest.com_Zw84Bk19Rc')}
+										type="text"
+										value={etablissementInfo}
+										onChange={(e) => handleChangeEtablissementInfo(e)}
 									/>
 								</Form.Item>
+
 								<div className="row">
 									<div className="col-sm-12 col-md-6">
 										<Form.Item
@@ -2769,13 +3095,10 @@ console.log( '>>>>>>>> vetos', vetos )
 												{
 													message: lieuCountryError,
 													validator: (value) => {
-														if (lieuCountryError) {
-															return Promise.reject(lieuCountryError);
-														} else {
-															return Promise.resolve();
-														}
-													},
-												},
+														if (lieuCountryError) return Promise.reject(lieuCountryError);
+														return Promise.resolve();
+													}
+												}
 											]}
 											initialValue={lieuCountrySelected ? lieuCountrySelected : lieuCountryDefault}
 										>
@@ -2788,10 +3111,8 @@ console.log( '>>>>>>>> vetos', vetos )
 												onChange={(e) => handleChangeLieuCountrySelected(e)}
 												showSearch
 												optionFilterProp="label"
-												filterSort={(optionA, optionB) =>
-													(optionA?.label ?? '')
-														.toLowerCase()
-														.localeCompare((optionB?.label ?? '').toLowerCase())
+												filterSort={(a, b) =>
+													(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
 												}
 												options={BuildLieuCountriesOptions()}
 												notFoundContent={lieuCountryDefault}
@@ -2806,13 +3127,10 @@ console.log( '>>>>>>>> vetos', vetos )
 												{
 													message: lieuCityError,
 													validator: (value) => {
-														if (lieuCityError) {
-															return Promise.reject(lieuCityError);
-														} else {
-															return Promise.resolve();
-														}
-													},
-												},
+														if (lieuCityError) return Promise.reject(lieuCityError);
+														return Promise.resolve();
+													}
+												}
 											]}
 											initialValue={lieuCitySelected ? lieuCitySelected : lieuCityDefault}
 										>
@@ -2825,10 +3143,8 @@ console.log( '>>>>>>>> vetos', vetos )
 												onChange={(e) => handleChangeLieuCitySelected(e)}
 												showSearch
 												optionFilterProp="label"
-												filterSort={(optionA, optionB) =>
-													(optionA?.label ?? '')
-														.toLowerCase()
-														.localeCompare((optionB?.label ?? '').toLowerCase())
+												filterSort={(a, b) =>
+													(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
 												}
 												options={BuildLieuCitiesOptions()}
 												notFoundContent={lieuCityDefault}
@@ -2840,293 +3156,278 @@ console.log( '>>>>>>>> vetos', vetos )
 							</div>
 						</>
 					}
+
 					{ fieldName == "Etablissement" &&
 						<>
 							<div className="profilIdentityField">
+
 								<Form.Item
-									name  = "EtablissementName"
-									rules = {[
+									name="EtablissementName"
+									rules={[
 										{
 											message: etablissementNameError,
-											validator: ( value ) => {
-												if ( etablissementNameError ) {
-													return Promise.reject( etablissementNameError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementNameError) return Promise.reject(etablissementNameError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementName } */
 								>
-									< Input
-										name  = "etablissementNameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_namePlaceholder }
-										type="text" 
-										value={ etablissementName }
-										onChange = { e => handleChangeEtablissementName(e) }
+									<Input
+										name="etablissementNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={signUp_namePlaceholder}
+										type="text"
+										value={etablissementName}
+										onChange={(e) => handleChangeEtablissementName(e)}
 									/>
 								</Form.Item>
+
 								<Form.Item
-									name  = "EtablissementPresentation"
-									rules = {[
+									name="EtablissementPresentation"
+									rules={[
 										{
 											message: etablissementPresentationError,
-											validator: ( value ) => {
-												if ( etablissementPresentationError ) {
-													return Promise.reject( etablissementPresentationError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementPresentationError) return Promise.reject(etablissementPresentationError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementPresentation } */
 								>
-									<Input 
-										name  = "etablissementPresentationInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ 'profile_presentationPlaceholder' }
-										value={ etablissementPresentation }
-										onChange = { e => handleChangeEtablissementPresentation(e) }
+									<Input
+										name="etablissementPresentationInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={getAContent('cmp_vetonest.com_La83Pw91Qs')}
+										value={etablissementPresentation}
+										onChange={(e) => handleChangeEtablissementPresentation(e)}
 									/>
 								</Form.Item>
+
 								<Form.Item
-									name  = "EtablissementType"
-									rules = {[
+									name="EtablissementType"
+									rules={[
 										{
 											message: etablissementTypeError,
-											validator: ( value ) => {
-												if ( etablissementTypeError ) {
-													return Promise.reject( etablissementTypeError );
-												} 
-												else {
-													return Promise.resolve();
-												}
+											validator: (value) => {
+												if (etablissementTypeError) return Promise.reject(etablissementTypeError);
+												return Promise.resolve();
 											}
 										}
 									]}
-									/* initialValue  = { etablissementPresentation } */
 								>
-									<ConfigProvider 
-										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
-									>
-									
-										<Select 
+									<ConfigProvider theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }}>
+										<Select
 											mode="multiple"
-											placeholder= { 'profileEtablissement_placeholderSelect' }
+											placeholder={getAContent('cmp_vetonest.com_Kd72Bm48Tr')}
 											variant="borderless"
 											className="custom-select height40 rounded10 marginTop10"
 											value={selectedEtablissementTypes}
-											onChange={ e => handleChangeEtablissementType( e ) }
+											onChange={(e) => handleChangeEtablissementType(e)}
 											style={{ width: '100%' }}
-											suffixIcon={null} // This hides the arrow
+											suffixIcon={null}
 										>
-											{ 
-												allEtablissementTypes.map(( v, k ) => (
-													<Option key={v.id} value={v.id}>
-														<Checkbox checked={selectedEtablissementTypes.includes(v.id)}>
-															{v.nom}
-														</Checkbox>
-													</Option>
-												))
-											}
+											{allEtablissementTypes.map((v, k) => (
+												<Option key={v.id} value={v.id}>
+													<Checkbox checked={selectedEtablissementTypes.includes(v.id)}>
+														{v.nom}
+													</Checkbox>
+												</Option>
+											))}
 										</Select>
 									</ConfigProvider>
 								</Form.Item>
 							</div>
 						</>
 					}
-					{ ( fieldName == "Opened" || fieldName == "Closed" ) &&
+
+					{ (fieldName == "Opened" || fieldName == "Closed") &&
 						<>
-							<p>
-								<i className="fa fa-calendar"></i>&nbsp;{ day } : { opened ? 'profileTimeslot_opened' : 'profileTimeslot_closed'}
-							</p>
-							<p>
-								{ opened ?  
-									<Popconfirm
-										key="popconfirm01"
-										title="profileTimeSlot_PopConfirmTitle01"
-										description="profileTimeSlot_PopConfirmdescription01"
-										onConfirm={handleCloseADay}
-										okText="profileTimeSlot_YesDelete01"
-										cancelText="profileTimeSlot_No01"
-										okButtonProps={{ danger: true }}
-									>
-										<a key="delete01">
-											<LockOutlined />&nbsp;
-											<span>Fermer</span>
-										</a>
-									</Popconfirm >
-										 : 
-									<Popconfirm
-										key="popconfirm02"
-										title="profileTimeSlot_PopConfirmTitle02"
-										description="profileTimeSlot_PopConfirmdescription02"
-										onConfirm={handleOpenADay}
-										okText="profileTimeSlot_YesDelete02"
-										cancelText="profileTimeSlot_No02"
-										okButtonProps={{ success: true }}
-									>
-										<a key="delete02">
-											<UnlockOutlined />&nbsp;
-											<span>Ouvrir</span>
-										</a> 
-									</Popconfirm >
-								}
-							</p>
-							{ opened &&
+							<div className="row justify-content-center">
+								<i className="fa fa-calendar"></i>&nbsp;
+								{day} : {opened ? getAContent('cmp_vetonest.com_Zf10Kr82Pq') : getAContent('cmp_vetonest.com_Js19Ve63Hu')}
+							</div>
+							<p>&nbsp;</p>
+							{opened &&
 								<div className="row">
 									<div className="col-6">
 										<Form.Item
-											name  = "OpenedTime"
-											rules = {[
+											name="OpenedTime"
+											rules={[
 												{
 													message: openedError,
-													validator: ( value ) => {
-														if ( openedError ) {
-															return Promise.reject( openedError );
-														} 
-														else {
-															return Promise.resolve();
-														}
+													validator: (value) => {
+														if (openedError) return Promise.reject(openedError);
+														return Promise.resolve();
 													}
 												}
 											]}
-											initialValue  = { startTime }
+											initialValue={startTime}
 										>
 											<TimePicker
 												value={startTime}
 												onChange={handleStartTimeChange}
-												placeholder="profileOpen_startTimePlaceholder"
-												format="HH:mm" // Example format
+												placeholder={getAContent('cmp_vetonest.com_Mq09Br27Xy')}
+												format="HH:mm"
 												className="backgroundYellow rounded10 width100per100 borderNone height40"
 											/>
 										</Form.Item>
 									</div>
+
 									<div className="col-6">
-									
 										<TimePicker
 											value={endTime}
 											onChange={handleEndTimeChange}
-											placeholder="profileOpen_endTimePlaceholder"
+											placeholder={getAContent('cmp_vetonest.com_Ha73Ct81Zv')}
 											format="HH:mm"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
 										/>
 									</div>
 								</div>
 							}
-						</>
-						
-					}
-				
-					{ fieldName == "Absence" &&
-						<>
-							<div className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop1percent">
-									<ConfigProvider 
-										locale={ getDatePickerlocale() }
+							<div className="row justify-content-center marginTop10px">
+								{opened ?
+									<Popconfirm
+										key="popconfirm01"
+										title={getAContent('cmp_vetonest.com_Nx55Qa02Df')}
+										description={getAContent('cmp_vetonest.com_Vb71Uc92Ht')}
+										onConfirm={handleCloseADay}
+										okText={getAContent('cmp_vetonest.com_P91ms6QaTf')}
+										cancelText={getAContent('cmp_vetonest.com_Wq71bn20Dx')}
+										okButtonProps={{ danger: true }}
 									>
-										<DatePicker 
-											disabledDate={disabledPastDates}
-											format={ getDateFormatLocale() }
-											/* defaultValue= { dateAbsence } */
-											value= { dateAbsence }
-											onChange={ (e) => handleDateAbsenceChange(e) }
-										/>
-									</ConfigProvider>
+										<a key="delete01">
+											<LockOutlined />&nbsp;
+											<span>{getAContent('cmp_vetonest.com_Lo28Gs10Rw')}</span>
+										</a>
+									</Popconfirm>
+								:
+									<Popconfirm
+										key="popconfirm02"
+										title={getAContent('cmp_vetonest.com_Bv61Rx34Qp')}
+										description={getAContent('cmp_vetonest.com_Ta77Fq90Wm')}
+										onConfirm={handleOpenADay}
+										okText={getAContent('cmp_vetonest.com_P91ms6QaTf')}
+										cancelText={getAContent('cmp_vetonest.com_Wq71bn20Dx')}
+										okButtonProps={{ success: true }}
+									>
+										<a key="delete02">
+											<UnlockOutlined />&nbsp;
+											<span>{getAContent('cmp_vetonest.com_Sp56Jd44Um')}</span>
+										</a>
+									</Popconfirm>
+								}
 							</div>
-							<div className="profilIdentityField">
-								<Form.Item
-									name  = "AbsenceName"
-									rules = {[
-										{
-											message: absenceNameError,
-											validator: ( value ) => {
-												if ( absenceNameError ) {
-													return Promise.reject( absenceNameError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									/* initialValue  = { absenceName } */
-								>
-									<Input 
-										name  = "absenceNameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_namePlaceholder }
-										type="text" 
-										value={ absenceName }
-										onChange = { e => handleChangeAbsenceName(e) }
-									/>
-								</Form.Item>
-							</div>
-							<div className="">
-								<Form.Item
-									name  = "AbsenceDescription"
-									rules = {[
-										{
-											message: absenceDescriptionError,
-											validator: ( value ) => {
-												if ( absenceDescriptionError ) {
-													return Promise.reject( absenceDescriptionError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									/* initialValue  = { absenceDescription }  */
-								>
-									<Input 
-										name  = "absenceDescriptionInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ 'profileAbsence_descriptionPlaceholder' }
-										type="text" 
-										value={ absenceDescription }
-										onChange = { e => handleChangeAbsenceDescription(e) }
-									/>
-								</Form.Item>
-							</div>
-						</>
-					}
-					{ fieldName == "Country" &&
-						<>
-							<div className="row">
-								<Checkbox.Group 
-									options={countriesOptions} 
-									// defaultValue={languageDefault} 
-									value={countriesSelected}
-									onChange={ onCountryOptionChange }
-								/>
-							</div>
-							<p className="row">&nbsp;
-							</p>
-						</>
-					}
-					{ fieldName == "Language" &&
-						<>
-						
-							<div className="row">
-								<Checkbox.Group 
-									options={languageOptions} 
-									// defaultValue={languageDefault} 
-									value={languageSelected}
-									onChange={ onLanguageOptionChange }
-								/>
-							</div>
-							<p className="row">&nbsp;
-							</p>
 						</>
 					}
 
-					{fieldName === "Profile" && (
+					{ fieldName == "Absence" &&
+						<>
+							<div>	
+								<Form.Item 
+									name="AbsenceDatePicker"
+									label={getAContent('cmp_vetonest.com_f82Ns91Qaz')}
+									rules={[{
+										message: dateDeNaissanceError,
+										validator: (value) => {
+											if (dateDeNaissanceError) return Promise.reject(dateDeNaissanceError);
+											return Promise.resolve();
+										}
+									}]}
+								>
+									<ConfigProvider locale={getDatePickerlocale()}>
+										<DatePicker
+											disabledDate={disabledPastDates}
+											format={getDateFormatLocale()}
+											value={dateAbsence}
+											onChange={(e) => handleDateAbsenceChange(e)}
+										/>
+									</ConfigProvider>
+								</Form.Item>
+								
+							</div>
+							<div className="profilIdentityField">
+								<Form.Item
+									label={getAContent('AbsenceName')}
+									name="AbsenceName"
+									rules={[
+										{
+											message: absenceNameError,
+											validator: (value) => {
+												if (absenceNameError) return Promise.reject(absenceNameError);
+												return Promise.resolve();
+											}
+										}
+									]}
+								>
+									<Input
+										name="absenceNameInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={signUp_namePlaceholder}
+										type="text"
+										value={absenceName}
+										onChange={(e) => handleChangeAbsenceName(e)}
+									/>
+								</Form.Item>
+							</div>
+
+							<div>
+								<Form.Item
+									label={getAContent('absenceDescription')}
+									name="AbsenceDescription"
+									rules={[
+										{
+											message: absenceDescriptionError,
+											validator: (value) => {
+												if (absenceDescriptionError) return Promise.reject(absenceDescriptionError);
+												return Promise.resolve();
+											}
+										}
+									]}
+								>
+									<Input
+										name="absenceDescriptionInput"
+										className="backgroundYellow rounded10 width100per100 borderNone height40"
+										placeholder={getAContent('cmp_vetonest.com_Ew62Jk55Ns')}
+										type="text"
+										value={absenceDescription}
+										onChange={(e) => handleChangeAbsenceDescription(e)}
+									/>
+								</Form.Item>
+							</div>
+						</>
+					}
+
+					{ fieldName == "Country" &&
+						<>
+							<p>&nbsp;</p>
+							<div className="checkbox-grid">
+								<Checkbox.Group
+									options={countriesOptions}
+									value={countriesSelected}
+									onChange={onCountryOptionChange}
+								/>
+							</div>
+							<p>&nbsp;</p>
+						</>
+					}
+
+					{fieldName === "Language" && (
+						<>
+							<p>&nbsp;</p>
+							<div className="checkbox-grid">
+								<Checkbox.Group
+									options={languageOptions}
+									value={languageSelected}
+									onChange={onLanguageOptionChange}
+								/>
+							</div>
+							<p>&nbsp;</p>
+						</>
+					)}
+
+
+					{ fieldName === "Profile" && (
 						<div className="container">
 							<div className="row">
 								<div className="col-6">
@@ -3142,12 +3443,11 @@ console.log( '>>>>>>>> vetos', vetos )
 												},
 											},
 										]}
-										initialValue={name}
 									>
 										<Input
 											name="nameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={signUp_namePlaceholder}
+											placeholder={getAContent( 'cmp_vetonest.com_Rf29Lm8Qcs' )}
 											type="text"
 											value={name}
 											onChange={(e) => handleChangeName(e)}
@@ -3157,7 +3457,7 @@ console.log( '>>>>>>>> vetos', vetos )
 								<div className="col-6">
 									<Form.Item
 										label={signUp_firstNamePlaceholder}
-										name="firstName"
+										name="FirstName"
 										rules={[
 											{
 												message: firstNameError,
@@ -3172,7 +3472,7 @@ console.log( '>>>>>>>> vetos', vetos )
 										<Input
 											name="firstNameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={signUp_firstNamePlaceholder}
+											placeholder={getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' )}
 											type="text"
 											value={firstName}
 											onChange={(e) => handleChangeFirstName(e)}
@@ -3180,71 +3480,87 @@ console.log( '>>>>>>>> vetos', vetos )
 									</Form.Item>
 								</div>
 							</div>
-							<div className="row customLabel01">
-								<span >{ getAContent( 'cmp_vetonest.com_ZEuz13yjyi' ) }</span>
-							</div>
-							<div className="row">
-								<div className="col-6">
-									<Form.Item name="male" className="backgroundYellow rounded10 height40">
-										<div className="row">
-											<div className="col-9" style={{ paddingTop: "4%", paddingLeft: "14%" }}>
-												Male
-											</div>
-											<div className="col-2" style={{ paddingTop: "4%", paddingLeft: "0%" }}>
-												<Input
-													type="checkbox"
-													name="signUpTypeUser"
-													id="sexeType1"
-													value={1}
-													defaultChecked={userProfile.userSexeId == 1}
-													onChange={() => handleChangeSexes(1)}
-													style={{ outline: "none" }}
-												/>
-											</div>
+
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_ZEuz13yjyi')}
+								name="Sexe"
+								rules={[
+									{
+										message: sexeError,
+										validator: (value) => {
+											if (sexeError) return Promise.reject(sexeError);
+											return Promise.resolve();
+										},
+									},
+								]}
+							>
+								<Radio.Group
+									style={{ width: "100%" }}
+									onChange={(e) => handleChangeProfileSex(e)}
+								>
+									<div className="row">
+										<div
+											className="backgroundYellow rounded10 height40"
+											style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+										>
+											<Radio value={1} className="checkbox-like-radio">
+												{getAContent('cmp_vetonest.com_A91fd73KsP')}
+											</Radio>
 										</div>
-									</Form.Item>
-								</div>
-								<div className="col-6">
-									<Form.Item name="female" className="backgroundYellow rounded10 height40">
-										<div className="row">
-											<div className="col-9" style={{ paddingTop: "4%", paddingLeft: "14%" }}>
-												Female
-											</div>
-											<div className="col-2" style={{ paddingTop: "4%", paddingLeft: "0%" }}>
-												<Input
-													type="checkbox"
-													name="signUpTypeUser"
-													id="sexeType2"
-													value={2}
-													defaultChecked={userProfile.userSexeId == 2}
-													onChange={() => handleChangeSexes(2)}
-													style={{ outline: "none" }}
-												/>
-											</div>
+
+										<div
+											className="backgroundYellow rounded10 height40"
+											style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+										>
+											<Radio value={2} className="checkbox-like-radio">
+												{getAContent('cmp_vetonest.com_w31LdP9aQs')}
+											</Radio>
 										</div>
-									</Form.Item>
-								</div>
-							</div>
-							<div >
-								<Form.Item label="Birth Date" >
+									</div>
+								</Radio.Group>
+							</Form.Item>
+
+							<div>
+								<Form.Item 
+									name="BirthdateUser"
+									label={getAContent('cmp_vetonest.com_f82Ns91Qaz')}
+									rules={[{
+										message: dateDeNaissanceError,
+										validator: (value) => {
+											if (dateDeNaissanceError) return Promise.reject(dateDeNaissanceError);
+											return Promise.resolve();
+										}
+									}]}
+								>
 									<ConfigProvider locale={getDatePickerlocale()}>
 										<DatePicker
-											defaultValue={datePickerDefaultValue}
 											onChange={handleBirthDateChange}
 											className="backgroundYellow birthdateField width100per100 height40"
 											format={getDateFormatLocale()}
+											value={dateDeNaissance}
 										/>
 									</ConfigProvider>
 								</Form.Item>
 							</div>
-							<div className="">
-								<Form.Item label="Languages (3 max)" name="languages">
+
+							<div>
+								<Form.Item
+									label={getAContent('cmp_vetonest.com_Pq71Lm92Xe')}
+									name="Languages"
+									rules={[{
+										message: languageError,
+										validator: (value) => {
+											if (languageError) return Promise.reject(languageError);
+											return Promise.resolve();
+										}
+									}]}
+								>
 									<ConfigProvider theme={{ token: { colorPrimary: "#000", border: "none" } }}>
 										<Select
 											mode="multiple"
-											placeholder="Select languages"
+											placeholder={getAContent('cmp_vetonest.com_D82ka01LsM')}
 											variant="borderless"
-											className="custom-select height40 width100per100 selectLanguage rounded10"
+											className="customAntselect height40 width100per100 selectLanguage rounded10"
 											value={selectedLanguages}
 											onChange={handleChangeLanguage}
 											style={{ width: "100%" }}
@@ -3262,10 +3578,10 @@ console.log( '>>>>>>>> vetos', vetos )
 								</Form.Item>
 							</div>
 
-							<div className="">
+							<div>
 								<Form.Item
-									label="Address"
-									name="address"
+									label={getAContent('cmp_vetonest.com_Z19vb62Qpa')}
+									name="Address"
 									className="width100per100"
 									rules={[
 										{
@@ -3281,7 +3597,7 @@ console.log( '>>>>>>>> vetos', vetos )
 									<Input
 										name="addressInput"
 										className="backgroundYellow rounded10 width100per100 borderNone height40"
-										placeholder={profileIdentity_addressPlaceholder}
+										placeholder={ getAContent( 'cmp_vetonest.com_Mv84Px6Zrt' ) }
 										type="text"
 										value={address}
 										onChange={(e) => handleChangeAddress(e)}
@@ -3292,7 +3608,7 @@ console.log( '>>>>>>>> vetos', vetos )
 							<div className="row marginTop2percent">
 								<div className="col-6">
 									<Form.Item
-										label="Postal Code"
+										label={getAContent('cmp_vetonest.com_Qp51Zv83Wc')}
 										name="CodePostal"
 										rules={[
 											{
@@ -3303,21 +3619,21 @@ console.log( '>>>>>>>> vetos', vetos )
 												},
 											},
 										]}
-										initialValue={codePostal}
 									>
 										<Input
 											name="codePostalInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={profileIdentity_codePostalPlaceholder}
+											placeholder={getAContent( 'cmp_vetonest.com_Jk51Pv7Mra' )}
 											type="text"
 											value={codePostal}
 											onChange={(e) => handleChangeCodePostal(e)}
 										/>
 									</Form.Item>
 								</div>
+
 								<div className="col-6">
 									<Form.Item
-										label="Country"
+										label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
 										name="Country"
 										rules={[
 											{
@@ -3328,11 +3644,10 @@ console.log( '>>>>>>>> vetos', vetos )
 												},
 											},
 										]}
-										initialValue={countrySelected || countryDefault}
 									>
-										<Select
+										<Select 
 											variant="borderless"
-											className="custom-select-rounded"
+											className="customAntselect custom-select-rounded"
 											style={{ width: "100%" }}
 											bordered={false}
 											value={countrySelected}
@@ -3344,6 +3659,7 @@ console.log( '>>>>>>>> vetos', vetos )
 											}
 											options={BuildCountriesOptions()}
 											notFoundContent={countryDefault}
+											placeholder = { getAContent( 'cmp_vetonest.com_Td93Qa1Zpl' ) }
 										/>
 									</Form.Item>
 								</div>
@@ -3352,8 +3668,8 @@ console.log( '>>>>>>>> vetos', vetos )
 							<div style={{ display: showStatesCities }} className="row marginTop2percent">
 								<div className="col-6">
 									<Form.Item
-										label="State"
-										name="state"
+										label={getAContent('cmp_vetonest.com_Fm41Za90Pr')}
+										name="State"
 										rules={[
 											{
 												message: stateError,
@@ -3363,11 +3679,10 @@ console.log( '>>>>>>>> vetos', vetos )
 												},
 											},
 										]}
-										initialValue={stateSelected || stateDefault}
 									>
 										<Select
 											variant="borderless"
-											className="custom-select-rounded"
+											className="customAntselect custom-select-rounded"
 											style={{ width: "100%" }}
 											value={stateSelected}
 											onChange={handleChangeStateSelected}
@@ -3378,13 +3693,15 @@ console.log( '>>>>>>>> vetos', vetos )
 											}
 											options={BuildStatesOptions()}
 											notFoundContent={stateNotFound}
+											placeholder = { getAContent( 'cmp_vetonest.com_Ms28Ht4Cvo' ) }
 										/>
 									</Form.Item>
 								</div>
+
 								<div className="col-6">
 									<Form.Item
-										label="City"
-										name="city"
+										label={getAContent('cmp_vetonest.com_L20sx18Qmv')}
+										name="City"
 										rules={[
 											{
 												message: cityError,
@@ -3394,11 +3711,10 @@ console.log( '>>>>>>>> vetos', vetos )
 												},
 											},
 										]}
-										initialValue={citySelected || cityDefault}
 									>
 										<Select
 											variant="borderless"
-											className="custom-select-rounded"
+											className="customAntselect custom-select-rounded"
 											size="middle"
 											value={citySelected}
 											onChange={handleChangeCitySelected}
@@ -3409,6 +3725,7 @@ console.log( '>>>>>>>> vetos', vetos )
 											}
 											options={BuildCitiesOptions()}
 											notFoundContent={cityNotFound}
+											placeholder = { getAContent( 'cmp_vetonest.com_Bq67Rn3Wks' ) }
 										/>
 									</Form.Item>
 								</div>
@@ -3416,804 +3733,728 @@ console.log( '>>>>>>>> vetos', vetos )
 						</div>
 					)}
 
-
-
 					{
 						fieldName == "ProfileVeto" &&
-						<div className="container">	
-							<div className="row">
-									
-										<div className="col-2">
-											<Select 
-												/* mode="multiple" */
-												placeholder="Select a country"
-												variant="borderless"
-												className=""
-												value={selectedFlag}
-												onChange={ e => handleChangeFlag( e ) }
-												suffixIcon={null} // This hides the arrow
-												style={{ width: '85px' }}
-											>
-												{ 
-													countriesAllowed.map(( v, k ) => (
-														<Option key={v.iso} value={v.iso}>
-															<img  style={{ width: '50%' }} src={ '/img/flags/' + v.iso + '.svg' } />
-														</Option>
-													))
-												}
-											</Select>
-										</div>
-										<div className="col-2" style={{float:'rigth', paddingTop: '3%'}}>
-											&nbsp;{ selectedCountryCode }
-										</div>
-										<div className="col-8">
-											
-											<Form.Item
-												name  = "PhoneNumber"
-												style = {{ marginBottom: '0px', float: 'rigth' }}
-												
-												rules = {[
-													{
-														message: phoneNumberError, //phoneNumberError,
-														validator: ( value ) => {
-															if ( phoneNumberError ) {
-																return Promise.reject( phoneNumberError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = { phoneNumber }
-											>
-												<Input 
-													type		= "text" 
-													className 	= "backgroundYellow rounded10 borderNone height40" 
-													placeholder	= { 'profileVeto_placeHolderPhone' }
-													value		= { phoneNumber }
-													onChange	= { e => handleChangePhoneNumber( e ) }
-												/>
-											</Form.Item>
-										</div>
-									
-									
-								
-							</div>
-							<div className="row gy-2">
-							<div className="col-6">
-								<Form.Item
-									name  = "VetoName"
-									rules = {[
-										{
-											message: vetoNameError,
-											validator: ( value ) => {
-												if ( vetoNameError ) {
-													return Promise.reject( vetoNameError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { name }
-								>
-									<Input 
-										name  = "vetoNameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_namePlaceholder }
-										type="text" 
-										value={ vetoName }
-										onChange = { e => handleChangeVetoName(e) }
-									/>
-								</Form.Item>
-							</div>
-							<div className="col-6">
-								<Form.Item
-									name  = "VetoFirstName"
-									
-									rules = {[
-										{
-											message: vetoFirstNameError,
-											validator: ( value ) => {
-												if ( vetoFirstNameError ) {
-													return Promise.reject( vetoFirstNameError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { firstName }
-								>
-									<Input 
-										name  = "vetoFirstNameInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40" 
-										placeholder={ signUp_firstNamePlaceholder }
-										type="text" 
-										value={ vetoFirstName }
-										onChange = { e => handleChangeVetoFirstName(e) }
-									/>
-								</Form.Item>
-							</div>
-						</div>
-							<div style={{ marginTop: '-15px' }} >
+						<div className="container">
+							{/* Phone number */}
 							<Form.Item
-									name  = "VetoSpecialite"
-									rules = {[
+								label= { getAContent('cmp_vetonest.com_Zp83Na41Lt') }
+										name="PhoneNumber"
+										style={{ marginBottom: '0px', float: 'rigth' }}
+										rules={[
+											{
+												message: phoneNumberError,
+												validator: (value) => {
+													if (phoneNumberError) return Promise.reject(phoneNumberError);
+													return Promise.resolve();
+												}
+											}
+										]}
+										initialValue={phoneNumber}
+							>
+								<div className="row">
+								
+									<div className="col-1">
+										<Select
+											variant="borderless"
+											className="customAntselect"
+											value={selectedFlag}
+											onChange={(e) => handleChangeFlag(e)}
+											suffixIcon={null}
+											style={{ width: '85px' }}
+										>
+											{countriesAllowed.map((v, k) => (
+												<Option key={v.iso} value={v.iso}>
+													<img style={{ width: '50%' }} src={'/img/flags/' + v.iso + '.svg'} />
+												</Option>
+											))}
+										</Select>
+									</div>
+
+									<div className="col-2" style={{ float: 'rigth', paddingTop: '3%', paddingLeft: '4.5%' }}>
+										&nbsp;{selectedCountryCode}
+									</div>
+
+									<div className="col-9">
+										
+											<Input
+												type="text"
+												className="backgroundYellow rounded10 borderNone height40"
+												placeholder={ getAContent('cmp_vetonest.com_Qp91Ts3Fka') }
+												value={phoneNumber}
+												onChange={(e) => handleChangePhoneNumber(e)}
+											/>
+										
+									</div>
+								
+								</div>
+							</Form.Item>
+							{/* Veto name */}
+							<div className="row gy-2">
+								<div className="col-6">
+									<Form.Item
+										label= {signUp_namePlaceholder}
+										name="VetoName"
+										rules={[
+											{
+												message: vetoNameError,
+												validator: (value) => {
+													if (vetoNameError) return Promise.reject(vetoNameError);
+													return Promise.resolve();
+												}
+											}
+										]}
+										initialValue={name}
+									>
+										<Input
+											name="vetoNameInput"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={ getAContent( 'cmp_vetonest.com_Lk58Pw7Qms' )}
+											type="text"
+											value={vetoName}
+											onChange={(e) => handleChangeVetoName(e)}
+										/>
+									</Form.Item>
+								</div>
+								{/* Veto firstname */}
+								<div className="col-6">
+									<Form.Item
+										label= { signUp_firstNamePlaceholder }
+										name="VetoFirstName"
+										rules={[
+											{
+												message: vetoFirstNameError,
+												validator: (value) => {
+													if (vetoFirstNameError) return Promise.reject(vetoFirstNameError);
+													return Promise.resolve();
+												}
+											}
+										]}
+										initialValue={firstName}
+									>
+										<Input
+											name="vetoFirstNameInput"
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={ getAContent( 'cmp_vetonest.com_Bt63Xa1Npe' )}
+											type="text"
+											value={vetoFirstName}
+											onChange={(e) => handleChangeVetoFirstName(e)}
+										/>
+									</Form.Item>
+								</div>
+							</div>
+							{/* Veto specialite */}
+							<div>
+								<Form.Item
+									label= { getAContent('cmp_vetonest.com_Mv72Qd98Pl') }
+									name="VetoSpecialite"
+									rules={[
 										{
 											message: vetoSpecialiteError,
-											validator: ( value ) => {
-												if ( vetoSpecialiteError ) {
-													return Promise.reject( vetoSpecialiteError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { vetoSelectedSpecialities }
-								>
-							<div className="row height40 width100per100 selectLanguage rounded10">
-								<div className="col-3">
-									{ 'profileVeto_labelSpecialite' }
-								</div>
-								<div className="col-9">
-								
-									<ConfigProvider 
-										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
-									>
-									
-										<Select 
-											mode="multiple"
-											placeholder= { 'profileVeto_placeholderSelectSpeciality' }
-											variant="borderless"
-											className="custom-select"
-											value={vetoSelectedSpecialities}
-											onChange={ e => handleChangeVetoSpecialities( e ) }
-											style={{ width: '100%' }}
-											suffixIcon={null} // This hides the arrow
-										>
-											{ 
-												allSpecialities.map(( v, k ) => (
-													<Option key={v.id} value={v.id}>
-														<Checkbox checked={vetoSelectedSpecialities.includes(v.id)}>
-															{v.name}
-														</Checkbox>
-													</Option>
-												))
-											}
-										</Select>
-									</ConfigProvider>
-									 </div>
-								</div>
-								</Form.Item>
-								
-							</div>
-							<div>
-								<Form.Item
-									name  = "VetoRpps"
-									rules = {[
-										{
-											message: vetoRppsError,
-											validator: ( value ) => {
-												if ( vetoRppsError ) {
-													return Promise.reject( vetoRppsError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { vetoRpps }
-								>
-									<Input 
-										placeholder	= { 'profileVeto_placeholderRPPS' }
-										className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
-										value		= { vetoRpps }
-										onChange	= { e => handleChangeVetoRpps( e ) }
-									/>
-								</Form.Item>
-							</div>
-							
-							<div>
-								<Form.Item
-									name  = "VetoSiret"
-									rules = {[
-										{
-											message: vetoSiretError,
-											validator: ( value ) => {
-												if ( vetoSiretError ) {
-													return Promise.reject( vetoSiretError );
-												} 
-												else {
-													return Promise.resolve();
-												}
-											}
-										}
-									]}
-									initialValue  = { vetoSiret }
-								>
-								<Input 
-									placeholder	= { 'profileVeto_placeholderSiret' } 
-									className 	= "backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
-									value		= { vetoSiret }
-									onChange	= { e => handleChangeVetoSiret( e ) }
-								/>
-								</Form.Item>
-							</div>
-							<div>
-							<Form.Item
-									name  = "AtHomeTrue"
-									rules = {[
-											{
-												message: 'checkboxesAtHomeError',
-													validator: ( value ) => {
-															if ( checkboxesAtHomeError != '' ) {
-																return Promise.reject( 'checkboxesAtHomeError' );
-															} 
-															else {
-																return Promise.resolve();
-															}
-													}
-											}
-									]}
-								>
-							<div className="row">
-								<div className="col-6">
-									
-										<div className 	= "row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" >
-										
-												<div className='col-9' style={{paddingTop: '4px', lineHeight: '16px'}}>
-													{ 'profileVeto_checkboxeIsAtHome' }
-												</div>
-												<div className='col-2' style={{paddingTop: '4%', paddingLeft: '0%'}}>
-													<Input
-															className=''
-															type="checkbox" 
-															name="VetoType1"
-															id="vetoType1"
-															value={ 1 }
-															defaultChecked= { userProfile.atHome == true ? true : false }
-															onChange = { e => handleChangeVetoType(1) }
-															style={{ outline: 'none' }}
-														/>
-													
-												</div>
-											</div>
-									
-								</div>
-								<div className="col-6">
-									
-										<div className 	= "row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" >
-										
-													<div className='col-9' style={{paddingTop: '4px', lineHeight: '16px'}}>
-														{ 'profileVeto_checkboxeIsAtHomeFalse' }
-													</div>
-													<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-														
-															<Input
-																type="checkbox" 
-																name="VetoType2"
-																id="vetoType2"
-																value={ 2 }
-																defaultChecked= { userProfile.atHome == true ? false :true  }
-																onChange = { e => handleChangeVetoType(2) }
-																style={{ outline: 'none' }}
-															/>
-													</div>
-												</div>
-									
-								</div>
-							</div>
-							</Form.Item>
-							</div>
-						</div>
-					}
-
-					{ 
-						fieldName == "Animaux" &&
-						<>	
-							
-							<Form.Item
-								
-										name  = "AnimalName"
-										rules = {[
-											{
-												message: animalNameError,
-												validator: ( value ) => {
-													if ( animalNameError ) {
-														return Promise.reject( animalNameError );
-													} 
-													else {
-														return Promise.resolve();
-													}
-												}
-											}
-										]}
-										initialValue  = { animalName }
-									>
-										<Input 
-											name  = "animalNameInput"
-											className="row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone" 
-											placeholder={ profileAnimal_animalNamePlaceHolder }
-											type="text" 
-											value={ animalName }
-											onChange = { e => handleChangeAnimalName(e) }
-										/>
-							</Form.Item>
-							
-							<div className="row marginTop5px">
-								<div className="col-6">
-									<Form.Item
-										className = "backgroundYellow rounded10 height40"
-										name  = "animalMale"
-									>
-										<div className='row'>
-											<div className='col-1' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-													<Input
-														
-														type="checkbox" 
-														name="animalSexeType02"
-														id="animalSexeType1"
-														value={ 1 }
-														defaultChecked= { animal.sexeId == 1 ? true : false }
-														onChange = { e => handleChangeAnimalSexes(1) }
-													 />
-											</div>
-											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '4%'}}>
-													Male
-											</div>
-										
-										</div>
-									</Form.Item>
-								</div>
-								<div className="col-6">
-									<Form.Item
-										className = "backgroundYellow rounded10 height40"
-										name  = "animalFemale"
-									>
-										<div className='row'>
-											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-													
-													<Input
-														
-														type="checkbox" 
-														name="animalSexeType02"
-														id="animalSexeType2"
-														value={ 2 }
-														defaultChecked= { animal.sexeId == 2 ? true : false }
-														onChange = { e => handleChangeAnimalSexes(2) }
-													 />
-											</div>
-											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '5%'}}>
-													Female
-											</div>
-										
-										</div>
-									</Form.Item>
-								</div>
-								<div style={{ display: formError06 }} className="row formError formError06">
-										<span id="cmp_vetonest">
-											Choose a sex for your animal
-										</span> 
-								</div>
-							</div>
-							<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
-								<div className="col-6">
-									<span id="cmp_vetonest.com_Eou9HL3uHS">Animal Birth date &nbsp; { animalDateNaissance }</span>
-								</div>
-								<div className="col-6 justify-content-end dateField">
-									<ConfigProvider 
-										locale={ getDatePickerlocale() }
-										theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }} 
-									>
-										<DatePicker 
-											defaultValue={ datePickerDefaultValue }
-											onChange={ (e) => handleAnimalBirthDateChange(e) }
-										/>
-									</ConfigProvider>
-								</div>
-								<div style={{ display: formError07 }} className="row formError formError07">
-										<span id="cmp_vetonest">
-											Choose a birth date for your animal
-										</span> 
-								</div>
-							</div>
-							<div className="marginTop2percent birthdateField">
-								<Form.Item
-												name  = "Espece"
-												rules = {[
-													{
-														message: animalEspeceError,
-														validator: ( value ) => {
-															if ( animalEspeceError ) {
-																return Promise.reject( animalEspeceError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = { especeSelectedId ? especeSelectedId : especeDefault } */
-											>
-												<Select
-													variant="borderless"
-													className="custom-select-rounded backgroundYellow height40 birthdateField borderNone" 
-													bordered={false}
-													value			= { especeSelectedId }
-													onChange		= { e => handleChangeAnimalEspece( e ) }
-													showSearch
-													optionFilterProp="label"
-													filterSort={(optionA, optionB) =>
-													  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-													}
-												>
-													{
-														especes.map(( v, k ) => (
-															<Option key={v.id} value={v.id}>
-																{v.nom}
-															</Option>
-														))
-													}
-												</Select>
-											</Form.Item>
-							</div>
-							<div style={{ display: formError08 }} className="row formError formError08">
-										<span id="cmp_vetonest">
-											Select your animal specie
-										</span> 
-							</div>
-							
-							<div style={{ display: showBreeds }} className="marginTop2percent">
-									<Form.Item
-												name  = "Race"
-												rules = {[
-													{
-														message: animalRaceError,
-														validator: ( value ) => {
-															if ( animalRaceError ) {
-																return Promise.reject( animalRaceError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = { raceSelectedId ? raceSelectedId : raceDefault } */
-											>
-												<Select
-													variant="borderless"
-													className="custom-select-rounded backgroundYellow height40 birthdateField borderNone" 
-													bordered={false}
-													value			= { raceSelectedId }
-													onChange		= { e => handleChangeAnimalRace( e ) }
-													showSearch
-													optionFilterProp="label"
-													filterSort={(optionA, optionB) =>
-													  (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-													}
-												>
-													{
-														races.map(( v, k ) => (
-															<Option key={v.id} value={v.id}>
-																{v.nom}
-															</Option>
-														))
-													}
-													
-												</Select>
-											</Form.Item>
-								
-								</div>
-							
-								<div style={{ display: formError09 }} className="row formError formError09">
-										<span id="cmp_vetonest">
-											Select your animal breed
-										</span> 
-								</div>
-								<div className="row marginTop2percent">
-								<div className="col-6">
-									<Form.Item
-										className = "backgroundYellow rounded10 height40"
-										name  = "haveNoInsurance"
-									>
-										<div className='row' >
-											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-												<Input
-													
-													type="checkbox" 
-													name="animalInsuranceType01"
-													id="animalInsuranceType1"
-													value={ 1 }
-													defaultChecked= { animal.insuranceId == 1 ? true : false }
-													onChange = { e => handleChangeAnimalInsurances(1) }
-													style={{ outline: 'none' }}
-												 />
-											</div>
-											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>			
-												Mon animal ne possede pas une assurance
-											</div>
-										</div>
-									</Form.Item>
-								</div>
-								
-								<div className="col-6">
-									<Form.Item
-										className = "backgroundYellow rounded10 height40"
-										name  = "haveInsurance"
-									>
-										<div className='row' >
-											<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-												<Input
-													
-													type="checkbox" 
-													name="animalInsuranceType02"
-													id="animalInsuranceType2"
-													value={ 2 }
-													defaultChecked= { animal.insuranceId == 1 ? true : false }
-													onChange = { e => handleChangeAnimalInsurances(2) }
-													style={{ outline: 'none' }}
-												 />
-											</div>
-											<div className='col-9' width100per100 style={{lineHeight: '1.0', paddingTop: '2%'}}>
-												Mon animal possede une assurance
-											</div>
-										</div>
-									</Form.Item>
-									<div style={{ display: formError10 }} className="row formError formError10">
-										<span id="cmp_vetonest">
-											Your animal insurance
-										</span> 
-									</div>
-								</div>
-							</div>
-							<Form.Item
-								
-										name  = "AnimalPhoto"
-										rules = {[
-											{
-												message: animalPhotoError,
-												validator: ( value ) => {
-													if ( animalPhotoError ) {
-														return Promise.reject( animalPhotoError );
-													} 
-													else {
-														return Promise.resolve();
-													}
-												}
-											}
-										]}
-										initialValue  = { animalPhoto }
-									>
-									<div className="row justify-content-center marginTop10px">
-										<Dragger {...props} > 
-											<i class="fa fa-camera" aria-hidden="true"></i> Modifier
-										</Dragger> 
-									</div>
-									<div className="align-items-center">
-										<img 
-											id="animalPhotoId" 
-											src={ animalPhoto } 
-										/>
-									</div>
-							</Form.Item>
-						</>
-					
-					}
-
-					{ 
-						fieldName == "Email" &&
-							<Form.Item
-								name  = "email"
-								rules = {[
-									{
-										message: signUpEmailError,
-										validator: ( value ) => {
-											if ( signUpEmailError ) {
-												return Promise.reject( signUpEmailError );
-											} 
-											else {
+											validator: (value) => {
+												if (vetoSpecialiteError) return Promise.reject(vetoSpecialiteError);
 												return Promise.resolve();
 											}
 										}
-									}
-								]}
-								initialValue  = { '' }
-							>
-								<Input 
-									name  = "emailInput"
-									className="backgroundYellow rounded10 width100per100 borderNone height40" 
-									placeholder={ signUp_emailPlaceholder }
-									type="text" 
-									value={ signUpEmail }
-									onChange = { e => handleChangeEmail(e) }
-								/>
-							
-							</Form.Item>
-						
-					}
-					
-					{
-						fieldName == "PasswordReset" &&
-						<>
-							
-								<Form.Item
-												name  = "password"
-												rules = {[
-													{
-														message: pwResetPasswordError,
-														validator: ( value ) => {
-															if ( pwResetPasswordError ) {
-																return Promise.reject( pwResetPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = '' */
+									]}
+									initialValue={vetoSelectedSpecialities}
 								>
-												<Input 
-													id="pwResetPasswordInput"
-													className="backgroundYellow rounded10 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordPlaceholder }
-													type="password" 
-													name="password"
-													value={ pwResetPassword }
-													onChange = { e => handleChangePwResetPassword(e)}
-												/>
-								</Form.Item>
+									<div className="row height40 width100per100 selectLanguage rounded10">
+										<div className="col-3">
+											{getAContent('cmp_vetonest.com_Rk10Bs55Hw')}
+										</div>
+										<div className="col-9">
 
-								<Form.Item
-												name  = "passwordRepeat"
-												rules = {[
-													{
-														message: pwResetPasswordRepeatError,
-														validator: ( value ) => {
-															if ( pwResetPasswordRepeatError ) {
-																return Promise.reject( pwResetPasswordRepeatError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-								>
-									<Input 
-													id="pwResetPasswordRepeatInput"
-													className="backgroundYellow rounded10 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordRepeatPlaceholder 
-													} 
-													type="password" 
-													name={ signUpPasswordRepeat }
-													value={ pwResetPasswordRepeat }
-													onChange = { e => handleChangePwResetPasswordRepeat(e)}
-									/>
-												
+											<ConfigProvider theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }}>
+												<Select
+													mode="multiple"
+													placeholder={getAContent('cmp_vetonest.com_Mv72Qd98Pl')}
+													variant="borderless"
+													className=""
+													value={vetoSelectedSpecialities}
+													onChange={(e) => handleChangeVetoSpecialities(e)}
+													style={{ width: '100%' }}
+													suffixIcon={null}
+												>
+													{allSpecialities.map((v, k) => (
+														<Option key={v.id} value={v.id}>
+															<Checkbox checked={vetoSelectedSpecialities.includes(v.id)}>
+																{v.name}
+															</Checkbox>
+														</Option>
+													))}
+												</Select>
+											</ConfigProvider>
+
+										</div>
+									</div>
 								</Form.Item>
-								
-								<div style={{ display: formError01 }} className="row formError formError02">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Password is empty
-											</span> 
-										</div>
-										<div style= {{ display: formError02 }}  className="row formError formError04">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Password repeat is empty
-											</span> 
-										</div>
-										<div style= {{ display: formError03 }}  className="row formError formError05">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Please check your network
-											</span> 
 							</div>
-						
-							</>
-						
-						
-						
-					}
-					
-					{ fieldName == "FirstName" &&
-						<Form.Item
-							name  = "FirstName"
-							
-							rules = {[
-								{
-									message: firstNameError,
-									validator: ( value ) => {
-										if ( firstNameError ) {
-											return Promise.reject( firstNameError );
-										} 
-										else {
-											return Promise.resolve();
+							{/* Veto Rpps */}
+							<div>
+								<Form.Item
+									label= {getAContent('cmp_vetonest.com_Dc44Xw21Om')}
+									name="VetoRpps"
+									rules={[
+										{
+											message: vetoRppsError,
+											validator: (value) => {
+												if (vetoRppsError) return Promise.reject(vetoRppsError);
+												return Promise.resolve();
+											}
 										}
-									}
-								}
-							]}
-							initialValue  = { userProfile.prenom }
-						>
-							<Input 
-								name  = "firstNameInput"
-								className="backgroundYellow rounded10 width100per100 borderNone height40" 
-								placeholder={ signUp_firstNamePlaceholder }
-								type="text" 
-								value={ firstName }
-								onChange = { e => handleChangeFirstName(e) }
-							/>
-						</Form.Item>
-					}
-					{ fieldName == "Sexes" &&
-						<div className="row" style={{width: '103%'}}>
-							<div className="col-6">
-								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "Male"
+									]}
 								>
-									<div className='row' >
-										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-											Male
-										</div>
-										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-											<Input
-												className=''
-												type="checkbox" 
-												name="signUpTypeUser"
-												id="sexeType1"
-												value={ 1 }
-												defaultChecked= { userProfile.userSexeId == 1 ? true : false }
-												onChange = { e => handleChangeSexes(1) }
-												style={{ outline: 'none' }}
-											 />
-										</div>
-									</div>
+									<Input
+										placeholder={getAContent('cmp_vetonest.com_Ds85Mv9Rlt')}
+										className="backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
+										value={vetoRpps}
+										onChange={(e) => handleChangeVetoRpps(e)}
+									/>
 								</Form.Item>
 							</div>
-							<div className="col-6">
+							{/* Veto Siret */}
+							<div>
 								<Form.Item
-									className = "backgroundYellow rounded10 height40"
-									name  = "Female"
+									label= {getAContent('cmp_vetonest.com_Jf39Lp77Qs')}
+									name="VetoSiret"
+									rules={[
+										{
+											message: vetoSiretError,
+											validator: (value) => {
+												if (vetoSiretError) return Promise.reject(vetoSiretError);
+												return Promise.resolve();
+											}
+										}
+									]}
+									initialValue={vetoSiret}
 								>
-									<div className='row'>
-										<div className='col-9' style={{paddingTop: '4%',  paddingLeft: '14%'}}>
-											Female
+									<Input
+										placeholder={getAContent('cmp_vetonest.com_Fr20Bh6Wqp')}
+										className="backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
+										value={vetoSiret}
+										onChange={(e) => handleChangeVetoSiret(e)}
+									/>
+								</Form.Item>
+							</div>
+							{/* Veto type */}
+							<div className="">
+								<Form.Item
+									label={getAContent('cmp_vetonest.com_Hr74Xk63Be')}
+									name="VetoType"
+									value={vetoType}
+									rules={[
+										{
+											message: vetoTypeError,
+											validator: (value) => {
+												if (vetoTypeError) return Promise.reject(vetoTypeError);
+												return Promise.resolve();
+											},
+										},
+									]}
+								>
+									<Radio.Group
+										style={{ width: "100%" }}
+										onChange={(e) => handleChangeVetoType(e)}
+									>
+										<div className="row">
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+											>
+												<Radio value={1} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_Hy63Rk84Vm')}
+												</Radio>
+											</div>
+
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+											>
+												<Radio value={0} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_Au27Wd56Cq')}
+												</Radio>
+											</div>
 										</div>
-										<div className='col-2' style={{paddingTop: '4%',  paddingLeft: '0%'}}>
-											<Input
-												type="checkbox" 
-												name="signUpTypeUser"
-												id="sexeType2"
-												value={ 2 }
-												defaultChecked= { userProfile.userSexeId == 2 ? true : false }
-												onChange = { e => handleChangeSexes(2) }
-												style={{ outline: 'none' }}
-											 />
-										</div>
-									</div>
+									</Radio.Group>
 								</Form.Item>
 							</div>
 						</div>
 					}
-					{ fieldName == "BirthDate" &&
-						<DatePicker 
-							onChange={ (e) => handleBirthDateChange(e) } 
-						/>
+
+					{
+						fieldName == "Animaux" &&
+						<>
+							{/* Animal Name */}
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_Na82Lm51Qw')} 
+								name="AnimalName"
+								rules={[{
+									message: animalNameError,
+									validator: (value) => {
+										if (animalNameError) return Promise.reject(animalNameError);
+										return Promise.resolve();
+									}
+								}]}
+								initialValue={animalName}
+							>
+								<Input
+									autoComplete="new-password"
+									name="field_animal_123"
+									className="row backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
+									placeholder={getAContent('cmp_vetonest.com_Rx47Pe92Ts')}
+									type="text"
+									value={animalName}
+									onChange={(e) => handleChangeAnimalName(e)}
+								/>
+							</Form.Item>
+
+							{/* Sexe */}
+							<div className="">
+								<Form.Item
+									label={getAContent('cmp_vetonest.com_Rp84Bt62Mn')}
+									name="AnimalSex"
+									value={animalSexe}
+									rules={[
+										{
+											message: animalSexeError,
+											validator: (value) => {
+												if (animalSexeError) return Promise.reject(animalSexeError);
+												return Promise.resolve();
+											},
+										},
+									]}
+								>
+									<Radio.Group
+										style={{ width: "100%" }}
+										onChange={(e) => handleChangeAnimalSex(e)}
+									>
+										<div className="row">
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+											>
+												<Radio value={1} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_Ml72Ks84Np')}
+												</Radio>
+											</div>
+
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+											>
+												<Radio value={2} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_Fm59Qa21Rt')}
+												</Radio>
+											</div>
+										</div>
+									</Radio.Group>
+								</Form.Item>
+							</div>
+
+							{/* Birthdate */}
+							<Form.Item
+								name="AnimalBirthdate"
+								label={getAContent('cmp_vetonest.com_Kd41Ws97Pl')}
+								rules={[{
+									message: animalDateNaissanceError,
+									validator: (value) => {
+										if (animalDateNaissanceError) return Promise.reject(animalDateNaissanceError);
+										return Promise.resolve();
+									}
+								}]}
+								
+							>
+								<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
+
+									{/* Left: DatePicker */}
+									<div className="col-6 justify-content-end dateField">
+										<ConfigProvider
+											locale={getDatePickerlocale()}
+											theme={{ token: { colorPrimary: '#FFDE59', border: 'none' } }}
+										>
+											<DatePicker
+												value={animalBirthDatePickerValue}
+												onChange={(e) => handleAnimalBirthDateChange(e)}
+											/>
+										</ConfigProvider>
+									</div>
+									{/* Right: current birthdate value */}
+									<div className="col-6">
+										<span>{animalDateNaissance}</span>
+									</div>
+									
+								</div>
+							</Form.Item>
+
+							{/* Espece */}
+
+							<Form.Item
+								label = {getAContent('cmp_vetonest.com_Sp94Te63Kz')}
+								name="Espece"
+								rules={[{
+									message: animalEspeceError,
+									validator: () => {
+										if (animalEspeceError) return Promise.reject(animalEspeceError);
+										return Promise.resolve();
+									}
+								}]}
+							>
+								<Select
+									variant="borderless"
+									className="customAntselect custom-select-rounded backgroundYellow height40 birthdateField borderNone"
+									bordered={false}
+									value={especeSelectedId}
+									onChange={(e) => handleChangeAnimalEspece(e)}
+									showSearch
+									optionFilterProp="label"
+									filterSort={(a, b) => (a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())}
+									placeholder= {getAContent('cmp_vetonest.com_Xp47Na93Qs')}
+								>
+									{especes.map((v) => (
+										<Option key={v.id} value={v.id}>
+											{v.nom}
+										</Option>
+									))}
+								</Select>
+							</Form.Item>
+
+
+							{/* Race */}
+							{breedSpinner && (
+								<div className="row justify-content-center" style={{ marginBottom: 10 }}>
+									<Spin size="small" />
+								</div>
+							)}
+							<div style={{ display: showBreeds }} >	
+								<label>{getAContent('cmp_vetonest.com_Br61Mx80Qp')}</label>
+								<Form.Item
+									name="Race"
+									rules={[{
+										message: animalRaceError,
+										validator: () => {
+											if (animalRaceError) return Promise.reject(animalRaceError);
+											return Promise.resolve();
+										}
+									}]}
+								>
+									<Select
+										variant="borderless"
+										className="customAntselect custom-select-rounded backgroundYellow height40 birthdateField borderNone"
+										bordered={false}
+										value={raceSelectedId}
+										onChange={(e) => handleChangeAnimalRace(e)}
+										showSearch
+										optionFilterProp="label"
+										filterSort={(a, b) => (a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())}
+										placeholder= {getAContent('cmp_vetonest.com_Sl9bX2qZm')}
+									>
+										{races.map((v) => (
+											<Option key={v.id} value={v.id}>
+												{v.nom}
+											</Option>
+										))}
+									</Select>
+								</Form.Item>
+							</div>
+
+							{/* Insurance */}
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_In73Dz45Hw')}
+								name="HaveInsurance"
+								rules={[
+									{
+										message: animalInsuranceError,
+										validator: (value) => {
+											if (animalInsuranceError) return Promise.reject(animalInsuranceError);
+											return Promise.resolve();
+										},
+									},
+								]}
+							>
+								<Radio.Group
+									style={{ width: "100%" }}
+									onChange={(e) => handleChangeAnimalInsurance(e)}
+								>
+									<div className="row">
+										<div
+											className="backgroundYellow rounded10 height40"
+											style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+										>
+											<Radio value={true} className="checkbox-like-radio">
+												{getAContent('cmp_vetonest.com_Hi20Qw67Ps')}
+											</Radio>
+										</div>
+											<div
+											className="backgroundYellow rounded10 height40"
+											style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+										>
+											<Radio value={false} className="checkbox-like-radio">
+												{getAContent('cmp_vetonest.com_Tc91Vm47Bs')}
+											</Radio>
+										</div>
+									</div>
+								</Radio.Group>
+							</Form.Item>
+							
+							<Form.Item
+								name="AnimalPhoto"
+								label= { getAContent('cmp_vetonest.com_An87Lp40Zc') }
+								rules={[{
+									message: animalPhotoError,
+									validator: (value) => {
+										if (animalPhotoError) return Promise.reject(animalPhotoError);
+										return Promise.resolve();
+									}
+								}]}
+							>
+								<div>
+									<div className="row marginTop10px">
+										&nbsp;&nbsp;<Dragger {...props}>
+											<i className="fa fa-camera" aria-hidden="true"></i> {getAContent('cmp_vetonest.com_Lp71Sf94Uw')}
+										</Dragger>
+									</div>
+									{ animalPhoto &&
+												
+									<div className="align-items-center">
+										<img 
+											id="animalPhotoId"
+											className="marginTop10px profilePhotoContainer"
+											src={ base_url + 'uploads/files/pets/' + animalPhoto } 
+											style={{ width: '95%' }} 
+										/>
+									</div>
+									}
+								</div>
+							</Form.Item>
+						</>
 					}
+
+
+					{
+						fieldName == "Email" &&
+						<Form.Item
+							name="Email"
+							rules={[
+								{
+									message: signUpEmailError,
+									validator: (value) => {
+										if (signUpEmailError) return Promise.reject(signUpEmailError);
+										return Promise.resolve();
+									}
+								}
+							]}
+							// initialValue={''}
+						>
+							<Input
+								name="emailInput"
+								className="backgroundYellow rounded10 width100per100 borderNone height40"
+								placeholder={signUp_emailPlaceholder}
+								type="text"
+								value={signUpEmail}
+								onChange={(e) => handleChangeEmail(e)}
+							/>
+						</Form.Item>
+					}
+
+					{
+						fieldName == "PasswordReset" &&
+						<>
+							<Form.Item
+								name="password"
+								rules={[
+									{
+										message: pwResetPasswordError,
+										validator: (value) => {
+											if (pwResetPasswordError) return Promise.reject(pwResetPasswordError);
+											return Promise.resolve();
+										}
+									}
+								]}
+							>
+								<Input
+									id="pwResetPasswordInput"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={signUp_passwordPlaceholder}
+									type="password"
+									name="password"
+									value={pwResetPassword}
+									onChange={(e) => handleChangePwResetPassword(e)}
+								/>
+							</Form.Item>
+
+							<Form.Item
+								name="passwordRepeat"
+								rules={[
+									{
+										message: pwResetPasswordRepeatError,
+										validator: (value) => {
+											if (pwResetPasswordRepeatError) return Promise.reject(pwResetPasswordRepeatError);
+											return Promise.resolve();
+										}
+									}
+								]}
+								initialValue=''
+							>
+								<Input
+									id="pwResetPasswordRepeatInput"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={signUp_passwordRepeatPlaceholder}
+									type="password"
+									name={signUpPasswordRepeat}
+									value={pwResetPasswordRepeat}
+									onChange={(e) => handleChangePwResetPasswordRepeat(e)}
+								/>
+							</Form.Item>
+
+							<div style={{ display: formError01 }} className="row formError formError02">
+								<span id="cmp_vetonest.com_4LbLKwutmz">
+									{getAContent('cmp_vetonest.com_Fr28Ks90Lp')}
+								</span>
+							</div>
+
+							<div style={{ display: formError02 }} className="row formError formError04">
+								<span id="cmp_vetonest.com_4LbLKwutmz">
+									{getAContent('cmp_vetonest.com_Zx71Nb44Qe')}
+								</span>
+							</div>
+
+							<div style={{ display: formError03 }} className="row formError formError05">
+								<span id="cmp_vetonest.com_4LbLKwutmz">
+									{getAContent('cmp_vetonest.com_Md52Qr88Vp')}
+								</span>
+							</div>
+						</>
+					}
+
+					{ 
+						fieldName == "FirstName" &&
+						<>
+							<Form.Item
+								name="FirstNameShortcut"
+								rules={[
+									{
+										message: firstNameError,
+										validator: (value) => {
+											if (firstNameError) return Promise.reject(firstNameError);
+											return Promise.resolve();
+										}
+									}
+								]}
+								/* initialValue={userProfile.prenom} */
+							>
+								<Input
+									name="firstNameInput"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={signUp_firstNamePlaceholder}
+									type="text"
+									value={firstName}
+									onChange={(e) => handleChangeFirstName(e)}
+								/>
+							</Form.Item>
+						</>
+					}
+					{ 
+						fieldName == "Name" &&
+						<>
+							<Form.Item
+								name="NameShortcut"
+								rules={[
+									{
+										message: nameError,
+										validator: (value) => {
+											if (nameError) return Promise.reject(nameError);
+											return Promise.resolve();
+										}
+									}
+								]}
+								/* initialValue={userProfile.nom} */
+							>
+								<Input
+									name="nameInput"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={signUp_namePlaceholder}
+									type="text"
+									value={name}
+									onChange={(e) => handleChangeName(e)}
+								/>
+							</Form.Item>
+						</>
+					}
+					{ fieldName == "Sexes" &&
+						
+						<div className="">
+								<Form.Item
+									label={getAContent('cmp_vetonest.com_ZEuz13yjyi')}
+									name="SexShortcut"
+									rules={[
+										{
+											message: sexeError,
+											validator: (value) => {
+												if (sexeError) return Promise.reject(sexeError);
+												return Promise.resolve();
+											},
+										},
+									]}
+								>
+									<Radio.Group
+										style={{ width: "100%" }}
+										onChange={(e) => handleChangeProfileSex(e)}
+									>
+										<div className="row">
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+											>
+												<Radio value={1} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_A91fd73KsP')}
+												</Radio>
+											</div>
+
+											<div
+												className="backgroundYellow rounded10 height40"
+												style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+											>
+												<Radio value={2} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_w31LdP9aQs')}
+												</Radio>
+											</div>
+										</div>
+									</Radio.Group>
+								</Form.Item>
+						</div>
+					}
+
+					{ fieldName == "BirthDate" &&
+						<div>
+							<Form.Item 
+								rules={[{
+									message: dateDeNaissanceError,
+									validator: (value) => {
+										if (dateDeNaissanceError) return Promise.reject(dateDeNaissanceError);
+										return Promise.resolve();
+									}
+								}]}
+								name = "BirthShortcut"
+								label={getAContent('cmp_vetonest.com_f82Ns91Qaz')}
+							>
+								<ConfigProvider locale={getDatePickerlocale()}>
+									<DatePicker 
+										onChange={handleBirthDateChange}
+										className="backgroundYellow width100per100 height40"
+										format={getDateFormatLocale()}
+										value={dateDeNaissance}
+									/>
+								</ConfigProvider>
+							</Form.Item>
+						</div>
+					}
+
 					{ fieldName == "Biography" &&
 						<Form.Item
 							name="Biography"
-							style = {{ marginBottom: '0px' }}
-							rules = {[
+							style={{ marginBottom: '0px' }}
+							rules={[
 								{
 									message: biographyError,
 									validator: (_, value) => {
@@ -4224,16 +4465,17 @@ console.log( '>>>>>>>> vetos', vetos )
 							]}
 							validateTrigger="onChange"
 						>
-							<TextArea 
+							<TextArea
 								rows={3}
-								name  = "biographyInput"
-								className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10" 
-								placeholder={ 'profileInfo_biography' }
-								value={ biography }
-								onChange	= { e => handleChangeBiography( e ) }	
+								name="biographyInput"
+								className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
+								placeholder={getAContent('cmp_vetonest.com_Tp63Ye21Ks')}
+								value={biography}
+								onChange={(e) => handleChangeBiography(e)}
 							/>
 						</Form.Item>
 					}
+
 				</Form>
 				<div style={{ display: formError01 }} className="row formError formError01">
 					<span id="cmp_vetonest.com_4LbLKwutmz">

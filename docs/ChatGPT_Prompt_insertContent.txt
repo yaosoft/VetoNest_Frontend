@@ -1,10 +1,9 @@
-Now I would like to generate translations and their Insertion queries.
+Now I would like you to generate translations and their Insertion queries. 
 The table name is text_content
 
 The fields values are:
-- id: starts from 819.
-- tag_content_id: starts from 146 and incremente. Each tag_content_id we'll be used in 6 Insert queries for the 6 languages
-- text_content: Get the original text content in the list below. You will be in charge to do each translation
+- tag_content_id: This represente the text to translate. It's a foreign key. it's 237 and will not change for the 6 Insert queries 
+- text_content: Get them from your translation list. 
 - language_code: fr, en, es, de, it, ee
 Note: 
 French ( language_code: fr ), 
@@ -13,20 +12,20 @@ Spanish ( language_code: es ),
 German ( language_code: de ),
 Italian ( language_code: it ), 
 Estonian ( language_code:ee )
-- description: Profile page content // this is the same for all insertions of this batch
+- description: "Profile page content" // the same for all
 
 Example: 
-INSERT INTO `text_content` 
+INSERT INTO `text_content` ( tag_content_id, text_content, language_code, description )
 VALUES 
-( 819, 146,'Modifié!', 'fr', 'Profile page content'), 
-( 820, 146, 'Updated!', 'en', 'Profile page content'),
-( 820, 146, '¡Actualizada!', 'es', 'Profile page content'),
-( 821, 146, 'Aktualisiert!', 'de', 'Profile page content'),
-( 822, 146, 'Aggiornata!', 'it', 'Profile page content'),
-( 823, 146, 'Uuendatud!', 'ee', 'Profile page content'),
-( 824, 147, 'Non modifié!', 'fr', 'Profile page content'),
-( 825, 147, 'Not updated!', 'en', 'Profile page content'),
+( 146, 'Ajouter yb vétérinaire', 'fr', 'Profile page content'), 
 ...
+
+Can you do this please.
+
+INSERT INTO `text_content` ( tag_content_id, text_content, language_code, description )
+VALUES 
+( 237, 'Activité', 'fr', 'Profile page content' ),
+
 
 This the list of contents below. 
 You can ignore the seconds lines with the generated codes under each text.

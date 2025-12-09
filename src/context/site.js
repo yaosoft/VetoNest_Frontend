@@ -310,7 +310,7 @@ export const SiteProvider = ({ children }) => {
 		const content = siteContent.filter( v => v.tagRef == tagRef )[0];
 
 		if( !content )
-			return 'bar'
+			return '***'
 		
 		return content.contents[0].textContent
 	}
@@ -343,7 +343,7 @@ export const SiteProvider = ({ children }) => {
 	}
 	
 	const [ userProfile, setUserProfile ] = useState( '' );
-	
+
 	// update user / veto profile
 	const profileUpdate = async ( dataObj, picture, profileTypeId ) => {
 
@@ -657,6 +657,18 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// 
+	const isAGuest = async ( profileVetoId ) => { 
+		const url		= base_api_url + 'vetoEtablissementStatus/isAGuest?profileVetoId=' + profileVetoId;
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+
 	// get etablissement info
 	const getEtablissementInfo = async ( etablissementId ) => {
 		const url		= base_api_url + 'etablissement/show?etablissementId=' + etablissementId;
@@ -729,6 +741,17 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// etablissement lieu delete
+	const lieuDelete = async ( lieuData ) => {
+		const url		= base_api_url + 'lieu/delete';
+		const data 		= lieuData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
 	// Lieu Transport edit lieu /edit
 	const lieuTransportUpdate = async ( lieuTransportData ) => {
 		const url		= base_api_url + 'lieuTransport/edit';
@@ -737,6 +760,20 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
+		return rep;
+	}
+
+	// A vet or etablissement lieux
+	const getAVetoLieux = async ( vetoData ) => {
+		const url		= base_api_url + 'lieu/get/vetoLieux?' + ( vetoData.profileVetoId !== undefined ? ( 'profileVetoId=' + vetoData.profileVetoId ) :  ( 'etablissementId=' + vetoData.etablissementId )) ;
+console.log( '------------------- url', url );
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+console.log( '------------------- rep', rep );
+		setSpiner( 'none' );
+	
 		return rep;
 	}
 
@@ -784,9 +821,9 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + "especeRace/list/?especeId=" + especeId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		// setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
+		// setSpiner( 'none' );
 		return rep;
 	}
 
@@ -866,7 +903,7 @@ export const SiteProvider = ({ children }) => {
 			const countries = await getCountries();
 			setCountriesAllowed( countries );
 			
-			// Espece
+			// Especies
 			const getEspeces = async () => {
 				const species = await speciesList();
 				return species
@@ -1329,7 +1366,10 @@ export const SiteProvider = ({ children }) => {
 				getPaysVilles,
 				getEtablissementVeto,
 				getEtablissementInvitations,
-				notificationViewed
+				notificationViewed,
+				getAVetoLieux,
+				lieuDelete,
+				isAGuest,
 			}}
 		>
 

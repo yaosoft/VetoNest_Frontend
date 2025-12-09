@@ -28,7 +28,8 @@ const SingleFieldManager = ( params ) => {
 		setSelectedTimeslotId,
 		selectedTimeslotOpen,
 		setSelectedTimeslotOpen,
-		setSelectedVetoClinique 
+		setSelectedVetoClinique,
+		getAContent
 	} = useContext( SiteContext );
 
 	// context
@@ -41,7 +42,9 @@ const SingleFieldManager = ( params ) => {
 		truncateString,
 	} = useContext( AuthContext );
 	
-
+	// allow modal
+	const [ modalAllowed, setModalAllowed ] = useState( true );
+	const [ maxAnimals, setMaxAnimals ] = useState( 0 );
 	const [ title, setTitle ] 	= useState( '' );
 	const [ value, setValue ] 	= useState( '' );
 	const [ type, setType ] 	= useState( '' );
@@ -50,6 +53,7 @@ const SingleFieldManager = ( params ) => {
 	const [ placeholder, setPlaceholder ] = useState( '' );
 	const [ description, setDescription ] = useState( '' );
 	const [ fieldName, setFieldName ] = useState( '' );
+	const [ goToLink, setGoToLink ] = useState( '' );
 	useEffect( () => {
 		// title
 		const title = params.params.title;
@@ -72,6 +76,10 @@ const SingleFieldManager = ( params ) => {
 		const description = params.params.description && params.params.description;
 		setDescription( description );
 
+		// go to Link
+		const goToLink = params.params.goToLink && params.params.goToLink;
+		setGoToLink( goToLink );
+console.log( 'fffffffffffffff', fieldName );
 		// style
 		if( fieldName == 'Opened' )
 			setBackgroundColor( 'backgroundOlive' )
@@ -81,13 +89,31 @@ const SingleFieldManager = ( params ) => {
 			setBackgroundColor( 'backgroundInactive02' )
 		else if( fieldName == 'Hollydays' )
 			setBackgroundColor( 'backgroundInactive03' )
+		else if( fieldName == 'Etablissement' )
+			setBackgroundColor( 'backgroundEtablissement01' )
+		else if( fieldName == 'Animaux' && type == 1 )
+			setBackgroundColor( 'backgroundAddAnimaux01' )
 		else setBackgroundColor( 'backgroundOlive' )
-
+		
+		
+		// Animals
+		if( fieldName == "Animaux" && type == 1 ){
+			setMaxAnimals( params.params.maxAnimals ); // max number of animals
+			const totalAnimals = params.params.totalAnimals; // total user"s animals
+			const allowed = totalAnimals < maxAnimals ? true : false;
+			setModalAllowed( allowed )
+		}
+			
 	}, [title, params.params] );
 
 
 	const handleClickField = ( fieldName ) => {
-		
+		if( type == '' )
+			return
+		if( !modalAllowed ){
+			message.info( getAContent( 'cmp_vetonest.com_Qp72Lm9Afx' ) + '(' +  maxAnimals + ')' );
+			return;
+		}
 		const a = async() => {
 			// selected pet's book ID
 			const selectedPetId = await params.params.selectedPetId ? params.params.selectedPetId : '';
@@ -139,6 +165,32 @@ const SingleFieldManager = ( params ) => {
 		)
 	}
 	
+	
+	const BuildArrowContent = ( type ) => { 
+		if( type == 1 )		// add
+			return(
+				<span>
+					{ getAContent( 'cmp_vetonest.com_Ak72Lm9QxP' ) }
+				</span>
+			)
+		else if( type == 2 ) // edit
+			return(
+				<span>
+					{ getAContent( 'cmp_vetonest.com_Su6Qp0zVtY' ) }
+				</span>
+			)
+		else if( type == 3 ) // visit
+			return(
+				<span>
+					<a
+						href= { goToLink }
+					>
+						{ getAContent( '111' ) }
+					</a>
+				</span>
+			)
+	}
+	
 	return (
 	<>
 		{
@@ -149,12 +201,12 @@ const SingleFieldManager = ( params ) => {
 						<span>{ value ? value : placeholder } &nbsp; { description && BuildTooltip(description) }</span>
 					</div> 
 					<div 
-						className='buttonDiv borderRadius18'
+						className={`borderRadius18 singleFieldManagerArrow  ${!type ? backgroundColor : 'buttonDiv'}`}
 						role={'button'}
 						tabIndex={0}
 						onClick={ (e) => handleClickField( fieldName ) }
 					>
-						<span>{ type == 1 ? 'add' : 'modify' } ></span>
+						<span>{ BuildArrowContent( type ) }</span>
 					</div>
 				</div>
 			</>

@@ -277,7 +277,7 @@ console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 
 												<Input 
 													id="signInEmailInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 													placeholder={ signUp_emailPlaceholder }
 													type="text" 
 													name="signInmail"
@@ -307,7 +307,7 @@ console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 											>
 												<Input 
 													id="signInPasswordInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 													placeholder={ signUp_passwordPlaceholder } 
 													type="password" 
 													name="password"
@@ -333,6 +333,7 @@ console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickInscription}
 												disabled = { sendingDisabled }
+												style={{ height: '45px' }}
 											>
 											
 											<Space>

@@ -280,7 +280,7 @@ console.log( '>>>>>>>>>> res', res );
       key: "photo",
       render: (_, vetos) => (
         <Avatar src={ base_url + 'uploads/files/profile/' + vetos.picture} style={{ backgroundColor: "#87d068" }}>
-          {vetos.prenom.charAt(0)} 
+          {vetos.prenom && vetos.prenom.charAt(0)} 
         </Avatar>
       ),
       width: 80,
@@ -303,9 +303,9 @@ console.log( '>>>>>>>>>> res', res );
       key: "speciality",
       width: 160,
 	  render: (_, vetos) => <div style={{ maxWidth: 420, whiteSpace: "normal" }}>{
-		  vetos.vetoSpecialite && allSpecialities?
+		  ( allSpecialities.length && vetos.vetoSpecialite ) ?
 		    allSpecialities.filter( e => e.id == vetos.vetoSpecialite.id )[0].name
-		  : ''
+		  : '-'
 		}</div>,
     },
     {
@@ -313,7 +313,7 @@ console.log( '>>>>>>>>>> res', res );
       dataIndex: "createdAt",
       key: "createdAt",
       width: 200,
-      render: (_, vetos) => formatDate(vetos.dateCreated.date),
+      render: (_, vetos) => vetos.dateCreated ? formatDate(vetos.dateCreated.date) : '',
     },
     ...( role === "VET_MEMBER"
       ? [
@@ -373,7 +373,7 @@ console.log( '>>>>>>>>>> res', res );
     },
   ];
 
-  const pendingInvitation = invitations.find((i) => i.status === "NOT_VIEWED") || invitations[0] || null;
+  const pendingInvitation = invitations ? ( invitations.find((i) => i.status === "NOT_VIEWED") || invitations[0] || null ) : [];
 
   /* if (loading) {
     return (
@@ -412,7 +412,7 @@ console.log( '>>>>>>>>>> res', res );
 					<div className="col-12">
 					  <h5>Locations</h5>
 					  <div className="d-flex gap-3 flex-wrap">
-						{clinicData.lieux.map((loc, idx) => (
+						{ clinicData.lieux && clinicData.lieux.map((loc, idx) => (
 						  <div key={idx} className="border rounded p-2" style={{ minWidth: 180 }}>
 							<strong>{loc.pays}</strong>
 							<div className="small"><b>{loc.ville}</b></div>

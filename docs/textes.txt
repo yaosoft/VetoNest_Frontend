@@ -1,0 +1,314 @@
+Le nom de votre animal semble incorrect
+cmp_vetonest.com_c9QpA2mLfs
+
+Le nom de votre établissement semble incorrect
+cmp_vetonest.com_Bv7kHp29zX
+
+Le nom de parking semble incorrect
+cmp_vetonest.com_Qm3tLf89Ra
+
+La description de votre établissement semble incorrect
+cmp_vetonest.com_Rp8cKw41Nd
+
+L'adresse de votre établissement semble incorrect
+cmp_vetonest.com_Mk5rUz72Pw
+
+La présentation de votre établissement comporte des erreurs
+cmp_vetonest.com_Js2eDc09Vb
+
+Le nom donné à cette absence comporte des erreurs
+cmp_vetonest.com_Zx4pGt11Sy
+
+La description de cette absence comporte des erreurs
+cmp_vetonest.com_Dw9aQf63Mu
+
+Veto profile cannot be updated
+cmp_vetonest.com_Hr1mPx54Tb
+
+Profile updated
+cmp_vetonest.com_Fg6kVs22Qe
+
+Item removed!
+cmp_vetonest.com_Tn7dLm30Va
+
+Item has been successfully removed.
+cmp_vetonest.com_Lb4kZw98Ds
+
+profileOpened_OpenedError
+cmp_vetonest.com_Yq2nFt77Wc
+
+Email
+cmp_vetonest.com_Po5mAz66Kj
+
+Your code is not correct. Try again.
+cmp_vetonest.com_Xc8rBn55Je
+
+Your code is correct
+cmp_vetonest.com_Jd9hPw10Rt
+
+Age limit of 10 is not reached
+cmp_vetonest.com_Ru6sKa87Xp
+
+Please add a few words to your biography
+cmp_vetonest.com_Vm3fHt24Ls
+
+profileIdentity_addressErrorText
+cmp_vetonest.com_Wq7eNk90Bs
+
+Code postal Error
+cmp_vetonest.com_Kt8vGd33Qw
+
+Choisissez une ville
+cmp_vetonest.com_Sp1cMe44Uv
+
+Veto cannot be updated
+cmp_vetonest.com_Ep4wZq81Fs
+
+Profile cannot be updated
+cmp_vetonest.com_Ls9uDe03Km
+
+Default language updated
+cmp_vetonest.com_Qb7tHr52Nv
+
+Default language not updated
+cmp_vetonest.com_Wk1cPv64Ts
+
+Pet book cannot be updated
+cmp_vetonest.com_Jm3eXy90Pa
+
+Biography updated
+cmp_vetonest.com_Va8rTk27Qf
+
+Select a country
+cmp_vetonest.com_k3a92hFsP1
+
+Select a city
+cmp_vetonest.com_Pq8x2VmAz9
+
+Select a state
+cmp_vetonest.com_Rn3t7KcUy4
+
+Select a country first
+cmp_vetonest.com_Hb2e8NvTs8
+
+Select a city
+cmp_vetonest.com_Wm9d4QaLp2
+
+Select a state first
+cmp_vetonest.com_Kt7u1PeMx5
+
+Your phone number seems incomplete
+cmp_vetonest.com_Ee4b7YsRf1
+
+Your phone number seems incorrect
+cmp_vetonest.com_Uu5r3JdWg6
+
+Your RPPS number seems incorrect
+cmp_vetonest.com_Di6c1XpMf4
+
+Your SIRET number seems incorrect
+cmp_vetonest.com_Zz1k5BrTn8
+
+Vétérinaire à domicile ?
+cmp_vetonest.com_Qq4h8VsKe3
+
+Modifier une absence
+cmp_vetonest.com_Tt9f2BmLo7
+
+Ajouter une absence
+cmp_vetonest.com_Oo3j6FwQy9
+
+Modifier un horaire
+cmp_vetonest.com_Jj8n4HdCp6
+
+Male
+cmp_vetonest.com_A91fd73KsP
+
+Female
+cmp_vetonest.com_w31LdP9aQs
+
+Birth Date
+cmp_vetonest.com_f82Ns91Qaz
+
+Languages (3 max)
+cmp_vetonest.com_Pq71Lm92Xe
+
+Select languages
+cmp_vetonest.com_D82ka01LsM
+
+Address
+cmp_vetonest.com_Z19vb62Qpa
+
+Postal Code
+cmp_vetonest.com_Qp51Zv83Wc
+
+Country
+cmp_vetonest.com_n17Fd02Cka
+
+State
+cmp_vetonest.com_Fm41Za90Pr
+
+City
+cmp_vetonest.com_L20sx18Qmv
+
+Abscence
+cmp_vetonest.com_T81kP0sQw9
+
+Voulez vous supprimer cette abscence
+cmp_vetonest.com_b03Xna81Qs
+
+Yes
+cmp_vetonest.com_P91ms6QaTf
+
+Np
+cmp_vetonest.com_Wq71bn20Dx
+
+Remove
+cmp_vetonest.com_f92LmQw81P
+
+Confirmer
+cmp_vetonest.com_Zx71Pa91Qm
+
+Ok
+cmp_vetonest.com_Ms51qAa28Y
+
+Cancel
+cmp_vetonest.com_Jd02LmP91w
+
+veterinarian
+cmp_vetonest.com_Ga83Kd92Lm
+
+Date de création 
+cmp_vetonest.com_Qp17za92Bw
+
+Your photo
+cmp_vetonest.com_Fm92Ax04Lt
+
+Address
+cmp_vetonest.com_Jq61Ps83Vn
+
+Parking
+cmp_vetonest.com_Nd05La27Xq
+
+Description
+cmp_vetonest.com_Zw84Bk19Rc
+
+Présentation
+cmp_vetonest.com_La83Pw91Qs
+
+Type d'établissement vétérinaire
+cmp_vetonest.com_Kd72Bm48Tr
+
+Ouvert
+cmp_vetonest.com_Zf10Kr82Pq
+
+Fermé
+cmp_vetonest.com_Js19Ve63Hu
+
+Jour fermé
+cmp_vetonest.com_Nx55Qa02Df
+
+Voulez-vous vraiment ferner ce jour?
+cmp_vetonest.com_Vb71Uc92Ht
+
+Oui
+cmp_vetonest.com_Rm84Tn51Ye
+
+Non
+cmp_vetonest.com_Cq93Lp07Ax
+
+Fermer
+cmp_vetonest.com_Lo28Gs10Rw
+
+Jour ouvert
+cmp_vetonest.com_Bv61Rx34Qp
+
+Voulez-vous craiment ouvrir ce jour?
+cmp_vetonest.com_Ta77Fq90Wm
+
+Ouvrir
+cmp_vetonest.com_Sp56Jd44Um
+
+Heure d'ouveture
+cmp_vetonest.com_Mq09Br27Xy
+
+Heure de fermeture
+cmp_vetonest.com_Ha73Ct81Zv
+
+Description de l'abscence
+cmp_vetonest.com_Ew62Jk55Ns
+
+Numéro de téléphone
+cmp_vetonest.com_Zp83Na41Lt
+
+Spécialité
+cmp_vetonest.com_Rk10Bs55Hw
+
+Choisir une spécialité
+cmp_vetonest.com_Mv72Qd98Pl
+
+Numéro RPPS
+cmp_vetonest.com_Dc44Xw21Om
+
+Numéro Siret
+cmp_vetonest.com_Jf39Lp77Qs
+
+Choisir, à domicile ou en étrablissement
+cmp_vetonest.com_Wt51Ze20Bn
+
+A domicile
+cmp_vetonest.com_Hy63Rk84Vm
+
+En établissement
+cmp_vetonest.com_Au27Wd56Cq
+
+Homme
+cmp_vetonest.com_Hs73Lm20Qw
+
+Femme
+cmp_vetonest.com_Ja51Ks93Td
+
+Choose a sex for your animal
+cmp_vetonest.com_Rp84Bt62Mn
+
+Animal Birth date
+cmp_vetonest.com_Kd41Ws97Pl
+
+Choose a birth date for your animal
+cmp_vetonest.com_Zu38Qp10Fx
+
+Select your animal specie
+cmp_vetonest.com_Wv62Ak55Lo
+
+Select your animal breed
+cmp_vetonest.com_Mf29Dz83Qr
+
+Mon animal ne possede pas une assurance
+cmp_vetonest.com_Tc91Vm47Bs
+
+Mon animal possede une assurance
+cmp_vetonest.com_Po63Xn72Jq
+
+Your animal insurance
+cmp_vetonest.com_Ba82Hr60Qn
+
+Modifier
+cmp_vetonest.com_Lp71Sf94Uw
+
+Male
+cmp_vetonest.com_Hs73Lm20Qw
+
+Female
+cmp_vetonest.com_Ja51Ks93Td
+
+Password is empty
+cmp_vetonest.com_Fr28Ks90Lp
+
+Password repeat is empty
+cmp_vetonest.com_Zx71Nb44Qe
+
+Please check your network
+cmp_vetonest.com_Md52Qr88Vp
+
+Biographie
+cmp_vetonest.com_Tp63Ye21Ks

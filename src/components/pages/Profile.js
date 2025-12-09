@@ -95,7 +95,9 @@ const Profile = ( params ) => {
 		setVetoCliniqueInfo,
 		vetoCliniqueInfo,
 		getAContent,
-		siteContent
+		getAVetoLieux,
+		lieuDelete,
+		isAGuest,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -106,11 +108,21 @@ const Profile = ( params ) => {
 	const [ countAbsence, setCountAbsence ] = useState( 0 ); 
 	// count vet absence
 	const [ countHollydays, setCountHollydays ] = useState( 0 ); 
+	// It's a etablissement's guest ( have accepted an invitation )
+	const [ aGuest, setAGuest ] = useState( false ); 
 
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( user ? user.languageId : defaultLanguageId ); 
 	
 	const [ spin, setSpin ] = useState( 'none' );
-
+	
+	// veto / etablissement lieu
+	const [ vetoLieux, setVetoLieux ] = useState( [] ); 
+	const MAX_LIEUX = 3; // max number of paces
+	
+	// animals
+	const MAX_ANIMALS = 4; // max number of animals
+	
+	
 	// File upload
 	const { Dragger } = Upload;
 	const [ uploading, setUploading ] = useState(false);
@@ -153,7 +165,7 @@ const Profile = ( params ) => {
 	// modal photo
 	const [ isModalPhotoOpen, setIsModalPhotoOpen ] = useState(false);
 	useEffect(() => {
-console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getAContent('cmp_vetonest.com_Yp3Qm9rKsD') );
+
 		const a = async() => {
 			if ( isModalPhotoOpen ) {
 				const dataUri = await getBase64( profilePhoto.originFileObj );
@@ -207,12 +219,69 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 		// removeAnimalOpen( userPaymentMethodId )
 	}
 
+	const handleClickBooking = ( animalId )  => {		
+
+		// get user payment method
+		const animal = userPets.filter( e => e.id == animalId )[ 0 ];
+		setSelectedAnimal( animal );
+		// Do something
+	}
+
+
+	const handleClickRemoveLieu = (lieuId) => {
+		Modal.confirm({
+			title: getAContent( 'cmp_vetonest.com_Rc90Bn37Ts' ),
+			content: getAContent( 'This action cannot be undone' ),
+			okText: getAContent( 'cmp_vetonest.com_Gb51Xa72Mv' ),
+			cancelText: getAContent( 'cmp_vetonest.com_Jd02LmP91w' ),
+			okType: "danger",
+			centered: true,
+			onOk: async () => {
+				// Your delete logic here
+				const data = {
+					lieuId: lieuId
+				}
+				const rep = await lieuDelete(data);
+				if( !rep ){
+					message.error( getAContent( 'cmp_vetonest.com_lMQqX2bptt' ) )
+				}
+				else{
+					const random = generateRandomDigits(3);
+					// setFormUpdated( random );
+					setProfileFormUpdated( random );
+					message.success( getAContent( 'cmp_vetonest.com_TrN9a8bKzV' ) )
+				}
+				console.log( rep );
+			},
+		});
+	};
+
+	const navigate = useNavigate();
+	const handleClickGoToClinic = ( cliniqueId ) => {
+		var url = '';
+		!cliniqueId ?
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo.id}`
+		:
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${cliniqueId}`
+		navigate( url );
+	}
+
+	const getCLinicLink = ( cliniqueId ) => {
+		var url = '';
+		!cliniqueId ?
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo.id}`
+		:
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${cliniqueId}`
+		return url;
+	}
 
 	const [ name, setName ] 			= useState( '' );
 	const [ firstName, setFirstName ] 	= useState( '' );
 	const [ dateNaissance, setDateNaissance ] = useState( '' );
 	const [ biography, setBiography ] = useState( '' );
 	const [ profileNom, setProfileNom ] = useState( '' );
+	const [ sexId, setSexId ] = useState( '' );
+	
 	useEffect(() => {
 		if( modalProfileIdentityOpen === true )
 			return
@@ -222,13 +291,21 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 			if( profileTypeId == 2 ){
 				const vetoCliniqueInfo = await getVetoCliniqueInfo( profileId );
 				setVetoCliniqueInfo( vetoCliniqueInfo );
+						
+				// get clinic's invitations
+				const statusId = 2; // invitation accepted ( clinic member )
+				const aGuest = await isAGuest( profileId ); // return clinic id of false
+				setAGuest( aGuest ); 
 			}
+
 			const profile = await profileGet( profileId, profileTypeId );
 			setUserProfile( profile );
 			const name = profile.nom;
 			setName( name );
 			const firstName = profile.prenom;
 			setFirstName( firstName );
+			const sexId = userProfile.userSexeId
+			setSexId( sexId );
 			const birthDate = profile.dateNaissance ? profile.dateNaissance.date : ''; 
 			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
 			setDateNaissance( dateNaissance );
@@ -245,6 +322,8 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 			const hollydays = await getHollydays( profile.id );
 			setHollydays( hollydays );
 			setCountHollydays( hollydays.length );
+			
+			
 		}
 		a();
 	}, [ modalProfileIdentityOpen, profileFormUpdated ] ); // Dependency array ensures effect runs when changes
@@ -258,9 +337,29 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 				const countUserAnimal = userPets.length;
 				setUserTotalAnimal( countUserAnimal );
 			}
+			
+			// get a veto / etablissement lieux
+			if( profileTypeId == 2 ) {
+				var vetoLieux = [];
+
+				if( userProfile.atHome ){
+					const data = {
+						profileVetoId: userProfile.id,
+					}
+					vetoLieux = await getAVetoLieux( data );
+				}
+				else if ( !userProfile.atHome && vetoCliniqueInfo.id ){
+					const data = {
+						etablissementId:  vetoCliniqueInfo.id,
+					}
+					vetoLieux = await getAVetoLieux( data );
+				}
+				setVetoLieux( vetoLieux );
+			}		
+			
 		}
 		a()
-	}, [] );
+	}, [ vetoCliniqueInfo, userProfile, profileFormUpdated ] );
 
 	// Build timeslot
 	const BuildTimeslot = () => {
@@ -293,7 +392,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 			if( type == 4 )
 				return 'hollydays'
 		}
-		
+
 		return(
 			timeslot.map( ( e, index ) => 
 				<div className="row singleFieldManager" key={index}>
@@ -316,7 +415,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 							day:			getDayName( e[0] ),
 							dayId:			e[0],
 							timeSlotId:		e[1].timeSlotId,
-							type: 			2, // 2 = update
+							type: 			getFieldName( e[1].type ) == 'Hollydays' ? '' : 2, // 2 = update
 						}}
 					/>
 				</div>
@@ -373,11 +472,44 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 							value: 			truncateString( e.nom, 10 ) + ', ' + dayjs( e.closedDate.date ).format( 'DD' ) + ' ' + 
 							getMonthName( dayjs( e.closedDate.date ).format( 'MM' ) ),
 							style:			'closed',
-							type: 			2, // 2 = update
+							type: 			'', // no click
 							
 						}}
 					/>
 				</div>
+			)
+		)
+	}
+
+	// Build veto's Lieux
+	const BuildVetoLieux = () => {
+
+		return(
+			vetoLieux.map( ( e, index ) => 
+			<>			
+				
+				<SingleFieldManager 
+						key={'lieux_' + index}
+						params={{
+							fieldName: 		'Etablissement_lieu',
+							title:			e.adresse,
+							// placeholder:	e.adresse,
+							value: 			truncateString( e.adresse, 40 ),
+							type: 			2, // 2 = update
+						}}
+				/>
+				
+				<div className="row">
+						<a
+							className='animal-remove-icon'
+							title={getAContent('cmp_vetonest.com_Sf8Yc1pWkZ')}
+							onClick={() => handleClickRemoveLieu(e.id)}
+						>
+							<i className='fa fa-trash'>&nbsp;remove</i>&nbsp;
+						</a>
+						
+				</div>
+			</>
 			)
 		)
 	}
@@ -408,32 +540,45 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 			<p>
 				{
 					userPets.map( e => 
-						<div className='row' style={{marginBottom:'15px'}} key={e.id}>
-							<div className='col-md-3'>
-								<img  
+						<div className='row' key={e.id}>
+							<div className='col-md-3 animal-wrapper'>
+								<img
 									className='photoAnimalThumbnail'
-									src = { e.picture ? 
-											base_url + 'uploads/files/pets/' + e.picture: 
-											photoAnimalDefaultSrc 
+									src={
+										e.picture
+											? base_url + 'uploads/files/pets/' + e.picture
+											: photoAnimalDefaultSrc
 									}
+									alt="Animal"
+									title="Animal"
 								/>
-								<a 
-									onClick={ ( ev ) => handleClickRemoveAnimal( e.id ) }
-								>
-									<i className="fa fa-trash text-danger"></i>&nbsp; <span className='text-info'>{ getAContent('cmp_vetonest.com_Xb2Qp5mNcD') }</span>
-								</a>
 							</div>
-							
 							<div className='col-md-9'>
 								<SingleFieldManager params={{
 										fieldName: 	'Animaux',
-										title:		getAContent('cmp_vetonest.com_Ek7Wm0vHtP') + ' ' + e.nom + ' ' + getAContent('cmp_vetonest.com_Uy3Zr9qLsM'),
+										title:		getAContent('cmp_vetonest.com_Lp71Sf94Uw') + ' ' + e.nom,
 										placeholder: getAContent('cmp_vetonest.com_Fc6Tz1bVnR'),
 										selectedPetId: e.id,
 										value: e.nom,
 										type: 2, // 2 = update
 									}}
 								/>
+								<div>
+									<a
+										className='animal-remove-icon'
+										title={getAContent('cmp_vetonest.com_Sf8Yc1pWkZ')}
+										onClick={() => handleClickRemoveAnimal(e.id)}
+									>
+										<i className='fa fa-trash'></i>
+									</a> { getAContent( 'cmp_vetonest.com_Fo3Qm7vLpS' ) } &nbsp;
+									<a
+										className='animal-remove-icon'
+										title={ getAContent( 'cmp_vetonest.com_Ta91Qm72Fs' ) }
+										onClick={() => handleClickBooking(e.id)}
+									>
+										<i className='fa fa-stethoscope'></i>
+									</a> { getAContent( 'cmp_vetonest.com_Ta91Qm72Fs' ) } &nbsp;
+								</div>
 							</div>
 						</div>
 					)
@@ -442,6 +587,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 		</>
 		)
 	}
+
 
 	// form
 	const [form] = Form.useForm();
@@ -490,7 +636,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 					>
 					<div className="row">
 						<div className="col-md-3 ">
-							<div>
+							<div className="">
 								<div className="row justify-content-center">
 									<b>{ getAContent( 'cmp_vetonest.com_t1gCGfRTd4' ) }</b><br/>
 								</div>
@@ -510,9 +656,16 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 									</Dragger> 
 								</div>
 							</div>
+							<div className="">
 							{ profileTypeId == 2 &&
-							<div>
-								<div className="singleFieldManager">
+							<div style={{ marginTop: '20px' }}>
+								<div className="row justify-content-center">
+									<b>{ getAContent( 'cmp_vetonest.com_Vn5Xk3bHsD' ) }</b>
+								</div>
+								<div className="row justify-content-center" style={{ paddingLeft: '19%', paddingRight: '10%' }}>
+									<p>{ userProfile.biography && truncateString( userProfile.biography, 90 ) }</p>
+								</div>
+								<div className="row singleFieldManager justify-content-center">
 									<SingleFieldManager params={{
 										fieldName: 	'Biography',
 										title:		getAContent('cmp_vetonest.com_Mn2Vr7sLpQ'),
@@ -524,7 +677,9 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 								</div>
 							</div>
 							}
+							</div>
 						</div>
+						
 						<div className="col-md-9">
 							
 							<div className="row">
@@ -541,7 +696,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 													fieldName: 	profileTypeId == 1 ? 'Profile' : 'ProfileVeto',
 													title:		getAContent('cmp_vetonest.com_Yp3Qm9rKsD'),
 													placeholder: getAContent('cmp_vetonest.com_Gt4Vz6nLjH'),
-													value: '',
+													value: '', // profileNom,
 													type: 2, // 2 = update
 												}}
 											/>
@@ -590,7 +745,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 													title:		getAContent('cmp_vetonest.com_Gq5Vc1nLsZ'),
 													placeholder: getAContent('cmp_vetonest.com_Rm2Xk8pJdH'),
 													value: getAContent('cmp_vetonest.com_Bt7Nq4vPfY'),
-													type: 2, // 2 = update
+													type: 1, // 2 = update
 												}}
 											/>
 										</div>
@@ -607,54 +762,67 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 											<div className="row">
 												{ getAContent('cmp_vetonest.com_Dp8Kx1vQmS') }
 											</div>
+											<div className="row" style={{marginTop:'10px'}}>
+												<SingleFieldManager params={{
+														fieldName: 	'Animaux',
+														title:		getAContent('cmp_vetonest.com_Bx9Lm3pQsW'),
+														placeholder: getAContent('cmp_vetonest.com_Vn2Yq8kHrZ'),
+														value: getAContent('cmp_vetonest.com_Hc4Pt7mLsK'),
+														type: 1, // 1 = create
+														maxAnimals: MAX_ANIMALS, // max number of animals
+														totalAnimals: userTotalAnimal, // max number of animals
+													}}
+												/>
+											</div>
 											<div className="row">
-												<div className="col-md-9">
-													<div className="row singleFieldManager">
-														<SingleFieldManager params={{
-																fieldName: 	'Animaux',
-																title:		getAContent('cmp_vetonest.com_Bx9Lm3pQsW'),
-																placeholder: getAContent('cmp_vetonest.com_Vn2Yq8kHrZ'),
-																value: getAContent('cmp_vetonest.com_Hc4Pt7mLsK'),
-																type: 1, // 1 = create
-															}}
-														/>
-													</div>
+												<div className="marginTop20 marginBottom10">
+													{ getAContent('cmp_vetonest.com_Aq5Fm2vNsR') } { userTotalAnimal } { getAContent('cmp_vetonest.com_Nz7Xk4pTbL') }
 												</div>
-												<div className="col-md-9">
-													<br/>
-													<div className="row">
-														{ getAContent('cmp_vetonest.com_Aq5Fm2vNsR') } { userTotalAnimal } { getAContent('cmp_vetonest.com_Nz7Xk4pTbL') }<br/>
-													</div>
-													<div className="row singleFieldManager">
-														<BuildUserPetsList />
-													</div>
+												<div className="singleFieldManager">
+													<BuildUserPetsList />
 												</div>
 											</div>
 										</div>
 									</>
 								}
-								{ profileTypeId == 2 &&
+								{ profileTypeId == 2 && /** Veto **/
 									<>
-									<div className="col-md-3">
-										<b>{ getAContent('cmp_vetonest.com_Fn1Qp8vMrT') }</b>
+									<div className="col-md-3">	
+										<b>{ getAContent('cmp_vetonest.com_nDHuiDhEz3') }</b>
 									</div>
 									<div className="col-md-9">
+										<div className="row"> 
+											{ userProfile.atHome ? getAContent('cmp_vetonest.com_Oc4Kx2mLpS') /** Zone d'activite **/
+											: getAContent('cmp_vetonest.com_5c0GBBGNHC') /** Votre clinique **/
+											} 
+										</div>
 										<div className="row">
-												{ getAContent('cmp_vetonest.com_Oc4Kx2mLpS') }
+											{ userProfile.atHome &&
+											<div className="col-md-9">
+												{
+													<>
+														<div className='singleFieldManager '>
+															<SingleFieldManager 
+																params={{
+																	fieldName: 		'Etablissement_lieu',
+																	title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
+																	placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
+																	value: 			vetoCliniqueInfo.name,
+																	//cliniqueId: 	vetoCliniqueInfo.cliniqueId,
+																	type: 1, // 1 = modify
+																}}
+															/>
+															<BuildVetoLieux/>
+														</div>
+													</>
+												}
 											</div>
-											<div className="row">
-												<div className="col-md-9">
-													<div className="row singleFieldManager">
-														{ getAContent('cmp_vetonest.com_Lp6Vz3nQmR') }
-													</div>
-												</div>
-												<div className="col-md-9">
-													<br/>
+											}
+											{ !userProfile.atHome &&
+											<div className="col-md-9">
 													<div className="row">
-														{ getAContent('cmp_vetonest.com_Yr7Hk1vPsD') }
-													</div>
-													<div className="row">
-														{ getAContent('cmp_vetonest.com_Yr7Hk1vPsD') }
+													{ !vetoCliniqueInfo.id  ? // clinic creator or guest
+														! aGuest	?
 															<SingleFieldManager params={{
 																fieldName: 	'Etablissement',
 																title:		getAContent('cmp_vetonest.com_Ms8Qp2vLrT'),
@@ -663,47 +831,89 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 																type: 1, // 1 = create
 																}}
 															/>
+														:
+														<div className="rom">
+															<div className="">
+																<b>{aGuest.nom} </b>
+															</div>
+															<div className="">
+																<a
+																	className='clinic-visit'
+																	title={getAContent('cmp_vetonest.com_Sf8Yc1pWkZ')}
+																	onClick={() => handleClickGoToClinic( aGuest.id )}
+																>
+																	<i className='fa fa-ambulance'></i>&nbsp;
+																	{ getAContent( 'cmp_vetonest.com_LZ4g7ZjhQh' ) }
+																</a>
+															</div>
+														</div>
+													:
+															<>	
+																<SingleFieldManager params={{
+																	fieldName: 	'Etablissement',
+																	title:		getAContent('cmp_vetonest.com_Ms8Qp2vLrT'),
+																	placeholder: getAContent('cmp_vetonest.com_Cn3Xk9bHwV'),
+																	value: vetoCliniqueInfo.nom,
+																	type: 3, // 1 = create
+																	goToLink: getCLinicLink (aGuest.id )
+																	}}
+																/>
+
+															</>
+													}
 													</div>
+														
 													{
-														vetoCliniqueInfo &&
-														<div className="row">
-															{ getAContent('cmp_vetonest.com_Ty4Qc7nLmP') }
-																<SingleFieldManager params={{
-																	fieldName: 		'Etablissement_lieu',
-																	title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
-																	placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
-																	value: 			getAContent('cmp_vetonest.com_Fn2Qp7mLsV'),
-																	cliniqueId: 	vetoCliniqueInfo.cliniqueId,
-																	type: 1, // 1 = create
+														vetoCliniqueInfo.id &&
+														<>
+															<div className="">
+																<br/>
+																{ getAContent('cmp_vetonest.com_Q6FO7QyF7m') }
+															</div>
+													
+															
+															<div className="singleFieldManager">
+																
+																	<SingleFieldManager params={{
+																		fieldName: 		'Etablissement_veto',
+																		title:			getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
+																		placeholder: 	getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
+																		value: 			getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
+																		cliniqueId: 	vetoCliniqueInfo.cliniqueId,
+																		type: 1, // 1 = create
+																		}}
+																	/>
+																	
+																<div className="">
+																	<br/>
+																	{ getAContent('cmp_vetonest.com_kFunk0HFRg') }
+																</div>	
+																<SingleFieldManager 
+																	params={{
+																		fieldName: 		'Etablissement_lieu',
+																		title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
+																		placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
+																		value: 			vetoCliniqueInfo.name,
+																		//cliniqueId: 	vetoCliniqueInfo.cliniqueId,
+																		type: 1, // 1 = modify
 																	}}
 																/>
-														</div>
+																<BuildVetoLieux/>
+															</div>
+														</>
 													}
-													{
-														vetoCliniqueInfo &&
-														<div className="row">
-															{ getAContent('cmp_vetonest.com_Gq5Vn2mPrT') }
-																<SingleFieldManager params={{
-																	fieldName: 		'Etablissement_veto',
-																	title:			getAContent('cmp_vetonest.com_Rm8Kp1vLsJ'),
-																	placeholder: 	getAContent('cmp_vetonest.com_Hn4Xq9bMvS'),
-																	value: 			getAContent('cmp_vetonest.com_Bp3Ln6mQrV'),
-																	cliniqueId: 	vetoCliniqueInfo.cliniqueId,
-																	type: 1, // 1 = create
-																	}}
-																/>
-														</div>
-													}
+													
 												</div>
+												}
 											</div>
-									</div>
+										</div>
 									</>
 								}
 								</div>
 							</div>
 							{ profileTypeId == 2 &&
 							<>
-							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
+							<div className="row backgroundYellow" style={{height: '0.5px', marginBottom:'10px'}}>&nbsp;
 							</div>
 							<div className="row">
 								<div className="col-md-6 row">
@@ -715,13 +925,6 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 											{ getAContent('cmp_vetonest.com_Ox5Qm1vLpT') }
 										</div>
 										<BuildTimeslot />
-										<p>&nbsp;</p>
-										<div className="row">
-											{ getAContent('cmp_vetonest.com_Wr3Hn8vKsD') }
-										</div>
-										<div className="row profileLanguageSelector">
-											<CurrencySelector />
-										</div>
 										<p>&nbsp;</p>
 									</div>
 								</div>
@@ -760,7 +963,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 							</div>
 							</>
 							}
-							<div className="row backgroundYellow" style={{height: '2px', marginBottom:'10px'}}>&nbsp;
+							<div className="row backgroundYellow" style={{height: '0.5px', marginBottom:'10px'}}>&nbsp;
 							</div>
 							<div className="row">
 								<div className="col-md-6 row">
@@ -770,17 +973,7 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 									<div className="col-md-9">
 										<div className="row">
 											{ getAContent('cmp_vetonest.com_Jn5Qv2mLpR') }
-										</div>
-										<div className="row singleFieldManager">
-											<SingleFieldManager params={{
-													fieldName: 	'Name',
-													title:		getAContent('cmp_vetonest.com_Nq8Lp3vMtS'),
-													placeholder: getAContent('cmp_vetonest.com_Rt4Vn1bKsD'),
-													value: name,
-													type: 2, // 2 = update
-												}}
-											/>
-										</div>
+										</div>										
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
 													fieldName: 	'FirstName',
@@ -793,10 +986,21 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 										</div>
 										<div className="row singleFieldManager">
 											<SingleFieldManager params={{
+													fieldName: 	'Name',
+													title:		getAContent('cmp_vetonest.com_Nq8Lp3vMtS'),
+													placeholder: getAContent('cmp_vetonest.com_Rt4Vn1bKsD'),
+													value: name,
+													type: 2, // 2 = update
+												}}
+											/>
+										</div>
+
+										<div className="row singleFieldManager">
+											<SingleFieldManager params={{
 													fieldName: 	'Sexes',
 													title:		getAContent('cmp_vetonest.com_Yr7Qp1vLsD'),
 													placeholder: getAContent('cmp_vetonest.com_Mn2Xk8bPrV'),
-													value: eval(userProfile.userSexeTagClass),
+													value: userProfile.userSexeId && ( userProfile.userSexeId == 1 ? getAContent('cmp_vetonest.com_A91fd73KsP') : getAContent('cmp_vetonest.com_w31LdP9aQs') ), // userProfile.userSexeId
 													type: 2, // 2 = update
 												}}
 											/>
@@ -811,16 +1015,8 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 												}}
 											/>
 										</div>
-										<div className="row singleFieldManager">
-											<SingleFieldManager params={{
-													fieldName: 	'Biography',
-													title:		getAContent('cmp_vetonest.com_Wq2Lp9vMrT'),
-													placeholder: getAContent('cmp_vetonest.com_Vn5Xk3bHsD'),
-													value: biography,
-													type: 2, // 2 = update
-												}}
-											/>
-										</div>
+										
+										{ /**
 										<div className="row profileLanguageSelector">
 											<LanguageSelector 
 												toPersist 	= { true } 
@@ -835,7 +1031,8 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 										<div className="row profileLanguageSelector">
 											<CurrencySelector />
 										</div>
-										<p>&nbsp;</p>
+										<p>&nbsp;</p> **/
+										}
 									</div>
 								</div>
 								<div className="col-md-6 row">
@@ -844,11 +1041,11 @@ console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv: ', getACon
 									</div>
 									<div className="col-md-9">
 										<div className="row">
-											{ getAContent('cmp_vetonest.com_Bn6Lp3vQrS') }
+											{ getAContent('cmp_vetonest.com_FLBx5ixGp5') }
 										</div>
 										<div className="row">
 											<div className="col-md-9">
-												foo
+												{ getAContent('cmp_vetonest.com_wI6NjnXH8S') }
 											</div>
 										</div>
 									</div>
