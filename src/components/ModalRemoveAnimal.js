@@ -22,7 +22,8 @@ const ModalRemoveAnimal = ( params ) => {
 		photoAnimalDefaultSrc,
 		base_url,
 		generateRandomDigits,
-		setProfileFormUpdated
+		setProfileFormUpdated,
+		getAContent
 	} = useContext( SiteContext );
 
 	// title
@@ -38,10 +39,10 @@ const ModalRemoveAnimal = ( params ) => {
 		const data = { carnetAnimalId : carnetAnimalId }
 		const res = await carnetAnimalRemove( data );
 		if( !res ){
-			message.error( 'Cannot delete' )
+			message.error( getAContent( 'cmp_vetonest.com_Nq71Fd83Lp' ) )
 		}
 		else{
-			message.success( 'Animal book deleted' )
+			message.success( getAContent( 'cmp_vetonest.com_Js92Qw54Rn' ) )
 			const random = generateRandomDigits(3);
 			// setFormUpdated( random );
 			setProfileFormUpdated( random );
@@ -57,10 +58,10 @@ const ModalRemoveAnimal = ( params ) => {
 	}
 	const modalRemoveAnimalConfirmText = () => {
 
-		return "D'accord"
+		return getAContent( 'cmp_vetonest.com_Gb51Xa72Mv' )
 	}
 	const modalRemoveAnimalCancelText = () => {
-		return "Annuler"
+		return getAContent( 'cmp_vetonest.com_Jd02LmP91w' )
 	}
 
 	const handleClickRemove = () => {
@@ -75,7 +76,7 @@ const ModalRemoveAnimal = ( params ) => {
 		const a = async() => {
 
 			// Title
-			const titleText = 'Remove your animal ' + selectedAnimal.nom;
+			const titleText = getAContent( 'cmp_vetonest.com_Za63Ks10Pw' ) + ' ' + selectedAnimal.nom;
 			// alert( selectedAnimal.name );
 			const titlePicture =  selectedAnimal.picture ? base_url + 'uploads/files/pets/' + selectedAnimal.picture: photoAnimalDefaultSrc ;
 			
@@ -121,33 +122,9 @@ const ModalRemoveAnimal = ( params ) => {
 					},
 				}}
 			>
-				<div className="Set Paypal">
-					Êtes vous sure de vouloir supprimer cette animal?
-				</div>
+				
 			</Modal>
-			<div className="displayNone">
-				<span 
-					className ="cmp_vetonest.com_GomedYOvSx displayNone contactEmailError signUp_emailErrorText" 
-				>
-					Your email is not correct
-				</span>			
-				<span 
-					className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
-				>
-					Email
-				</span>
-				<span 
-					className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors" 
-				>
-					Please correct the errors before continuing.
-				</span>
-				<span 
-					id = "cmp_vetonest.com_EjMb0Ci9C6"
-					className ="signUp_emailEmpty" 
-				>
-					L'email est vide.
-				</span>
-			</div>
+			
 		</>
 	);
 };

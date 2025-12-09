@@ -601,7 +601,7 @@ console.log( 'Check email', rep );
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
-													className = "backgroundYellow rounded10 height40"
+													className = "backgroundYellow rounded10 height45"
 													name  = "SignUpType1"
 													rules = {[
 														{
@@ -639,7 +639,7 @@ console.log( 'Check email', rep );
 											</div>
 											<div className="col-6">
 												<Form.Item
-													className = "backgroundYellow rounded10 height40"
+													className = "backgroundYellow rounded10 height45"
 													name  = "SignUpType2"
 													rules = {[
 														{
@@ -697,7 +697,7 @@ console.log( 'Check email', rep );
 												>
 													<Input
 														id="signUpNameInput"
-														className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 														placeholder={ signUp_namePlaceholder }
 														type="text" 
 														name="signUpName"
@@ -727,7 +727,7 @@ console.log( 'Check email', rep );
 												>
 													<Input 
 														id="signUpFirstNameInput"
-														className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 														placeholder={ signUp_firstNamePlaceholder }
 														type="text" 
 														name="signUpFirstName"
@@ -758,7 +758,7 @@ console.log( 'Check email', rep );
 
 												<Input 
 													id="signUpEmailInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 													placeholder={ signUp_emailPlaceholder }
 													type="text" 
 													name="signUpmail"
@@ -788,7 +788,7 @@ console.log( 'Check email', rep );
 											>
 												<Input 
 													id="signUpPasswordInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 													placeholder={ signUp_passwordPlaceholder }
 													type="password" 
 													name="password"
@@ -818,9 +818,8 @@ console.log( 'Check email', rep );
 											>
 												<Input 
 													id="signUpPasswordRepeatInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height40" 
+													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 													placeholder={ signUp_passwordRepeatPlaceholder }
-													
 													type="password" 
 													name="passwordRepeat"
 													value={ signUpPasswordRepeat }
@@ -861,6 +860,7 @@ console.log( 'Check email', rep );
 												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
 												onClick	= {handleClickRegistration}
 												disabled = { sendingDisabled }
+												style={{ height: '45px' }}
 											>
 											
 											<Space>

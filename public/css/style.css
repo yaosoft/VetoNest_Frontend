@@ -119,8 +119,14 @@ h6 {
 }
 
 .ant-picker-outlined:hover {
-    border-color: #FFDE59;
-    background-color: #FFDE59;
+    border-color: #FFDE59 !important;
+    background-color: #FFDE59 !important;
+}
+
+.ant-picker-outlined.ant-picker-status-error:not(.ant-picker-disabled) {
+    background: #FFDE59;
+    border-width: 0px;
+    border-style
 }
 
 .ant-select-selector{
@@ -151,8 +157,54 @@ ant-select-selection-wrap {
 }
 
 .photoAnimalThumbnail{
-	max-height: 55%;
-	max-width: 100%;
+	border-radius: 10%;
+	max-height: 55px;
+	max-width: 80px;
+    object-fit: cover; /* crop the image to fill the container */
+    object-position: center; /* center the image in the container */
+}
+
+.animal-wrapper {
+	display: flex;
+	flex-direction: column;  /* Forces stacking image (top) then icon (bottom) */
+	/* align-items: center; */
+	flex-wrap: wrap; /* Important if you have multiple lines */
+	/* align-content: flex-start; /* Prevents stretching and removes bottom space */
+}
+
+
+.width100per100{
+	width: 100%;
+}
+
+.animal-remove-icon {
+	display: inline-block;
+	margin-top: 3px;
+	cursor: pointer;
+	font-size: 16px;
+	color: #d8889d  !important;
+	/* Transition for color + scale */
+	transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.animal-remove-icon:hover {
+	color: red  !important; /* turns red on hover */
+	transform: scale(1.05); /* small zoom effect */
+}
+
+.clinic-visit:hover {
+	color: blue  !important; /* turns red on hover */
+	transform: scale(1.05); /* small zoom effect */
+}
+
+.clinic-visit {
+	display: inline-block;
+	margin-top: 3px;
+	cursor: pointer;
+	font-size: 16px;
+	color: #0dcaf0  !important;
+	/* Transition for color + scale */
+	transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .btnModalProfileIdentity{
@@ -167,7 +219,7 @@ ant-select-selection-wrap {
 .btnModalProfileIdentity:hover {
     width: 50%;
     background-color: #008A48;
-	color: #fff
+	color: #fff !important;
 }
 
 .borderYellow{
@@ -196,19 +248,26 @@ ant-select-selection-wrap {
 }
 
 .backgroundInactive03{
-	background-color: #a5ede3;
+	background-color: #f5ede3;
+}
+
+.backgroundEtablissement01{
+	background-color: #2beded;
+}
+
+.backgroundAddAnimaux01{
+	background-color: #90ed19;
 }
 
 .backgroundRed{
 	background-color: #C1FF72;
 }
 
-.custom-select{
-	height: 20px;
-	background-color: #FFDE59 !important;
-	border: none;
-	margin-top: -20px;
-	background: #FFDE59;
+/* Placeholder text for Ant Design Select */
+.customAntselect .ant-select-selection-placeholder {
+    color: #444 !important;       /* change color */
+    /* font-weight: 600 !important;  make bold */
+    opacity: 1 !important;        /* make it more visible */
 }
 
 .custom-select:hover {
@@ -286,7 +345,7 @@ input[type="checkbox"]:checked {
 }
 
 .ant-picker{
-	width: 98%;
+	width: 100%;
 }
 
 .selectLanguage {
@@ -309,10 +368,77 @@ input[type="checkbox"]:checked {
     color: black;
 }
 
+/* Radio oPtions like checkbox */
+.checkbox-like-radio .ant-radio-inner {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px !important; /* square like checkbox */
+}
+
+.checkbox-like-radio .ant-radio-inner::after {
+    border-radius: 3px !important;
+}
+
+.checkbox-like-radio.ant-radio-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ant-radio-checked .ant-radio-inner {
+    background-color: #1677ff;
+    border-color: #1677ff;
+}
+
+.checkbox-grid .ant-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Desktop: 3 columns */
+.checkbox-grid .ant-checkbox-group-item {
+    width: 30%;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+}
+
+/* Bigger checkbox */
+.checkbox-grid .ant-checkbox-inner {
+    width: 20px;
+    height: 20px;
+}
+.checkbox-grid .ant-checkbox-inner::after {
+    width: 12px;
+    height: 12px;
+}
+
+/* Flag size */
+.flag {
+    font-size: 22px;
+    margin-right: 8px;
+}
+
+/* Tablet: 2 columns */
+@media (max-width: 992px) {
+    .checkbox-grid .ant-checkbox-group-item {
+        width: 45%;
+    }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 576px) {
+    .checkbox-grid .ant-checkbox-group-item {
+        width: 100%;
+    }
+}
+
+
 .profilePhotoContainer{
 	width: 150px;
 	height: 180px;
-	border-radius: 10%; /* Makes a circular image */
+	border-radius: 5%; /* Makes a circular image */
 	display: block;
 	margin: 10px auto;
 	object-fit: cover;
@@ -390,6 +516,17 @@ input[type="checkbox"]:checked {
     border-bottom-right-radius: 10px;
 }
 
+.borderRightRadius18 {
+	border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.borderLefttRadius18 {
+	border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+
 .customLabel01 {
 	margin-left: 0px;
 	margin-bottom: 10px;
@@ -412,7 +549,7 @@ input[type="checkbox"]:checked {
 	padding-left: 25px;
 }
 
-.width100per100{
+.width100{
 	width: 100% !important;
 }
 
@@ -495,6 +632,10 @@ input[type="checkbox"]:checked {
 	margin-top: 25px;
 }
 
+.marginBottom5{
+	margin-bottom: 5px;
+}
+
 .marginBottom10{
 	margin-bottom: 10px;
 }
@@ -539,7 +680,6 @@ input[type="checkbox"]:checked {
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
 	-webkit-box-shadow: 0 0 0 60px #FFDE59 inset !important;
 	-webkit-text-fill-color: #000000 !important; /* Change to your desired text color */
@@ -570,25 +710,30 @@ input[type=password]:hover {
 }
 
 .singleFieldManager .dataDiv{
-	width: 14em;
+	width: 16em;
 	border-color: #FFDE59 !important;
 	border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 
-.singleFieldManager .buttonDiv{
+.singleFieldManagerArrow{
 	width: 6em;
-	border: none !important;
-	cursor: pointer;
-	background-color: #FFDE59 !important;
 }
 
-.singleFieldManager .buttonDiv:hover{
-	background-color: #FFD222 !important;
+
+.buttonDiv{
+	border: none !important;
+	cursor: pointer;
+	background-color: #FAD222 !important;
+}
+
+
+.buttonDiv:hover{
+	background-color: #e8c333 !important;
 }
 
 .singleFieldManager > div{
-    height: 40px;
+    height: 45px;
     padding-left: 5%;
     padding-top: 3%;
 	margin-bottom: 10px;
@@ -651,8 +796,8 @@ input[type=password]:hover {
 }
 
 #animalPhotoId{
-	max-width: 98%;
-	max-height: 100%;
+	/* max-width: 98%; */
+	/* max-height: 100%; */
 }
 
 button[disabled]{
@@ -693,7 +838,6 @@ ol {
 p {
      margin: 0px;
      font-weight: 500;
-     font-size: 15px;
      line-height: 24px;
 }
 
@@ -736,6 +880,12 @@ img {
 
 .height40{
 	height: 40px;
+	padding-bottom: 1px !important;
+}
+
+
+.height45{
+	height: 45px;
 	padding-bottom: 1px !important;
 }
 
@@ -878,10 +1028,11 @@ button {
 }
 
 .header {
-     width: 100%;
-     height: 180px;
-     padding: 15px 0px 15px 0px;
-     background: #00BF63;
+    width: 100%;
+    min-height: 180px;   /* ensures green bar is never too small */
+    padding-bottom: 40px; /* creates space for the SearchBox */
+    padding: 15px 0px 15px 0px;
+    background: #00BF63;
 }
 
 .notifications{
@@ -1514,7 +1665,7 @@ ul.social_icon li a:hover {
      margin-top: 60px;
      padding-bottom: 20px;
      background-color: #fff;
-     border: #00BF63 solid 3px;
+     /* border: #00BF63 solid 3px; */
      border-right: inherit;
      border-left: inherit;
 }
@@ -1545,14 +1696,16 @@ ul.social_icon li a:hover {
 .back_re {
      background-color: #FFDE59;
 	 color: #000;
+	 border-bottom: 1px solid #2eb34c; /* Added bottom border */
+	 border-top: 1px solid #fff; /* Added bottom border */
 }
 .back_re .title {
      text-align: center;
 }
 .back_re .title h2 {
-color: #05331d;
+color: #156b40;
 font-size: 22px;
-padding: 25px 0;
+padding: 23px 0;
 font-weight: 600;
 /* text-transform: uppercase; */
 line-height: 0px;

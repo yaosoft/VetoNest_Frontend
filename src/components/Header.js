@@ -45,6 +45,7 @@ const Header = () => {
 		flag,
 		userProfile,
 		getVetoInvitationNotification,
+		profileFormUpdated
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -74,9 +75,12 @@ const Header = () => {
 
 	// var user = getUser();
 
+
 	const [ languages, setLanguages ]  = useState( '' );
 
 	const [ active, setActive ] = useState( array );
+	
+	const [ currentUser, setCurrentUser ] = useState( user );
 	
 	const handleClickGoto = ( goTo ) => {
 		const path = '/' + goTo;
@@ -95,11 +99,18 @@ const Header = () => {
 		}
 	}
 
+
+
 	// get the profile data
 	useEffect( () => {
-
+	
 		// Get user preference
 		const a = async () => {
+			// current user
+			const user = await getUser();
+console.log( '>>>>>>>>>>> currentUser:', currentUser );
+			setCurrentUser( user );
+			
 			// default site language
 			var languageId = defaultLanguageId;
 			
@@ -128,7 +139,7 @@ const Header = () => {
 		}	
 		a()
 
-	}, [] ); // [user, userProfile, siteLanguage]
+	}, [profileFormUpdated] ); // [user, userProfile, siteLanguage]
 	
 	return (
 		<>
@@ -190,7 +201,7 @@ const Header = () => {
 											<ul>{ isAuthenticated() ? 
 												<>	
 													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>{ user && truncateString( user.userNom, 10 ) }</li>
+														<li>{ currentUser && truncateString( currentUser.userPrenom, 10 ) }</li>
 													</Link>
 												</>
 												: 

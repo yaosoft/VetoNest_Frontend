@@ -55,7 +55,7 @@ const SearchBox = () => {
 			className=""
 			form = {form}
 		>
-			<div className="search_box row" >
+			<div className="search_box row" > 
 			   <div className="col-11" >
 				   <div className="search" style={{ backgroundColor: '#FFDE59' }}>
 					 <div className= "select_area" style={{ width:"30%" }}>
@@ -81,7 +81,7 @@ const SearchBox = () => {
 
 													<Input 
 														id="vetoInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+														className="backgroundYellow  borderLefttRadius18 width100per100 borderNone height40" 
 														placeholder={ searchInputVeto }
 														type="text" 
 														name="signInMail"
@@ -188,7 +188,7 @@ const SearchBox = () => {
 					 </div>
 					</div> 
 				</div> 
-				<div className="col-1 backgroundOlive borderRightRadius25 searchButtonDiv searchButtonDivsearchButtonDiv"
+				<div className="col-1 backgroundOlive searchButtonDiv searchButtonDivsearchButtonDiv borderRightRadius18"
 					style={{ marginLeft: '-2%' }}
 				> 
 					<span 
