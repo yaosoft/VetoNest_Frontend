@@ -42,9 +42,18 @@ const PasswordForgotReset = ( params ) => {
 		signUp_passwordRepeatPlaceholder,
 		signUpPasswordRepeat,
 		signUp_termsUsage,
-		passwordForgotReset_title
+		passwordForgotReset_title,
+		getAContent,
 		
 	}	= useContext( SiteContext );
+
+	// Autofill email
+	const [ready, setReady] = useState(false);
+	useEffect(() => {
+		// for the autofill issue
+		const id = setTimeout(() => setReady(true), 50);
+		return () => clearTimeout(id);
+	}, []);
 
 	const [ loading, setLoading] = useState(false);
 
@@ -215,85 +224,74 @@ const PasswordForgotReset = ( params ) => {
 	 
 	 return (
 		<>
-			
-		
 		<Header />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<Title title = { passwordForgotReset_title } />
+		<Title title = { passwordForgotReset_title } />
+		<div className="afterSticky row">&nbsp;</div>
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
 										 <Form 
-											className=""
+											layout="vertical"
 											form = {form}
 										 >
 
 											<div className="form-group">
+											
 											<Form.Item
-												name  = "password"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_LXBYsFPl1b')}
+												name="password"
+												rules={[
 													{
 														message: pwResetPasswordError,
-														validator: ( value ) => {
-															if ( pwResetPasswordError ) {
-																return Promise.reject( pwResetPasswordError );
-															} 
-															else {
-																return Promise.resolve();
+														validator: () => {
+															if (pwResetPasswordError) {
+																return Promise.reject(pwResetPasswordError);
 															}
-														}
-													}
+															return Promise.resolve();
+														},
+													},
 												]}
-												/* initialValue  = '' */
 											>
-												<Input 
+												<Input.Password
 													id="pwResetPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordPlaceholder }
-													type="password" 
-													name="password"
-													value={ pwResetPassword }
-													onChange = { e => handleChangePwResetPassword(e)}
-													
+													readOnly={!ready}
+													name="login_password_fake"
+													autoComplete="new-password"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder={getAContent('cmp_vetonest.com_Kp83Wd61Lt')}
+													onChange={(e) => handleChangePwResetPassword(e)}
 												/>
 											</Form.Item>
 											</div>
 											<div className="form-group">
+											
 											<Form.Item
-												name  = "passwordRepeat"
-												rules = {[
-													{
-														message: pwResetPasswordRepeatError,
-														validator: ( value ) => {
-															if ( pwResetPasswordRepeatError ) {
-																return Promise.reject( pwResetPasswordRepeatError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-												<Input 
-													id="pwResetPasswordRepeatInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordRepeatPlaceholder 
-													} 
-													type="password" 
-													name={ signUpPasswordRepeat }
-													value={ pwResetPasswordRepeat }
-													onChange = { e => handleChangePwResetPasswordRepeat(e)}
-												/>
-												
+														name="passwordRepeat"
+														label={getAContent('cmp_vetonest.com_Tp72Lm84Qs')}
+														rules={[
+															{
+																message: pwResetPasswordRepeatError,
+																validator: () => {
+																	if (pwResetPasswordRepeatError) {
+																		return Promise.reject(pwResetPasswordRepeatError);
+																	}
+																	return Promise.resolve();
+																},
+															},
+														]}
+													>
+														<Input.Password
+															id="pwResetPasswordRepeatInput"
+															className="backgroundYellow rounded10 width100per100 borderNone height45"
+															placeholder={getAContent('cmp_vetonest.com_Bm91Qx63Kr')}
+															name="passwordRepeat"
+															value={signUpPasswordRepeat}
+															onChange={(e) => handleChangePwResetPasswordRepeat(e)}
+														/>
 											</Form.Item>
+											
 											</div>
 									<>
 										<div style={{ display: formError01 }} className="row formError formError01">
@@ -312,34 +310,34 @@ const PasswordForgotReset = ( params ) => {
 											</span> 
 										</div>
 									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickReset}
-												disabled = { sendingDisabled }
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		pwResetSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												<span
-													id = "cmp_vetonest.com_f8Pqk3fJ2H"
-													className ="signUp_btnSubmit" 
+											<Form.Item style={{ marginTop: 24 }}>
+												<Button
+													type="primary"
+													htmlType="submit"
+													block
+													className="login-form__btn rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+													onClick={handleClickReset}
+													disabled={sendingDisabled}
+													style={{ height: '45px' }}
 												>
-													Submit
-												</span>
-											</button> 
+													<Space>
+														{pwResetSpin === 'block' && (
+															<Spin
+																indicator={
+																	<LoadingOutlined
+																		style={{
+																			fontSize: 20,
+																			color: 'wheat',
+																		}}
+																		spin
+																	/>
+																}
+															/>
+														)}
+														{ getAContent( 'cmp_vetonest.com_f8Pqk3fJ2H' ) }
+													</Space>
+												</Button>
+											</Form.Item>
 											<div className='row'>
 												<div className='col-6'>
 													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>

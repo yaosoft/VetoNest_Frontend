@@ -302,16 +302,20 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
-	// Get a content locally from site siteContent. For contents inside modal.
+	// Get a content from site siteContent.
 	const getAContent = ( tagRef ) => {
 		if( !siteContent.length )
 			return '...'
+
 
 		const content = siteContent.filter( v => v.tagRef == tagRef )[0];
 
 		if( !content )
 			return '***'
-		
+
+		if( !content.contents.length )
+			return '***'
+
 		return content.contents[0].textContent
 	}
 	
@@ -580,12 +584,12 @@ export const SiteProvider = ({ children }) => {
 	}
 
 	// get vetos's etablissement
-	const [ vetoCliniqueInfo, setVetoCliniqueInfo ] = useState( [] );
+	const [ vetoCliniqueInfo, setVetoCliniqueInfo ] = useState( null );
 	const getVetoCliniqueInfo = async ( profileVetoId ) => {
 		const url		= base_api_url + 'etablissement/getVetoEtablissement?profileVetoId=' + profileVetoId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -607,7 +611,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'notification/user/get?userId=' + userId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -674,7 +678,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'etablissement/show?etablissementId=' + etablissementId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -691,7 +695,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'transport/list';
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -702,7 +706,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'timeSlotClosedDay/edit';
 		const data 		= timeSlotData;
 		const method 	= 'POST';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -713,7 +717,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'timeSlotClosedDate/delete';
 		const data 		= timeSlotData;
 		const method 	= 'POST';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -746,7 +750,7 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'lieu/delete';
 		const data 		= lieuData;
 		const method 	= 'POST';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
@@ -757,25 +761,39 @@ export const SiteProvider = ({ children }) => {
 		const url		= base_api_url + 'lieuTransport/edit';
 		const data 		= lieuTransportData;
 		const method 	= 'POST';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
 		return rep;
 	}
 
+	// Get a lieu info
+	const getALieu = async ( lieuId ) => {
+		const url		= base_api_url + 'lieu/show?id=' + lieuId;
+		const data 		= null;
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+	
+
 	// A vet or etablissement lieux
 	const getAVetoLieux = async ( vetoData ) => {
 		const url		= base_api_url + 'lieu/get/vetoLieux?' + ( vetoData.profileVetoId !== undefined ? ( 'profileVetoId=' + vetoData.profileVetoId ) :  ( 'etablissementId=' + vetoData.etablissementId )) ;
-console.log( '------------------- url', url );
+// console.log( '------------------- url', url );
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
-console.log( '------------------- rep', rep );
+// console.log( '------------------- rep', rep );
 		setSpiner( 'none' );
 	
 		return rep;
 	}
+
+	const [ selectedLieuId, setSelectedLieuId ] = useState( null );
 
 	// RPPS validator
 	const validateRppsNumber = (rppsNumber) => {
@@ -832,9 +850,9 @@ console.log( '------------------- rep', rep );
 		const url		= base_api_url + "carnetAnimal/user?profileUserId=" + userProfileId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		// setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
+		// setSpiner( 'none' );
 		return rep;
 	}
 	
@@ -867,7 +885,7 @@ console.log( '------------------- rep', rep );
 	
 	// Timeslot - veto's absences
 	const [ absences, setAbsences ] = useState( '' );
-	const [ selectedAbsenceId, setSelectedAbsenceId ] = useState( '' );
+	const [ selectedAbsenceId, setSelectedAbsenceId ] = useState( null );
 	// Timeslot - hollyday
 	const [ hollydays, setHollydays ] = useState( '' );
 	const [ selectedHollydayId, setSelectedHollydayId ] = useState( '' );
@@ -1370,6 +1388,9 @@ console.log( '------------------- rep', rep );
 				getAVetoLieux,
 				lieuDelete,
 				isAGuest,
+				selectedLieuId, 
+				setSelectedLieuId,
+				getALieu
 			}}
 		>
 

@@ -29,6 +29,7 @@ const LanguageSelector = ( params ) => {
 		language_german,
 		language_italian,
 		language_estonian,
+		getAContent
 	} = useContext( SiteContext );
 
 	// params
@@ -59,10 +60,10 @@ console.log(languageId);
 		if( toPersist === true ){ // persist the laanguage preference
 			const rep = await updateLanguagePreference( languagePreferenceData )
 			if( rep !== true ){
-				message.success( 'Default language updated' );
+				message.success( getAContent( 'cmp_vetonest.com_La48Qm72Rp' ) );
 			}
 			else{
-				message.error( 'Default language not updated' );
+				message.error( "cmp_vetonest.com_La48Qm72Rp" );
 			}
 		}
 		
@@ -78,8 +79,10 @@ console.log(languageId);
 	const BuildLanguagesList = () => {
 		return (
 			<Select
-				onChange 	= { ( e ) => handleChangeLanguages(e) }
-				value 		= { context ? selectedLanguageId : selected }
+			  onChange={(e) => handleChangeLanguages(e)}
+			  value={context ? selectedLanguageId : selected}
+			  getPopupContainer={(triggerNode) => triggerNode.parentElement}
+			  placement="bottomRight"
 			>
 				{ languages.map( ( option ) => (
 					<Select.Option 
@@ -97,7 +100,6 @@ console.log(languageId);
 		// get all language
 		const getAllLanguage = async() => {
 			const languages = await languageList();
-console.log( '+++++++++++ languages', languages );
 			setLanguages( languages );
 		}
 		getAllLanguage();
@@ -110,7 +112,7 @@ console.log( '+++++++++++ languages', languages );
 
 	}, [user] );
 	 
-	 return (
+	return (
 		<div className="languageSelector">
 			{ flag === true &&
 				<img src= { languageFlag } className='flag'/> 

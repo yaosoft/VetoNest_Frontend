@@ -49,7 +49,8 @@ const SignIn = ( params ) => {
 		signUp_passwordPlaceholder,
 		signUp_btnSubmit,
 		signIn_passwordForgot,
-		getLanguagePreference
+		getLanguagePreference,
+		getAContent,
 	}	= useContext( SiteContext );
 
 
@@ -57,6 +58,15 @@ const SignIn = ( params ) => {
 
 	const [ signInSpin, setSignInSpin ] = useState( 'none' );
 	const [ sendingDisabled, setSendingDisabled ] = useState( false );
+
+	// Autofill email
+	const [ready, setReady] = useState(false);
+	useEffect(() => {
+		// for the autofill issue
+		const id = setTimeout(() => setReady(true), 50);
+		return () => clearTimeout(id);
+	}, []);
+
 
 	// signIn email
 	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
@@ -69,21 +79,29 @@ const SignIn = ( params ) => {
 	const [ signInEmail, setSignInEmail ] = useState( '' );
 	const [ signInEmailDefault, setEmailDefault ] = useState( 'Email' );
 	const [ signInEmailError, setSignInEmailError ] = useState( '' );
-	const handleChangeSignInEmail = ( e ) => {
+	const handleChangeSignInEmail = async ( e ) => {
+		clearFormErrors();
+		setSignInEmailError ( '' );
+		await form.validateFields(); 
+		
 		const data = e.target.value;
 		setSignInEmail( data );
-
 		var signInEmailErrorText = '';
 		if( data && !isValidEmail( data ) )
-			signInEmailErrorText = signUp_emailErrorText
-		
+			signInEmailErrorText = getAContent( 'cmp_vetonest.com_Fm39Kd84Rw' )
+
 		setSignInEmailError ( signInEmailErrorText );
+		await form.validateFields(); 
 	}
 	
 	// password
 	const [ signInPassword, setSignInPassword ] = useState( '' );
 	const [ signInPasswordError, setSignInPasswordError ] = useState( '' );
-	const handleChangeSignInPassword = ( e ) => {
+	const handleChangeSignInPassword = async ( e ) => {
+		clearFormErrors();
+		setSignInPasswordError ( '' );
+		await form.validateFields(); 
+
 		const data = e.target.value;
 		setSignInPassword( data );
 		
@@ -92,6 +110,7 @@ const SignIn = ( params ) => {
 			signInPasswordErrorText = signUp_passwordErrorText;
 
 		setSignInPasswordError( signInPasswordErrorText );
+		await form.validateFields(); 
 	}
 
 	// check the form errors
@@ -104,27 +123,26 @@ const SignIn = ( params ) => {
 		return errorsExist
 	}
 
-	// check the form empty fields
-	const checkFormEmpty = ( ) => {
-		var formHasEmpty = '';
-
-		if( signInEmail == '' ){
-			const errorMessage = signUp_emailEmpty;
-			document.getElementById( 'signInEmailInput' ).focus();
-			setSignInEmailError( errorMessage );
-			formHasEmpty = errorMessage
+	// check the form empty fields	
+	const checkFormEmpty = async( ) => {
+		var formHasEmpty = false;
+		const values = form.getFieldsValue();		
+		if( !values.signInEmail ){
+			const error = getAContent( 'cmp_vetonest.com_Em72Qa91Lp' );
+			setSignInEmailError( error );
+				formHasEmpty = true
 		}
-		else if( signInPassword == '' ){
-			const errorMessage =  signUp_passwordEmpty;
-			document.getElementById( 'signInPasswordInput' ).focus();
-			setSignInPasswordError( errorMessage );
-			formHasEmpty = errorMessage
+		if( !values.password ){
+			const error = getAContent( 'cmp_vetonest.com_Kp83Wd61Lt' );
+			setSignInPasswordError( error );
+				formHasEmpty = true
 		}
-
-		return formHasEmpty
+		if( formHasEmpty )
+			form.validateFields(); 
+				
+		return formHasEmpty;
 	}
-	
-	
+
 	const navigate = useNavigate();
 
 	// sign in
@@ -150,19 +168,22 @@ const SignIn = ( params ) => {
 		}
 
 		// check form empty fields
+// check if form has empty fields
 		const formHasEmpty = await checkFormEmpty();
-	
 		if( formHasEmpty ){
-			message.error( formHasEmpty );
+			message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
+
 			setSignInSpin( 'none' );
 			setSendingDisabled( false );
+
 			return
 		}
 		
 		// login
+		const values = form.getFieldsValue();
 		const signInData = {
-			password: 	signInPassword,
-			email: 		signInEmail
+			password: 	values.password,
+			email: 		values.signInEmail
 		};
 		
 		const resp = await signIn( signInData );
@@ -184,38 +205,12 @@ const SignIn = ( params ) => {
 		setSignInSpin( 'none' );
 
 		// Frontend login
-console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 		await logIn( resp );	
 
 		// Set language and content
 		if( resp.languageId )
 			await languageSetup( resp.languageId );
-		
-//const data = {
-//	userId: user.userId,
-//}	
-//const resp = await getLanguagePreference ( data );
-		
-//if( resp !== null )
-				//	languageId = resp.id;	 
 
-	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh favourite language id', resp  );
-	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh languageId', languageId  );
-	//console.log( 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh selectedLanguageId', selectedLanguageId  );
-
-				// set user language
-				//if( selectedLanguageId == languageId ){ // Selected language id == user's favourite language id
-					// setSelectedLanguageId( languageId );			// update languagelist boxes
-				//	await languageSetup( languageId ); 					// Update language flag
-				//}
-				//else{
-				//	setSelectedLanguageId( selectedLanguageId );	// update languagelist boxes
-				//	await languageSetup( selectedLanguageId ); 			// Update language flag
-				//}
-
-
-		// languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
-		//setSelectedLanguageId( selectedLanguageId );
 		
 		// goto validation
 		const path	= getReferrer() ? getReferrer() : '/profile';
@@ -237,122 +232,113 @@ console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 	
 	// form
 	const [form] = Form.useForm();
+	const location = useLocation();
+
 	return (
 		<>
 
 		<Header />
 
-            <Title title = { signIn_title } />
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
+            <Title title = { getAContent( 'cmp_vetonest.com_OK6429mzTG' ) } />
+			<div className="afterSticky row">&nbsp;</div>
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
-							<div className="form-input-content">
+							<div className="">
 
-										 <Form 
-											className=""
-											form = {form}
-										 >
-	
-										<div className="form-group">
+										<Form
+											form={form}
+											key={location.pathname}
+											layout="vertical"
+										>
 											<Form.Item
-												name  = "signInEmail"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_Er51Nm92Qa')}
+												name="signInEmail"
+												rules={[
 													{
 														message: signInEmailError,
-														validator: ( value ) => {
-															if ( signInEmailError ) {
-																return Promise.reject( signInEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
+														validator: (value) => {
+															if (signInEmailError) return Promise.reject(signInEmailError);
+															return Promise.resolve();
+														},
+													},
 												]}
-												/* initialValue  = '' */
 											>
-
-												<Input 
+												<Input
 													id="signInEmailInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
-													placeholder={ signUp_emailPlaceholder }
-													type="text" 
-													name="signInmail"
-													value={ signInEmail }
-													onChange = { e => handleChangeSignInEmail(e)}
-													
-												/>
+													readOnly={!ready}
+													name="login_email_fake"
+													autoComplete="username"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder= { getAContent ( 'cmp_vetonest.com_Xq92La74Pm' ) } 
+													onChange = { e => handleChangeSignInEmail( e ) }
+												/> 
 											</Form.Item>
-											</div>
-											<div className="form-group">
+
 											<Form.Item
-												name  = "password"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_LXBYsFPl1b')}
+												name="password"
+												rules={[
 													{
 														message: signInPasswordError,
-														validator: ( value ) => {
-															if ( signInPasswordError ) {
-																return Promise.reject( signInPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
+														validator: (value) => {
+															if (signInPasswordError) return Promise.reject(signInPasswordError);
+															return Promise.resolve();
+														},
+													},
 												]}
-												/* initialValue  = '' */
 											>
-												<Input 
+												<Input.Password
 													id="signInPasswordInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
-													placeholder={ signUp_passwordPlaceholder } 
-													type="password" 
-													name="password"
-													value={ signInPassword }
-													onChange = { e => handleChangeSignInPassword(e)}
-													
+													readOnly={!ready}
+													name="login_password_fake"
+													autoComplete="new-password"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder= { getAContent ( 'cmp_vetonest.com_Kp83Wd61Lt' ) } 
+													onChange = { e => handleChangeSignInPassword( e ) }
 												/>
 											</Form.Item>
-											</div>
-											
-									<>
+											<>
+												<div style= {{ display: formError01 }}  className="row formError formError01">
+													<span id="cmp_vetonest.com_C73EvuNXZA">
+														Bad username or password.
+													</span>&nbsp;
+													<span id="cmp_vetonest.com_0lM8zJBsDN">
+														Please try another one.
+													</span>
+												</div>
+											</>
+										
+											<Form.Item style={{ marginTop: 24 }}>
+												<Button
+													type="primary"
+													htmlType="submit"
+													block
+													className="login-form__btn rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+													onClick={handleClickInscription}
+													disabled={sendingDisabled}
+													style={{ height: '45px' }}
+												>
+													<Space>
+														{signInSpin === 'block' && (
+															<Spin
+																indicator={
+																	<LoadingOutlined
+																		style={{
+																			fontSize: 20,
+																			color: 'wheat',
+																		}}
+																		spin
+																	/>
+																}
+															/>
+														)}
+														{signUp_btnSubmit}
+													</Space>
+												</Button>
+											</Form.Item>
 
-										<div style= {{ display: formError01 }}  className="row formError formError01">
-											<span id="cmp_vetonest.com_C73EvuNXZA">
-												Bad username or password.
-											</span>&nbsp;
-											<span id="cmp_vetonest.com_0lM8zJBsDN">
-												Please try another one.
-											</span>
-										</div>
-									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickInscription}
-												disabled = { sendingDisabled }
-												style={{ height: '45px' }}
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		signInSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												{ signUp_btnSubmit }
-											</button> 
 											<div className='row'>
 												<div className='col-6'>
 													<Link to='/mot-de-passe-oublie' className="text-primary">{ signIn_passwordForgot }</Link>
@@ -367,6 +353,7 @@ console.log( '<<<<<<<<<<<<<<<<<<<<<<<<<<<< resp', resp );
 													</Link>
 												</div>
 											</div>
+											
 										</Form>
 									</div>
 								</div>

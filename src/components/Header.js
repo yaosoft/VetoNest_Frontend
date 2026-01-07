@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
-import SearchBox from './SearchBox';
+// import SearchBox from './SearchBox';
+import ResponsiveSearch from './ResponsiveSearch';
 
 import SecuredPagesAuth from "./SecuredPagesAuth";
 import { AuthContext } from "../context/AuthProvider";
@@ -74,7 +75,7 @@ const Header = () => {
 	]
 
 	// var user = getUser();
-
+	const [menuOpen, setMenuOpen] = useState(false);
 
 	const [ languages, setLanguages ]  = useState( '' );
 
@@ -83,8 +84,10 @@ const Header = () => {
 	const [ currentUser, setCurrentUser ] = useState( user );
 	
 	const handleClickGoto = ( goTo ) => {
+		setMenuOpen(false);
 		const path = '/' + goTo;
 		navigate( path );
+		
 	}
 
 	// Login / logout
@@ -147,104 +150,102 @@ console.log( '>>>>>>>>>>> currentUser:', currentUser );
 			<header className="stick" style={{marginTop:0}}>
 				<div className="header">
 					<div className="container">
-					<div className="row">
-						<div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col logo_section">
+					<div className="header-row">
+						<div className="header-left logo_section">
 							<div className="full">
 								<div className="center-desk"
 									style ={{
 										paddingLeft: '5%',
 									}}
 								>
-									<div className="row">
-										<div className="logo col-md-2">
-											<Link to="/accueil">
-												<img 
-													src="/img/logo01.png"
-													style={{height:'75px, width:94px'}} 
-													alt="#"
-												/>
-											</Link>
-										</div>
-										<div className="logo col-md-10" style={{paddingTop: '10px'}}>
-											<Link to="/accueil">
-												<img 
-													src="/img/logo02.png"
-													style={{height:'35px'}} 
-													alt="#"
-												/>
-											</Link>
-											<br/>
-											<span className='headerSlogan' id="cmp_vetonest.com_zDVB9q7a2d">Consultation Vétérinaire </span>&nbsp;
-										</div>
+									<div className="logo-slogan">
+									  <Link to="/accueil" className="logo-wrap">
+										<img src="/img/logo01.png" alt="Logo" />
+									  </Link>
+
+									  <div className="slogan-wrap slogan">
+										<Link to="/accueil">
+										  <img src="/img/logo02.png" alt="VetoNest" />
+										</Link>
+										<span className="headerSlogan">
+										  Consultation Vétérinaire
+										</span>
+									  </div>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div className="col-xl-6 col-lg-6 col-md-6 col-sm-6">
-							<nav 
-								style={{ marginRight: '10px' }}
-								className="navigation navbar navbar-expand-md navbar-dark ">
-								<button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
-								<span className="navbar-toggler-icon"></span>
-								</button>
-								<div className="collapse navbar-collapse" id="navbarsExample04">
-									<ul className="navbar-nav mr-auto">
-									 <li style={{marginTop: '10px', width: '50px'}}>
-										<Notifications />
-									 </li>
-									 <li className={ "nav-item " + active[4].actif }>
-										<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'blog' )} >
-											Blog
-										</Link>
-									</li>
-									 <li className={ "nav-item " + active[2].actif }>
-											<ul>{ isAuthenticated() ? 
-												<>	
-													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'profile' ) }>
-														<li>{ currentUser && truncateString( currentUser.userPrenom, 10 ) }</li>
-													</Link>
-												</>
-												: 
-													<Link style={{ cursor: 'pointer' }} className="nav-link" onClick= { e => handleClickGoto( 'connexion' ) }> 
-														<li id="cmp_vetonest.com_adWeBARABI">Connexion</li>
-													</Link>
-											}
-											</ul>
-									  </li>
-									 <li className={ "nav-item " + active[2].actif }>
-										<ul>
-											{ isAuthenticated() ? 
-												<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickLogInOut( e ) }>
-													<li id="cmp_vetonest.com_mzCrCgj9rj">Déconnexion</li>
-												</Link>
-											:
-												<Link style={{ cursor: 'pointer' }} className="nav-link" onClick={ e => handleClickGoto( 'inscription' ) }>
-													<li id="cmp_vetonest.com_MsXXu6zXy2">Inscription</li>
-												</Link>
-											}
-											</ul>
-									  </li>
-									<li className={ "nav-item " + active[4].actif } className="paddingTop4px"  >
-										<span className="colorBlack" id="cmp_vetonest.com_QrnuvOuzwI">Choix de la langue</span><br/>
-										<LanguageSelector 
-											toPersist 	= { false } 
-											flag 		= { true }
-											context		= { true }
-										/>
-									</li>
-								</ul>
+						<div className="header-right">
+							  <nav className="navbar navbar-expand-lg navbar-dark navigation">
+
+								{/* RIGHT ACTIONS (mobile + desktop) */}
+								<div className="nav-actions">
+								  <Notifications /><div className="spaceAfterNotificationBell"></div>
+
+								  <LanguageSelector
+									toPersist={false}
+									flag={true}
+									context={true}
+								  />
+
+								  <button
+									className="burger-btn"
+									onClick={() => setMenuOpen(v => !v)}
+									aria-label="Toggle menu"
+								  >
+									<span />
+									<span />
+									<span />
+								  </button>
 								</div>
-							</nav>
+
+								{/* COLLAPSIBLE MENU */}
+								<div className={`navbar-collapse ${menuOpen ? "open" : ""}`}>
+								  <ul className="navbar-nav">
+									<li className="nav-item">
+									  <Link className="nav-link" onClick={() => handleClickGoto("blog")}>
+										Blog
+									  </Link>
+									</li>
+
+									<li className="nav-item">
+									  {isAuthenticated() ? (
+										<Link className="nav-link" onClick={() => handleClickGoto("profile")}>
+										  {currentUser && truncateString(currentUser.userPrenom, 10)}
+										</Link>
+									  ) : (
+										<Link className="nav-link" onClick={() => handleClickGoto("connexion")}>
+										  Connexion
+										</Link>
+									  )}
+									</li>
+
+									<li className="nav-item">
+									  {isAuthenticated() ? (
+										<Link className="nav-link" onClick={handleClickLogInOut}>
+										  Déconnexion
+										</Link>
+									  ) : (
+										<Link className="nav-link" onClick={() => handleClickGoto("inscription")}>
+										  Inscription
+										</Link>
+									  )}
+									</li>
+								  </ul>
+								</div>
+
+							  </nav>
+							</div>
+
 						</div>
-					</div>
 					<div className= "marginTop10">
-					<SearchBox/>
+					<ResponsiveSearch/>
 					</div>
 					</div>
 				</div>
 			</header>
 			<div className="displayNone" >
-				/* LANGUAGES TAG */
+			{/* LANGUAGES TAG */}
 				<span 
 					id="cmp_vetonest.com_JLQuQUHS9n"
 					className ="language_french" 

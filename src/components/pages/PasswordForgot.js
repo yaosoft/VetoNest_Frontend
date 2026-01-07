@@ -53,9 +53,18 @@ const PasswordForgot = ( params ) => {
 		signUp_codeLabel,
 		signUp_codeResend,
 		signUp_termsUsage,
+		getAContent,
 
 	}	= useContext( SiteContext );
 
+	// Autofill email
+	const [ready, setReady] = useState(false);
+	useEffect(() => {
+		// for the autofill issue
+		const id = setTimeout(() => setReady(true), 50);
+		return () => clearTimeout(id);
+	}, []);
+	
 	const [ loading, setLoading] = useState(false);
 
 	const [ emailVerificationResult, setEmailVerificationResult ] = useState( false );
@@ -74,16 +83,20 @@ const PasswordForgot = ( params ) => {
 	}
 	const [ pwForgotEmail, setPwForgotEmail ] = useState( '' );
 	const [ pwForgotEmailError, setPwForgotEmailError ] = useState( '' );
-	const handleChangePwForgotEmail = ( e ) => {
-		setFormError01( 'none' );
+	const handleChangePwForgotEmail = async ( e ) => {
+
+		clearFormErrors();
+		setPwForgotEmailError ( '' );
+		await form.validateFields(); 
+		
 		const data = e.target.value;
 		setPwForgotEmail( data );
-
 		var pwForgotEmailErrorText = '';
 		if( data && !isValidEmail( data ) )
 			pwForgotEmailErrorText = signUp_emailErrorText;
-		
+
 		setPwForgotEmailError ( pwForgotEmailErrorText );
+		await form.validateFields(); 
 	}
 
 	// check the form errors
@@ -301,12 +314,10 @@ const PasswordForgot = ( params ) => {
 			</Modal>
 		
 		<Header />
+		<Title title = { signIn_passwordForgot } />
+		<div className="afterSticky row">&nbsp;</div>
+		<div className="login-form-bg h-100">
 			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<Title title = { signIn_passwordForgot } />
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
@@ -314,41 +325,39 @@ const PasswordForgot = ( params ) => {
 							<div className="form-input-content">
 
 										<Form 
-											className=""
 											form = {form}
+											layout="vertical"
 										>
 										
 										
 										<div className="form-group">
+										
 											<Form.Item
-												name  = "pwForgotEmail"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_Er51Nm92Qa')}
+												name="pwForgotEmail"
+												rules={[
 													{
 														message: pwForgotEmailError,
-														validator: ( value ) => {
-															if ( pwForgotEmailError ) {
-																return Promise.reject( pwForgotEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
+														validator: (value) => {
+															if (pwForgotEmailError) return Promise.reject(pwForgotEmailError);
+															return Promise.resolve();
+														},
+													},
 												]}
-												initialValue  = ''
 											>
-
-												<Input 
+												<Input
 													id="pwForgotEmailInput"
-													className="backgroundYellow rounded10 width100per100 borderNone height40" 
-													placeholder={signUp_emailPlaceholder} 
-													type="text" 
-													name="pwForgotmail"
-													value={ pwForgotEmail }
-													onChange = { e => handleChangePwForgotEmail(e)}
-												/>
+													readOnly={!ready}
+													name="login_email_fake"
+													autoComplete="username"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder= { getAContent ( 'cmp_vetonest.com_Xq92La74Pm' ) } 
+													onChange = { e => handleChangePwForgotEmail( e ) }
+												/> 
 											</Form.Item>
-											</div>
+										
+											
+										</div>
 											
 									<>
 										
@@ -467,6 +476,7 @@ const PasswordForgot = ( params ) => {
 						</div>	
 						</div>
 					</div>
+				</div>
 				</div>
 			<div>&nbsp;</div>
 			<Footer />

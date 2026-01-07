@@ -1,0 +1,339 @@
+Update:
+
+Update:
+- tag_content_id: 511
+- text: Collecte interactive des symptomes
+
+------------------------------------------------------------------
+
+Add new tag_ref in the table tag_content starting from ID: 532 and their translations in the table text_content
+
+- Cette préparation en amont permet au vétérinaire de se concentrer immédiatement sur l’essentiel, d’affiner son diagnostic plus rapidement et de vous proposer des recommandations adaptées dès les premières minutes de consultation, pour le bien-être et la sécurité de votre animal.
+
+------------------------------------------------------------------
+Extraction:
+
+I'd like you to do these steps for me please. I'll give you a React componant. I want you to:
+
+- Get all users visible text inside the component. You'll find them as parametter in each occurence of the function getAContent( ... )
+
+- For each term I need to save the term in a table called tag_content and their translations in the table called text_content that you already know, using the right value for tag_content_id forign key. The field of the table tag_content are:
+
+* id // auto increment, foreign key
+* domain // vetonest.com
+* tag_ref // this is a code that you'll generate like this one: cmp_vetonest.com_Cl53Qa70Ws. this part is static: cmp_vetonest.com_ and this part is random 10 digit alpha numeric with capital and non capital caracters: Cl53Qa70Ws.
+* content_type // 1
+* date_updated: // now() ex.: 2025-07-17 17:30:23
+* description // the english language translation of the term, truncated after 100 caracters.
+
+- You'll update each getAContent() parametter with the code generated for it. Ex.: <p className="lead"> {getAContent("par amour les animaux ")} ❤️ </p> will become <p className="lead"> {getAContent("cmp_vetonest.com_Nr51Yu92Qa")} ❤️ </p>
+
+- Expected result:
+* The SQL queries to insert each term's generated code table tag_content, starting from ID 485
+* The SQL queries to insert each term's translation in the table table text_content
+* The updated component with terms replaced with their generated code
+
+The React coponent:
+{/* HERO */}
+        import React, { useContext } from "react";
+import { Link } from "react-router-dom";
+
+import { SiteContext } from "../../context/site";
+import Header from "../Header";
+import Footer from "../Footer";
+import Title from "../Title";
+
+export default function HomePage() {
+  const {
+    homeTitle,
+    getAContent
+  } = useContext(SiteContext);
+
+  const countries = [
+    { code: "fr", name: getAContent("France") },
+    { code: "be", name: getAContent("Belgique") },
+    { code: "it", name: getAContent("Italie") },
+    { code: "es", name: getAContent("Espagne") },
+    { code: "de", name: getAContent("Allemagne") },
+  ];
+
+  return (
+    <>
+      <div className="sticky-stack">
+        <Header />
+        <Title title={homeTitle} />
+      </div>
+
+      <main className="home">
+
+        {/* HERO */}
+        <section className="hero">
+          <div
+            className="hero-bg"
+            style={{ backgroundImage: "url('/img/home/hero-bg-blur.jpg')" }}
+          />
+          <div className="hero-overlay" />
+
+          <div className="container hero-grid">
+            <div className="hero-text">
+              <div className="heroTitle">
+                {getAContent("Soins vétérinaires 24/7")}
+              </div>
+
+              <p className="hero-sub">
+                {getAContent(
+                  "Consultations vétérinaires en ligne, en clinique et à domicile."
+                )}
+              </p>
+
+              <div className="hero-steps steps">
+                <div className="step">
+                  <span className="step-badge">1</span>
+                  <span>{getAContent("Créez un compte")}</span>
+                </div>
+                <div className="step">
+                  <span className="step-badge">2</span>
+                  <span>{getAContent("Ajoutez vos animaux")}</span>
+                </div>
+                <div className="step">
+                  <span className="step-badge">3</span>
+                  <span>{getAContent("Consultez un vétérinaire")}</span>
+                </div>
+              </div>
+
+              <div className="hero-cta">
+                <Link to="/inscription" className="btn backgroundYellow">
+                  {getAContent("Commencer")}
+                </Link>
+                <Link to="/recherche" className="btn backgroundBlack text-white">
+                  {getAContent("Trouver un vétérinaire")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="hero-image">
+              <img
+                src="/img/home/hero.jpg"
+                alt={getAContent(
+                  "Consultation vétérinaire en ligne avec un chien"
+                )}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* SEARCH */}
+        <section className="home-search text-center">
+          <div className="container">
+            <p className="section-lead searchTitle">
+              {getAContent(
+                "Trouvez rapidement le vétérinaire idéal pour votre animal"
+              )}
+            </p>
+
+            <p className="section-sub">
+              {getAContent(
+                "Plus de 1 000 vétérinaires vérifiés • Consultations 24/7 • De nouveaux vétérinaires chaque jour"
+              )}
+            </p>
+
+            <div className="flags-row">
+              {countries.map((c) => (
+                <div key={c.code} className="flag-item">
+                  <img
+                    src={`/img/flags/${c.code}.svg`}
+                    alt={c.name}
+                  />
+                  <span>{c.name}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="coming-soon">
+              {getAContent("Et bientôt dans d’autres pays")}
+            </div>
+          </div>
+        </section>
+
+        {/* WHY */}
+        <section className="why">
+          <div className="container grid-2 align-top">
+            <div className="why-text">
+              <div className="searchTitle">
+                {getAContent("Smart vet matching")}
+              </div>
+              <p>
+                {getAContent(
+                  "Gagnez du temps grace à notre algorith. Nous vous proposerons toujours les vétérinaires les plus adapté à votre animal et à votre situation."
+                )}
+              </p>
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/home/smart-matching.jpg"
+                alt={getAContent(
+                  "Technologie intelligente et propriétaires d’animaux"
+                )}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* SERVICES */}
+        <section className="services">
+          <div className="container">
+            <div className="searchTitle">
+              {getAContent("Des consultations adaptées")}
+            </div>
+
+            <div className="grid-3">
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/home/online.jpg"
+                    alt={getAContent("Consultation en ligne")}
+                  />
+                </div>
+                <h3>{getAContent("Consultation en ligne")}</h3>
+                <p>
+                  {getAContent("Vidéo et chat 24/7 en quelques minutes.")}
+                </p>
+              </div>
+
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/home/clinic.jpg"
+                    alt={getAContent("Consultation en clinique")}
+                  />
+                </div>
+                <h3>{getAContent("Consultation en clinique")}</h3>
+                <p>{getAContent("Rendez-vous près de chez vous.")}</p>
+              </div>
+
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/home/home.jpg"
+                    alt={getAContent("Consultation à domicile")}
+                  />
+                </div>
+                <h3>{getAContent("Consultation à domicile")}</h3>
+                <p>{getAContent("Un vétérinaire chez vous.")}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI */}
+        <section className="ai-section">
+          <div className="container grid-2">
+            <div>
+              <div className="searchTitle">
+                {getAContent("Collecte de symptômes assisté par IA")}
+              </div>
+              <p className="lead">
+                {getAContent(
+                  "Préparez votre consultation."
+                )}
+              </p>
+			  <p>
+			  {getAContent("Renseignez les sysmptomes affectant votre animal de maniere interactive assisté par notre outils d'IA."
+                )}
+			  </p>
+              <p>
+			  {getAContent("Fournissez au vétérinaire choisi des informations claire et juste afin de gagner du temps de consultation et être ainsi mieux pris en charge."
+                )}
+			  </p>
+			 
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/home/ai-chat.jpg"
+                alt={getAContent("Assistant vétérinaire IA")}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST */}
+        <section className="trust">
+          <div className="container grid-2">
+            <div>
+              <div className="searchTitle">
+                {getAContent("Développé avec des vétérinaires")}
+              </div>
+              <p className="lead">
+                {getAContent("par amour les animaux ")} ❤️
+              </p>
+
+              <ul className="checklist">
+                <li>{getAContent("Vétérinaires vérifiés et expérimentés")}</li>
+                <li>{getAContent("Appels vidéo haute qualité")}</li>
+                <li>{getAContent("Données médicales sécurisées")}</li>
+                <li>{getAContent("Vos dossiers médicaux restent vôtres")}</li>
+				<li>{getAContent("Rappel de rendez-vous")}</li>
+              </ul>
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/home/vets-trust.jpg"
+                alt={getAContent("Équipe de vétérinaires professionnels")}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* APP */}
+        <section className="app">
+          <div className="container grid-2">
+            <div>
+              <h2>{getAContent("VetoNest dans votre poche")}</h2>
+              <p>{getAContent("Consultez un vétérinaire partout.")}</p>
+
+              <div className="app-links">
+                <img
+                  src="/img/Store/appStore.jpg"
+                  alt={getAContent("App Store")}
+                />
+                <img
+                  src="/img/Store/playStore.jpg"
+                  alt={getAContent("Google Play")}
+                />
+              </div>
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/home/app.jpg"
+                alt={getAContent("Application mobile VetoNest")}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="cta">
+          <div className="container">
+            <h2>
+              {getAContent("Offrez le meilleur soin à votre animal")}
+            </h2>
+            <Link to="/inscription" className="btn primary large">
+              {getAContent("Créer mon compte gratuitement")}
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
+  );
+}
+

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
-import { Space, Modal, Spin, Button, notification, message, Popconfirm  } from 'antd';
+import { Space, Modal, Spin, Button, notification, message, Popconfirm, Radio  } from 'antd';
 import {
 	RadiusBottomleftOutlined,
 	RadiusBottomrightOutlined,
@@ -81,6 +81,7 @@ const SignUp = ( params ) => {
 		signUp_title,			
 		signUp_btnSubmit,
 		signUp_termsUsage,
+		getAContent,
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -107,6 +108,9 @@ const SignUp = ( params ) => {
 // signUpNameErrorText = 'Your name seems incorect'
 		setSignUpNameError( signUpNameErrorText );
 	}
+
+	const [ready, setReady] = useState(false);
+
 
 	// firstname
 	const [ signUpFirstName, setSignUpFirstName ] = useState( '' );
@@ -200,38 +204,23 @@ const SignUp = ( params ) => {
 		console.log(e);
 	};
 
-	const handleChangeSignUpType = ( signUpType ) => {
-
-		const elt01 = document.getElementById( 'signUpType' + signUpType ); // current elt
-		const elt02 = signUpType == 1 ? document.getElementById( 'signUpType' + 2) : document.getElementById( 'signUpType' + 1 );
-
-		setSignUp_formOption1Error( '' );
-		setSignUp_formOption2Error( '' );
-	
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
+	const handleChangeSignUpType = ( e ) => {
+		setSignUpType( e.target.value );
+		showModalOptionType();
 		
-		if( elt01.checked == true && signUpType == 1 ){
-			// message.info( signUp_type1 );
-			setSignUpType( 1 );
-			showModalOptionType();
-		}
-		else if( elt01.checked == true && signUpType == 2 ){
-			// message.info( signUp_type2 );
-			setSignUpType( 2 );
-			showModalOptionType();
-		}
-		else if( elt01.checked == false && elt02.checked == false ){
-			setSignUpType( '' );
-			setSignUp_formOption1Error( signUp_formOption1ErrorText );
-			setSignUp_formOption2Error( signUp_formOption2ErrorText );
-		}
+		setTypeError('');
+		form.validateFields();
 	}
 
 	useEffect(() => {
 		form.validateFields();
+		
+		// for the autofill issue
+		const id = setTimeout(() => setReady(true), 50);
+		return () => clearTimeout(id);
+		
 	}, [ signUpType, siteLanguage ]);
+
 
 	// check the form errors
 	const checkFormErrors = async( ) => {
@@ -305,8 +294,11 @@ const SignUp = ( params ) => {
 			setSignUp_formOption1Error( signUp_formOption1ErrorText );
 			setSignUp_formOption2Error( signUp_formOption2ErrorText );
 			
-			message.error( signUp_selectTypeError );
+			message.error( signUp_selectTypeError ); 
 // message.error( 'Are you a pet\'s owner or a veto? Please select.' );
+			setTypeError( getAContent( 'cmp_vetonest.com_Qm84Lp72Xs' ) );
+			form.validateFields();
+			
 			setSignUpSpin( 'none' );
 			setSendingDisabled( false );
 			return	
@@ -514,171 +506,206 @@ console.log( 'Check email', rep );
 		setIsModalOptionTypeOpen(false);
 	};
 	const modalOptionTypeHandleCancel = () => {
-		document.getElementById( 'signUpType1' ).checked = false;
-		document.getElementById( 'signUpType2' ).checked = false;
 		setSignUpType( '' );
+		form.setFieldsValue({ AccountType: null });
 		setIsModalOptionTypeOpen(false); // close modal 
 	}
 	const modalOptionTypeClosed = () => {
 		console.log( 'modalClosed' );
 	}
+
+	// typee
+	const [ type, setType ] = useState( '' ); // 1 for male, 2 for female
+	const [ typeError, setTypeError ] 	= useState( '' );
 	
+	const handleChangeType = (e) => {
+		const typeId = e.target.value;
+		setType( typeId );
+		setTypeError( '' );
+	}
+
 	 // form
 	 const [form] = Form.useForm();
+	 const location = useLocation();
 	 
 	 return (
 		<>
-
+			{ /* Modal account type confirmatonion */ }
 			<Modal
 				title={
-				  <p>
-					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
-					<span>{ signUpType == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
-				  </p>
+					<p style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
+						<span
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 22,
+								height: 22,
+								borderRadius: '50%',
+								backgroundColor: '#FFDE59',
+								marginRight: 8,
+							}}
+						>
+						{signUpType == 1
+						? <i
+								className="fa fa-paw"
+								style={{
+									fontSize: 14,
+									color: '#000',
+								}}
+							/>
+						:
+						<i
+								className="fa fa-user-md"
+								style={{
+									fontSize: 14,
+									color: '#000',
+								}}
+							/>
+						}
+						</span>
+						<span>
+							{signUpType == 1
+								? signUp_popConfirmPetTitle
+								: signUp_popConfirmVetTitle}
+						</span>
+					</p>
 				}
-				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { isModalOptionTypeOpen }
-				onOk		= { modalOptionTypeHandleOk }
-				onCancel	= { () => modalOptionTypeHandleCancel( false ) }
-				afterClose	= { modalOptionTypeClosed }
-				okText		= { signUp_popConfirmYes }
-				cancelText	= { signUp_popConfirmDeleteBtn }
+				closable={{ 'aria-label': 'Custom Close Button' }}
+				open={isModalOptionTypeOpen}
+				onOk={modalOptionTypeHandleOk}
+				onCancel={() => modalOptionTypeHandleCancel(false)}
+				afterClose={modalOptionTypeClosed}
+				okText={signUp_popConfirmYes}
+				cancelText={signUp_popConfirmDeleteBtn}
 			>
-				<>
-				{ signUpType == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
-				}
-				</>
+				{signUpType == 1
+					? signUp_popConfirmPetDescription
+					: signUp_popConfirmVetDescription}
 			</Modal>
 			
+			{ /* Modal signup code verification */ }
 			<Modal
-				title			= { signUp_codeTitle }
+				title={
+					<p style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
+						<span
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 22,
+								height: 22,
+								borderRadius: '50%',
+								backgroundColor: '#FFDE59',
+								marginRight: 8,
+							}}
+						>
+						<ExclamationCircleOutlined />
+						</span>
+						<span>
+							{ signUp_codeTitle }
+						</span>
+					</p>
+				}
 				closable		= {{ 'aria-label': 'Custom Close Button' }}
 				open			= { isModalOpen }
-				onOk			= { console.log( 'ok' ) }
 				onCancel		= { handleCancel }
 				afterClose		= { modalClosed }
 				footer			= { null }
 				maskClosable	= { false } // This prevents closing on mask click
 			>
-	<ExclamationCircleOutlined />
-    <div className="App">
-		<span>{ signUp_codeIntro } </span>&nbsp;
-		<span>{ signUpEmail }</span>
-      <InputCode
-        length={6}
-        label={ signUp_codeLabel }
-		// label="Type your code"
-        loading={loading}
-        onComplete={code => {
-          setLoading(true);
-          setTimeout(() => setLoading(false), 10000);
-		  handleCompletedCode( code )
-        }}
-      />
-	<div className = "row" >
-		<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
-		<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
-		<span className='text text-info' >{ signUp_codeResend }</span>
-	</div>
-	</div>		
-					<br/><br/>
-			</Modal>
+	
+				<div className="App">
+					<span>{ signUp_codeIntro } </span>&nbsp;
+					<span>{ signUpEmail }</span>
+				  <InputCode
+					length={6}
+					label={ signUp_codeLabel }
+					// label="Type your code"
+					loading={loading}
+					onComplete={code => {
+					  setLoading(true);
+					  setTimeout(() => setLoading(false), 10000);
+					  handleCompletedCode( code )
+					}}
+				  />
+				<div className = "row" >
+					<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
+					<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
+					<span className='text text-info' >{ signUp_codeResend }</span>
+				</div>
+				</div>		
+					
+		</Modal>
 		
 		<Header />
-			<Title title = { signUp_title } />
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
+		<Title title = { getAContent( 'cmp_vetonest.com_bL1MO9LnVv' ) } />
+		<div className="afterSticky row">&nbsp;</div>
            
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
-										 <Form 
-											className=""
-											form = {form}
-										 >
-										<div className="row">
-											<div className="col-6">
+								<Form
+									form={form}
+									key={location.pathname}
+									layout="vertical"
+								>
+										<div className="">
 												<Form.Item
-													className = "backgroundYellow rounded10 height45"
-													name  = "SignUpType1"
-													rules = {[
+													label={getAContent('cmp_vetonest.com_Ra83Km91Qw')}
+													name="AccountType"
+													rules={[
 														{
-															message: signUp_formOption1Error,
-															validator: ( value ) => {
-																if ( signUpType != 1 || signUpType != 2  ) {
-																	return Promise.reject( signUp_formOption1Error );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
+															message: typeError,
+															validator: (value) => {
+																if (typeError) return Promise.reject(typeError);
+																return Promise.resolve();
+															},
+														},
 													]}
 												>
-													<div className='row'>
-														<div className='col-8 paddingLeft25'>
-															&nbsp;&nbsp;&nbsp;<i className='fa fa-paw marginTop10'></i> <span id = "cmp_vetonest.com_6avWG2reFU"			className ="signUp_formOption1">
-																I have a pet
-															</span>
+													<Radio.Group
+														className="w-100"
+													>
+														<div className="row g-2">
+															<div className="col-6">
+																<div className="radio-tile backgroundYellow rounded10 height40 alignheckbox01 ">
+																	<Radio 
+																		name="animal"
+																		value={1} 
+																		className="checkbox-like-radio"
+																		onChange={ (e) => handleChangeSignUpType( e ) }
+																	>
+																		<i className="fa fa-paw"></i>&nbsp;
+																		{getAContent('cmp_vetonest.com_6avWG2reFU')}
+																	</Radio>
+																</div>
+															</div>
+
+															<div className="col-6">
+																<div className="radio-tile backgroundYellow rounded10 height40 alignheckbox01 ">
+																	<Radio 
+																		name="veterinaire"
+																		value={2} 
+																		className="checkbox-like-radio"
+																		onChange={ (e) => handleChangeSignUpType( e ) }
+																	>
+																		<i className="fa fa-user-md"></i>&nbsp;
+																		{getAContent('cmp_vetonest.com_KqP3TSXZo3')}
+																	</Radio>
+																</div>
+															</div>
 														</div>
-														<div className='col-3'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="signUpTypeUser"
-																id="signUpType1"
-																value={ 1 }
-																onChange = { e => handleChangeSignUpType(1) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-													</div>
+													</Radio.Group>
+
 												</Form.Item>
-											</div>
-											<div className="col-6">
-												<Form.Item
-													className = "backgroundYellow rounded10 height45"
-													name  = "SignUpType2"
-													rules = {[
-														{
-															message: signUp_formOption2Error,
-															validator: ( value ) => {
-																if ( signUpType || 1 && signUpType != 2 ) {
-																	return Promise.reject( signUp_formOption2Error );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
-													]}
-												>
-													<div className='row'>
-														<div className='col-4'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="signUpTypeVeto"
-																id="signUpType2"
-																value={ 2 }
-																onChange = { e => handleChangeSignUpType(2) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-														<div className='col-8 marginTop10'>
-															<i className='fa fa-user-md'></i> <span id = "cmp_vetonest.com_KqP3TSXZo3"			className ="signUp_formOption2"			>
-																I'm a vet
-															</span>
-														</div>
-													</div>
-												</Form.Item>
-											</div>
 										</div>
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
+													label= { getAContent( 'cmp_vetonest.com_wc4hVvXB3N' ) }
 													name  = "signUpName"
 													rules = {[
 														{
@@ -710,6 +737,7 @@ console.log( 'Check email', rep );
 											<div className="col-6">
 												<Form.Item
 													name  = "signUpFirstName"
+													label = { getAContent( 'cmp_vetonest.com_03jgEtJiVa' ) }
 													rules = {[
 														{
 															message: signUpFirstNameError,
@@ -739,95 +767,86 @@ console.log( 'Check email', rep );
 										</div>
 										<div className="form-group">
 											<Form.Item
-												name  = "signUpEmail"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_Er51Nm92Qa')}
+												name="signInEmail"
+												rules={[
 													{
 														message: signUpEmailError,
-														validator: ( value ) => {
-															if ( signUpEmailError ) {
-																return Promise.reject( signUpEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
+														validator: (value) => {
+															if (signUpEmailError) return Promise.reject(signUpEmailError);
+															return Promise.resolve();
+														},
+													},
 												]}
-												initialValue  = ''
 											>
-
-												<Input 
+												<Input
 													id="signUpEmailInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
-													placeholder={ signUp_emailPlaceholder }
-													type="text" 
-													name="signUpmail"
-													value={ signUpEmail }
-													onChange = { e => handleChangeSignUpEmail(e)}
-													
-												/>
+													readOnly={!ready}
+													name="login_email_fake"
+													autoComplete="username"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder= { getAContent ( 'cmp_vetonest.com_Xq92La74Pm' ) } 
+													onChange = { e => handleChangeSignUpEmail( e ) }
+												/> 
 											</Form.Item>
 											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "password"
-												rules = {[
-													{
-														message: signUpPasswordError,
-														validator: ( value ) => {
-															if ( signUpPasswordError ) {
-																return Promise.reject( signUpPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = '' */
-											>
-												<Input 
-													id="signUpPasswordInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
-													placeholder={ signUp_passwordPlaceholder }
-													type="password" 
-													name="password"
-													value={ signUpPassword }
-													onChange = { e => handleChangeSignUpPassword(e)}
-													
-												/>
-											</Form.Item>
+											<div className="row">
+												<div className="col-6">
+													<Form.Item
+														label={getAContent('cmp_vetonest.com_LXBYsFPl1b')}
+														name="password"
+														rules={[
+															{
+																message: signUpPasswordError,
+																validator: () => {
+																	if (signUpPasswordError) {
+																		return Promise.reject(signUpPasswordError);
+																	}
+																	return Promise.resolve();
+																},
+															},
+														]}
+													>
+														<Input.Password
+															id="signUpPasswordInput"
+															readOnly={!ready}
+															name="login_password_fake"
+															autoComplete="new-password"
+															className="backgroundYellow rounded10 width100per100 borderNone height45"
+															placeholder={getAContent('cmp_vetonest.com_Kp83Wd61Lt')}
+															onChange={(e) => handleChangeSignUpPassword(e)}
+														/>
+													</Form.Item>
+												</div>
+
+												<div className="col-6">
+													<Form.Item
+														name="passwordRepeat"
+														label={getAContent('cmp_vetonest.com_Tp72Lm84Qs')}
+														rules={[
+															{
+																message: signUpPasswordRepeatError,
+																validator: () => {
+																	if (signUpPasswordRepeatError) {
+																		return Promise.reject(signUpPasswordRepeatError);
+																	}
+																	return Promise.resolve();
+																},
+															},
+														]}
+													>
+														<Input.Password
+															id="signUpPasswordRepeatInput"
+															className="backgroundYellow rounded10 width100per100 borderNone height45"
+															placeholder={getAContent('cmp_vetonest.com_Bm91Qx63Kr')}
+															name="passwordRepeat"
+															value={signUpPasswordRepeat}
+															onChange={(e) => handleChangeSignUpPasswordRepeat(e)}
+														/>
+													</Form.Item>
+												</div>
 											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "passwordRepeat"
-												rules = {[
-													{
-														message: signUpPasswordRepeatError,
-														validator: ( value ) => {
-															if ( signUpPasswordRepeatError ) {
-																return Promise.reject( signUpPasswordRepeatError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-												<Input 
-													id="signUpPasswordRepeatInput"
-													className="backgroundYellow  rounded10 width100per100 borderNone height45" 
-													placeholder={ signUp_passwordRepeatPlaceholder }
-													type="password" 
-													name="passwordRepeat"
-													value={ signUpPasswordRepeat }
-													onChange = { e => handleChangeSignUpPasswordRepeat(e)}
-												/>
-												
-											</Form.Item>
-											</div>
+
 									<>
 									
 										<div style={{ display: formError01 }} className="row formError formError01">
@@ -856,30 +875,34 @@ console.log( 'Check email', rep );
 											</span>
 										</div>
 									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickRegistration}
-												disabled = { sendingDisabled }
-												style={{ height: '45px' }}
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		signUpSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												{ signUp_btnSubmit }
-											</button> 
+											<Form.Item style={{ marginTop: 24 }}>
+												<Button
+													type="primary"
+													htmlType="submit"
+													block
+													className="login-form__btn rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+													onClick={handleClickRegistration}
+													disabled={sendingDisabled}
+													style={{ height: '45px' }}
+												>
+													<Space>
+														{signUpSpin === 'block' && (
+															<Spin
+																indicator={
+																	<LoadingOutlined
+																		style={{
+																			fontSize: 20,
+																			color: 'wheat',
+																		}}
+																		spin
+																	/>
+																}
+															/>
+														)}
+														{signUp_btnSubmit}
+													</Space>
+												</Button>
+											</Form.Item>
 											<div className='row'>
 												<div className='col-md-6 '>
 													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
@@ -888,7 +911,9 @@ console.log( 'Check email', rep );
 													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
 												</div>
 											</div>
-									<div className="displayNone">
+									
+								</Form>
+								<div className="displayNone">
 											<span 
 												id = "cmp_vetonest.com_2Mtv5nj9JA"
 												className ="signUp_nameErrorText" 
@@ -1110,7 +1135,6 @@ console.log( 'Check email', rep );
 												Terms of Use
 											</span>
 										</div>
-								</Form>
 							</div>
 						</div>							
 					</div>

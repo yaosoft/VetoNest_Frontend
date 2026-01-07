@@ -55,7 +55,8 @@ const Etablissement = () => {
 		allSpecialities,
 		siteLocale,
 		siteLanguage,
-		getEtablissementInvitations
+		getEtablissementInvitations,
+		getAContent,
 	} = useContext( SiteContext );
 
 	const navigate = useNavigate();
@@ -69,52 +70,6 @@ const Etablissement = () => {
   const [currentVetId, setCurrentVetId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock data
-  const MOCK_CLINIC = {
-    id: "clinic-1",
-    title: "Demo pets facility",
-    description: "A friendly facility providing vet care across locations.",
-    locations: [
-      { city: "Douala", address: "12 Rue des Acacias" },
-      { city: "Yaoundé", address: "45 Boulevard Central" },
-    ],
-  };
-
-  const MOCK_VETS = [
-    {
-      id: "vet-1",
-      photo: undefined,
-      name: "Dr. Amina Kouyate",
-      biography: "10 years experience in small animals. Loves surgery and preventative care.",
-      speciality: "Surgery",
-      createdAt: "2025-10-01T08:30:00Z",
-    },
-    {
-      id: "vet-2",
-      photo: undefined,
-      name: "Dr. John Mbappe",
-      biography: "Focus on exotic pets and rehabilitation.",
-      speciality: "Exotics",
-      createdAt: "2025-09-19T11:00:00Z",
-    },
-  ];
-
-  const MOCK_INVITATIONS = [
-    {
-      id: "inv-1",
-      name: "Dr. Fatou Diop",
-      biography: "Interested in community outreach programmes.",
-      status: "NOT_VIEWED",
-      sentAt: "2025-10-10T09:00:00Z",
-    },
-    {
-      id: "inv-2",
-      name: "Dr. Pierre N’Guessan",
-      biography: "Large animal specialist.",
-      status: "VIEWED",
-      sentAt: "2025-09-02T16:00:00Z",
-    },
-  ];
 
   const [clinicData, setClinicData] = useState( {} );
   const [isCreator, setIsCreator] = useState( false );
@@ -122,7 +77,7 @@ const Etablissement = () => {
   
   // const [clinic] = useState(MOCK_CLINIC);
   // const [vets, setVets] = useState([]);
-  const [vets, setVets] = useState(MOCK_VETS);
+  const [vets, setVets] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [invitationMessage, setInvitationMessage ] = useState( '' );
 	
@@ -138,7 +93,7 @@ const Etablissement = () => {
 console.log( '--------- > clinicData:', clinicData );
 console.log( '--------- > allSpecialities:', allSpecialities );
 
-		setInvitationMessage( "etablissement_invitationMessage " +  clinicData.creatorNom + '\r\n ' + clinicData.creatorPrenom + ', ' + clinicData.nom );
+		setInvitationMessage( clinicData.nom  + ' ' + getAContent( 'cmp_vetonest.com_Jx84Pm20Qw' ) );
 		// clinicData.locations = [
 		//	{ country: clinicData.pays, city: clinicData.ville, address: clinicData.adresse, info: clinicData.info },
 		// ];
@@ -208,7 +163,7 @@ console.log( '--------- > invitations', invitations );
     setInvitations((prev) =>
       prev.map((it) => (it.id === id ? { ...it, sentAt: new Date().toISOString(), status: "NOT_VIEWED" } : it))
     );
-    notification.success({ message: "Invitation resent" });
+    notification.success({ message: getAContent( "cmp_vetonest.com_Iv61Rs82Qa" )} );
   };
 
   const invitationResponse = async ( statusId ) => {
@@ -222,11 +177,11 @@ console.log( '--------- > invitations', invitations );
 	const resp = await updateVetoEtablissementStatus( statusData );
 console.log( '>>>>>>>>>> resp', resp );
 	if( !resp ){
-		message.error( 'etablisementText_invitationAccepted' );
+		message.error( getAContent( 'cmp_vetonest.com_Ia92Ts44Lm' ) );
 		return;
 	}
 
-	// Post the creator's motification
+	// Post the creator's notification
 	const notificationTypeId = statusId; // 2: accepted, 3: declined, 
 	const notificationData = {
 		notificationTypeId: notificationTypeId, 
@@ -235,13 +190,13 @@ console.log( '>>>>>>>>>> resp', resp );
 	const res = await postNotification( notificationData );
 console.log( '>>>>>>>>>> res', res );
 	if( !res ){
-		message.error( 'etablisementText_notification_error' );
+		message.error( getAContent( 'cmp_vetonest.com_Ne77Pw21Df' ) );
 		return;
 	}
 	if( statusId == 2 )
-		message.success( 'etablisementText_invitationAcceptedNotification' );
+		message.success( getAContent( 'cmp_vetonest.com_Ia92Ts44Lm' ) );
 	if( statusId == 3 )
-		message.success( 'etablisementText_invitationDeclinedNotification' );
+		message.success( getAContent( 'cmp_vetonest.com_Dc57Zm91Ha' ) );
 	
 	setUpdateRandom( generateRandomDigits( 3 ) )
   };
@@ -251,10 +206,10 @@ console.log( '>>>>>>>>>> res', res );
 	  const inv = invitations.find((i) => i.id === id);
 	  if (!inv) return;
 	  Modal.confirm({
-		title: "Decline invitation",
-		content: `Are you sure you want to decline the invitation from ${inv.name}?`,
-		okText: "Yes, decline",
-		cancelText: "Cancel",
+		title: ( getAContent( 'cmp_vetonest.com_Di55Cm90Ax' ) ), // Decline invitation
+		content: getAContent( 'cmp_vetonest.com_Ad83Qn74Zp' ) + ' ' + inv.name + '?', // Are you sure you want to decline the invitation from
+		okText: getAContent( 'cmp_vetonest.com_Yd84Lm29Qs' ), //Yes, decline
+		cancelText: getAContent( 'cmp_vetonest.com_Ca09Lp62Bw' ),
 		okButtonProps: { danger: true },
 		onOk() {
 		  invitationResponse( 3 ) // notification declined id
@@ -264,18 +219,18 @@ console.log( '>>>>>>>>>> res', res );
 
   const quitClinic = (vetId) => {
     Modal.confirm({
-      title: "Quit clinic",
-      content: "Are you sure you want to quit this clinic?",
+      title: getAContent( 'cmp_vetonest.com_Qc71Hs48Nm' ),
+      content: getAContent( 'cmp_vetonest.com_Aq50Pm18Xs?' ),
       onOk() {
         setVets((prev) => prev.filter((v) => v.id !== vetId));
-        notification.success({ message: "You have left the clinic" });
+        notification.success({ message: getAContent( 'cmp_vetonest.com_Yl84Tr02Vp' ) });
       },
     });
   };
 
   const vetColumns = [
     {
-      title: "Photo",
+      title: getAContent( 'cmp_vetonest.com_Ph73Zs61Qe' ),
       dataIndex: "photo",
       key: "photo",
       render: (_, vetos) => (
@@ -286,19 +241,19 @@ console.log( '>>>>>>>>>> res', res );
       width: 80,
     },
     {
-      title: "Nom",
+      title: getAContent( 'cmp_vetonest.com_wc4hVvXB3N' ),
       dataIndex: "nom",
       key: "nom",
       render: (_, vetos) => <strong>{ vetos.prenom + ' ' + vetos.nom } </strong>,
     },
     {
-      title: "Biography",
+      title: getAContent( 'cmp_vetonest.com_Mn2Vr7sLpQ' ),
       dataIndex: "biography",
       key: "biography",
       render: (t) => <div style={{ maxWidth: 420, whiteSpace: "normal" }}>{t}</div>,
     },
     {
-      title: "Speciality",
+      title: getAContent( 'cmp_vetonest.com_Sp44Ma27Kw' ),
       dataIndex: "speciality",
       key: "speciality",
       width: 160,
@@ -309,7 +264,7 @@ console.log( '>>>>>>>>>> res', res );
 		}</div>,
     },
     {
-      title: "Date of insertion",
+      title: getAContent( 'cmp_vetonest.com_Di20Jp58Xn' ),
       dataIndex: "createdAt",
       key: "createdAt",
       width: 200,
@@ -324,7 +279,7 @@ console.log( '>>>>>>>>>> res', res );
             render: (_, vetos) =>
               vetos.id == profileId ?
                 <Button danger onClick={() => quitClinic(vetos.id)}>
-                  Quit
+					{getAContent( 'cmp_vetonest.com_Qc71Hs48Nm' ) } 
                 </Button>
                 : null,
           },
@@ -334,39 +289,39 @@ console.log( '>>>>>>>>>> res', res );
 
   const invitationColumns = [
     {
-      title: "Name",
+      title: getAContent( 'cmp_vetonest.com_wc4hVvXB3N' ),
       dataIndex: "name",
       key: "name",
       render: (t) => <strong>{t}</strong>,
     },
     {
-      title: "Biography",
+      title: getAContent( 'cmp_vetonest.com_Mn2Vr7sLpQ' ),
       dataIndex: "biography",
       key: "biography",
       render: (t) => <div style={{ maxWidth: 420 }}>{t}</div>,
     },
     {
-      title: "Speciality",
+      title: getAContent( 'cmp_vetonest.com_Sp44Ma27Kw' ),
       dataIndex: "speciality",
       key: "speciality",
       render: (t) => <div style={{ maxWidth: 420 }}>{t}</div>,
     },
     {
-      title: "Status",
+      title: getAContent( 'cmp_vetonest.com_St66Qr91Pa' ),
       dataIndex: "status",
       key: "status",
       width: 140,
       render: (s) => (s === true ? <Tag color="blue">Viewed</Tag> : <Tag color="orange">Not viewed</Tag>),
     },
     {
-      title: "Date of sending",
+      title: getAContent( 'cmp_vetonest.com_Ds18Nc43Lm' ),
       dataIndex: "sentAt",
       key: "sentAt",
       width: 200,
       render: (d) => formatDate(d),
     },
     {
-      title: "Resend",
+      title: getAContent( 'cmp_vetonest.com_Re92Hw07Qm' ),
       key: "resend",
       width: 120,
       render: (_, record) => <Button onClick={() => resendInvitation(record.id)}>Resend</Button>,
@@ -387,9 +342,10 @@ console.log( '>>>>>>>>>> res', res );
 	
 	return (
 		<>
-			<Header />
-			<Title title = { 'etablissement_title' } />
-			<div className="back_re">
+		
+      <div className="sticky-stack">
+        <Header />
+        <Title title={getAContent( 'cmp_vetonest.com_y50xzTXzES' )} />
       </div>
 
       <div className="contact">
@@ -399,8 +355,9 @@ console.log( '>>>>>>>>>> res', res );
 			   <div className="container py-4">
 				  <div className="row mb-3">
 					<div className="col-12">
-					  <h1>{clinicData.nom}</h1>
+					  <h1 className="text-muted">{clinicData.nom}</h1>
 					  <p className="text-muted">{clinicData.etablissementType}</p>
+<p className="small">{getAContent( 'cmp_vetonest.com_Rb73Qx91Lm' )} <a href='#' className="text-info" style={{cursor:'pointer'}}>  { clinicData.creatorPrenom + ' ' + clinicData.creatorNom }</a></p>
 					</div>
 				  </div>
 				<div className="row mb-3">
@@ -435,7 +392,7 @@ console.log( '>>>>>>>>>> res', res );
 
 					  <div className="row">
 						<div className="col-12">
-						  <h4>Invitations</h4>
+						  <h4>getAContent( 'cmp_vetonest.com_In51Za84Ct' )</h4>
 						  <Table
 							rowKey={(r) => r.id}
 							dataSource={invitations}
