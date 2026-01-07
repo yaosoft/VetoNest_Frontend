@@ -1,140 +1,187 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { Badge, Dropdown, List, Button } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
-const Notifications = ( params ) => {
+import { Link } from "react-router-dom";
 
-  	// context
-	const { 
-		profileId,
-		userId
-	} = useContext( AuthContext );
+const Notifications = () => {
+  // contexts
+  const { userId } = useContext(AuthContext);
 
-	const { 
-		getUserNotifications,
-		generateRandomDigits,
-		notificationViewed,
-	} = useContext( SiteContext );
+  const {
+    getUserNotifications,
+    generateRandomDigits,
+    notificationViewed,
+    getAContent,
+  } = useContext(SiteContext);
 
-	const [ unread, setUnread ] = useState(0);
-	const [ notifications, setNotifications ] = useState([]);
-	const [ notificationData, setNotificationData ] = useState([]);
+  // state
+  const [unread, setUnread] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationTitle, setNotificationTitle] = useState("");
 
-	const dropdownContent = (
-		<div style={{ width: 360, backgroundColor: '#c1ff72' }}>
-		<div style={{ padding: 2, fontSize: '12px' }}><b>Notification_title</b></div>
-		<List
-			dataSource={notifications}
-			locale={{ emptyText: "No notifications" }}
-			renderItem={(item) => <List.Item>&nbsp;{item.text}</List.Item>}
-			style={{ maxHeight: 260, overflowY: "auto" }}
-		/>
-		<div style={{ padding: 8, textAlign: "center" }}>
-			<Button type="link" size="small" onClick={() => setUnread(0)}>
-				Mark all as read
-			</Button>
-			</div>
-		</div>
-	);
+  // mark notification as viewed
+  const handleNotificationClick = async (notificationId) => {
+    try {
+      await notificationViewed({ notificationId });
+    } catch (err) {
+      console.error("Notification update error", err);
+    }
+  };
 
-	//
-	const handleNotificationClick = async(notificationId) => {
-		const notificationData = {
-			notificationId: notificationId
-		}
-		const rep = await notificationViewed ( notificationData );
-		if( !rep )
-			console.log( 'Notification update error' )
-	}
+  // build notification item
+  const buildNotification = (notification) => {
+    let notificationText = "";
 
-	useEffect(() => {
-		// get user's notification
-		const a = async() => {
-			const userNotifications = await getUserNotifications( userId );
-console.log( '>>>>> userNotifications', userNotifications );
-			var notificationText 	= '';
-			var notificationUrl 	= '';
-			var notifications 		= [];
-			var countUnread 		= 0;
-			for( const notification of userNotifications ){
-				// text
-				
-				if( notification.notificationTypeId == 1 ){	// You received an invitation to join a clinic
-					notificationText = 'notificationText_You_received_an_invitation_to_join' + ' ' + notification.etablissementName;
-					notificationUrl  = <Link
-						to={{
-							pathname: '/etablissement',
-							search: '?userId=' + userId + '&etablissementId=' + notification.etablissementId,
-						}}
-						onClick={handleNotificationClick(notification.id)}
-						style={{ fontWeight: notification.viewed ? 'normal' : 'bold' }}
-					>
-						{ notificationText }
-					</Link> 
-				}
-				if( notification.notificationTypeId == 2 ){	// You received an invitation to join a clinic
-					notificationText = 'notificationText_Your_invitation_was_accepted' + ' ' + notification.receiverName;
-					notificationUrl  = <Link
-						to={{
-							pathname: '/etablissement',
-							search: '?userId=' + userId + '&etablissementId=' + notification.etablissementId,
-						}}
-						onClick={handleNotificationClick(notification.id)}
-						style={{ fontWeight: notification.viewed ? 'normal' : 'bold' }}
-					>
-						{ notificationText }
-					</Link> 
-				}
-				if( notification.notificationTypeId == 3 ){	// You received an invitation to join a clinic
-					notificationText = 'notificationText_Your_invitation_was_declined' + ' ' + notification.receiverName;
-					notificationUrl  = <Link
-						to={{
-							pathname: '/etablissement',
-							search: '?userId=' + userId + '&etablissementId=' + notification.etablissementId,
-						}}
-						onClick={handleNotificationClick(notification.id)}
-						style={{ fontWeight: notification.viewed ? 'normal' : 'bold' }}
-					>
-						{ notificationText }
-					</Link> 
-				}
-				// unread
-				if( !notification.viewed )
-					countUnread++;
-				
-				// notification
-				const obj = { id: generateRandomDigits(3), text: notificationUrl };
-				notifications.push( obj );
-			}
-console.log( '>>>>>>>>>>>>> notifications', notifications );
-			setNotifications( notifications );
-			setUnread( countUnread );
+    if (notification.notificationTypeId === 1) {
+      notificationText =
+        getAContent("cmp_vetonest.com_Yr82Ld55Qx") +
+        " " +
+        notification.etablissementName;
+    }
 
-	// const notifications = [
-		// { id: 1, text: "Welcome to the app!" },
-		// { id: 2, text: "Your profile was updated." },
-	// ];
+    if (notification.notificationTypeId === 2) {
+      notificationText =
+        "notificationText_Your_invitation_was_accepted " +
+        notification.receiverName;
+    }
 
+    if (notification.notificationTypeId === 3) {
+      notificationText =
+        getAContent("cmp_vetonest.com_Dc57Zm91Ha") +
+        " " +
+        notification.receiverName;
+    }
 
-		}
-		a();
+    return {
+      id: generateRandomDigits(3),
+      text: (
+        <Link
+          to={{
+            pathname: "/etablissement",
+            search:
+              "?userId=" +
+              userId +
+              "&etablissementId=" +
+              notification.etablissementId,
+          }}
+          onClick={() => handleNotificationClick(notification.id)}
+          style={{
+            fontWeight: notification.viewed ? "normal" : "bold",
+          }}
+        >
+          {notificationText}
+        </Link>
+      ),
+    };
+  };
 
-	}, [ userId ]); // Dependency array ensures effect runs when isModalOpen changes
+  // load notifications when dropdown opens
+  const loadNotifications = async () => {
+    setNotificationTitle(
+      await getAContent("cmp_vetonest.com_Tp92Ka61Wm")
+    );
+
+    const userNotifications = await getUserNotifications(userId);
+    if (!userNotifications) return;
+
+    const unreadNotifications = userNotifications.filter(
+      (n) => !n.viewed
+    );
+    const readNotifications = userNotifications.filter(
+      (n) => n.viewed
+    );
+
+    setUnread(unreadNotifications.length);
+
+    const finalNotifications = [];
+
+    if (unreadNotifications.length > 0) {
+      finalNotifications.push({
+        id: "unread-title",
+        text: (
+          <strong className="notification-section">
+            { getAContent( 'cmp_vetonest.com_Un84Ks39Wp' ) };
+          </strong>
+        ),
+      });
+
+      unreadNotifications.forEach((n) =>
+        finalNotifications.push(buildNotification(n))
+      );
+    }
+
+    if (readNotifications.length > 0) {
+      finalNotifications.push({
+        id: "read-title",
+        text: (
+          <strong className="notification-section">
+		  { getAContent( 'cmp_vetonest.com_Ea19Qw72Lp' ) };
+          </strong>
+        ),
+      });
+
+      readNotifications.forEach((n) =>
+        finalNotifications.push(buildNotification(n))
+      );
+    }
+
+    setNotifications(finalNotifications);
+  };
+
+  // dropdown content
+  const dropdownContent = (
+    <div
+      style={{
+        width: 400,
+        backgroundColor: "#ffde59",
+        padding: 10,
+      }}
+    >
+      <div style={{ padding: 2, fontSize: 12 }}>
+        <b>{notificationTitle}</b>
+      </div>
+
+      <List
+        dataSource={notifications}
+        locale={{
+          emptyText: getAContent(
+            "cmp_vetonest.com_Nt71Qm82La"
+          ),
+        }}
+        renderItem={(item) => (
+          <List.Item>{item.text}</List.Item>
+        )}
+        style={{ maxHeight: 240, overflowY: "auto" }}
+      />
+
+      <div style={{ padding: 8, textAlign: "center" }}>
+        <Button type="link" size="small" onClick={() => setUnread(0)}>
+          {getAContent("cmp_vetonest.com_Ma63Ps40Rw")}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
-    <Dropdown
-      overlay={dropdownContent}
-      trigger={["click"]}
-      placement="bottomRight"
-      arrow
-    >
+	<Dropdown
+	  trigger={["click"]}
+	  placement="bottomRight"
+	  arrow
+	  popupRender={() => dropdownContent}
+	  onOpenChange={(open) => {
+		if (open) loadNotifications();
+	  }}
+	  overlayClassName="notifications-dropdown"
+	>
       <Badge count={unread} size="small">
-        <BellOutlined style={{ fontSize: 20, cursor: "pointer" }} />
+        <BellOutlined
+          style={{ fontSize: 20, cursor: "pointer" }}
+        />
       </Badge>
     </Dropdown>
   );
-}
+};
 
 export default Notifications;

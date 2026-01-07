@@ -36,24 +36,58 @@ const InputCode = ({ length, label, loading, onComplete }) => {
     }
   };
 
+
+	const handlePaste = (e) => {
+	  e.preventDefault();
+
+	  const pasted = e.clipboardData
+		.getData('text')
+		.replace(/\D/g, ''); // <-- remove ALL non-digits
+
+	  if (!pasted) return;
+
+	  const digits = pasted.slice(0, length).split('');
+	  const newCode = [...code];
+
+	  digits.forEach((digit, idx) => {
+		newCode[idx] = digit;
+	  });
+
+	  setCode(newCode);
+
+	  // focus next empty input
+	  const nextIndex = digits.length >= length ? length - 1 : digits.length;
+	  inputs.current[nextIndex]?.focus();
+
+	  if (digits.length === length) {
+		onComplete(digits.join(''));
+	  }
+	};
+
+	useEffect(() => {
+	  setCode([...Array(length)].map(() => ""));
+	}, [length]);
+
   return (
     <div className="code-input">
       <label className="code-label">{ signeUp_codeLabel }</label>
       <div className="code-inputs">
         {code.map((num, idx) => {
-          return (
+          return (		  
             <input
-              key={idx}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={num}
-              autoFocus={!code[0].length && idx === 0}
-              readOnly={loading}
-              onChange={e => processInput(e, idx)}
-              onKeyUp={e => onKeyUp(e, idx)}
-              ref={ref => inputs.current.push(ref)}
-            />
+			  key={idx}
+			  type="text"
+			  inputMode="numeric"
+			  autoComplete="one-time-code"
+			  maxLength={1}
+			  value={num}
+			  autoFocus={!code[0].length && idx === 0}
+			  readOnly={loading}
+			  onChange={e => processInput(e, idx)}
+			  onKeyUp={e => onKeyUp(e, idx)}
+			  onPaste={handlePaste}
+			  ref={ref => (inputs.current[idx] = ref)}
+			/>
           );
         })}
       </div>

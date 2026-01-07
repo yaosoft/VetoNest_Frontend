@@ -26,6 +26,7 @@ const SingleFieldManager = ( params ) => {
 		setSelectedAbsenceId,
 		setSelectedHollydayId,
 		setSelectedTimeslotId,
+		setSelectedLieuId,
 		selectedTimeslotOpen,
 		setSelectedTimeslotOpen,
 		setSelectedVetoClinique,
@@ -79,7 +80,7 @@ const SingleFieldManager = ( params ) => {
 		// go to Link
 		const goToLink = params.params.goToLink && params.params.goToLink;
 		setGoToLink( goToLink );
-console.log( 'fffffffffffffff', fieldName );
+// console.log( 'fffffffffffffff', fieldName );
 		// style
 		if( fieldName == 'Opened' )
 			setBackgroundColor( 'backgroundOlive' )
@@ -89,8 +90,8 @@ console.log( 'fffffffffffffff', fieldName );
 			setBackgroundColor( 'backgroundInactive02' )
 		else if( fieldName == 'Hollydays' )
 			setBackgroundColor( 'backgroundInactive03' )
-		else if( fieldName == 'Etablissement' )
-			setBackgroundColor( 'backgroundEtablissement01' )
+		else if ( fieldName.startsWith('Etablissement') )
+			setBackgroundColor( 'backgroundAddAnimaux01' )
 		else if( fieldName == 'Animaux' && type == 1 )
 			setBackgroundColor( 'backgroundAddAnimaux01' )
 		else setBackgroundColor( 'backgroundOlive' )
@@ -103,7 +104,9 @@ console.log( 'fffffffffffffff', fieldName );
 			const allowed = totalAnimals < maxAnimals ? true : false;
 			setModalAllowed( allowed )
 		}
-			
+		
+
+
 	}, [title, params.params] );
 
 
@@ -151,8 +154,17 @@ console.log( 'fffffffffffffff', fieldName );
 			const title = await params.params.title;
 			setVisibleModalTitle( title );
 
+			// Lieu transport
+			if( fieldName == "Etablissement_lieu" && params.params.lieuId ){
+				const lieuId = params.params.lieuId;
+				setSelectedLieuId( lieuId );
+			}
+			else{
+				setSelectedLieuId( null );
+			}
+
 			setModalProfileIdentityOpen( true );
-			setVisibleModalName( params.params.fieldName );
+			setVisibleModalName( fieldName );
 		}
 		a()
 	}
@@ -185,7 +197,7 @@ console.log( 'fffffffffffffff', fieldName );
 					<a
 						href= { goToLink }
 					>
-						{ getAContent( '111' ) }
+						{ getAContent( 'cmp_vetonest.com_Tb91Qw4NcR' ) }
 					</a>
 				</span>
 			)
@@ -196,19 +208,24 @@ console.log( 'fffffffffffffff', fieldName );
 		{
 			user &&
 			<>
-				<div key={'timeslot_' + title} className='row singleFieldManager height40'>
-					<div className={ 'dataDiv textAlignLeft ' + backgroundColor } >
-						<span>{ value ? value : placeholder } &nbsp; { description && BuildTooltip(description) }</span>
+				<div key={'timeslot_' + title} className="row singleFieldManager height40">
+					<div className={ 'dataDiv textAlignLeft ' + backgroundColor }>
+						<span>
+							{ value ? value : placeholder }
+							&nbsp;
+							{ description && BuildTooltip(description) }
+						</span>
 					</div> 
-					<div 
-						className={`borderRadius18 singleFieldManagerArrow  ${!type ? backgroundColor : 'buttonDiv'}`}
-						role={'button'}
+					<div
+						className={`buttonDiv borderRadius18 singleFieldManagerArrow ${!type ? backgroundColor : 'backgroundYellow'}`}
+						role="button"
 						tabIndex={0}
-						onClick={ (e) => handleClickField( fieldName ) }
+						onClick={() => handleClickField(fieldName)}
 					>
-						<span>{ BuildArrowContent( type ) }</span>
+						<span>{ BuildArrowContent(type) }</span>
 					</div>
 				</div>
+
 			</>
 		}
 	</>

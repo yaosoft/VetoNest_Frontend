@@ -188,7 +188,7 @@ const SearchBox = () => {
 					 </div>
 					</div> 
 				</div> 
-				<div className="col-1 backgroundOlive searchButtonDiv searchButtonDivsearchButtonDiv borderRightRadius18"
+				<div className="col-1 backgroundYellow searchButtonDiv searchButtonDivsearchButtonDiv borderRightRadius18"
 					style={{ marginLeft: '-2%' }}
 				> 
 					<span 
@@ -198,7 +198,7 @@ const SearchBox = () => {
 							height: '45px'
 						}}
 					>
-						Recherche
+					{ getAContent( 'cmp_vetonest.com_Sr82Lm49Qx' ) }
 					</span>
 					&nbsp;<span><i className="fa fa-arrow-right"></i></span>
 				</div> 
