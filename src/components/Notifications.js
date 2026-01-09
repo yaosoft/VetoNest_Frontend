@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Badge, Dropdown, List, Button } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 import { AuthContext } from "../context/AuthProvider";
@@ -20,38 +20,42 @@ const Notifications = () => {
   const [unread, setUnread] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [notificationTitle, setNotificationTitle] = useState("");
-
+  const [open, setOpen] = useState(false);
+  
   // mark notification as viewed
-  const handleNotificationClick = async (notificationId) => {
-    try {
-      await notificationViewed({ notificationId });
-    } catch (err) {
-      console.error("Notification update error", err);
-    }
-  };
+	const handleNotificationClick = async (notificationId) => {
+	  try {
+		await notificationViewed({ notificationId });
+		setUnread((prev) => Math.max(prev - 1, 0));
+		setOpen(false); // 👈 CLOSE DROPDOWN
+	  } catch (err) {
+		console.error("Notification update error", err);
+	  }
+	};
 
   // build notification item
   const buildNotification = (notification) => {
     let notificationText = "";
 
-    if (notification.notificationTypeId === 1) {
+    if (notification.notificationTypeId === 1) { // You received an invitation to join etablissementName
       notificationText =
         getAContent("cmp_vetonest.com_Yr82Ld55Qx") +
         " " +
         notification.etablissementName;
     }
 
-    if (notification.notificationTypeId === 2) {
-      notificationText =
-        "notificationText_Your_invitation_was_accepted " +
-        notification.receiverName;
+    if (notification.notificationTypeId === 2) { // The invitation sent to receiverName was accepted.
+      notificationText = 
+		getAContent( "cmp_vetonest.com_InvSent_Txt" ) + " " + 
+		notification.receiverName + " " + 
+		getAContent( "cmp_vetonest.com_InvAcc_Txt" ) 
     }
 
-    if (notification.notificationTypeId === 3) {
-      notificationText =
-        getAContent("cmp_vetonest.com_Dc57Zm91Ha") +
-        " " +
-        notification.receiverName;
+    if (notification.notificationTypeId === 3) { // The invitation sent to receiverName was declined
+      notificationText = 
+		getAContent( "cmp_vetonest.com_InvSent_Txt" ) + " " + 
+		notification.receiverName + " " + 
+		getAContent( "cmp_vetonest.com_InvDecl_Txt" ) 
     }
 
     return {
@@ -130,15 +134,25 @@ const Notifications = () => {
     setNotifications(finalNotifications);
   };
 
+
+	useEffect(() => {
+	  const loadUnreadCount = async () => {
+		const userNotifications = await getUserNotifications(userId);
+		if (!userNotifications) return;
+		const unreadNotifications = userNotifications.filter(
+		  (n) => !n.viewed
+		);
+
+		setUnread(unreadNotifications.length);
+	  };
+
+	  loadUnreadCount();
+	}, [unread]);
+
+
   // dropdown content
   const dropdownContent = (
-    <div
-      style={{
-        width: 400,
-        backgroundColor: "#ffde59",
-        padding: 10,
-      }}
-    >
+    <div className="notifications-popup">
       <div style={{ padding: 2, fontSize: 12 }}>
         <b>{notificationTitle}</b>
       </div>
@@ -170,17 +184,22 @@ const Notifications = () => {
 	  placement="bottomRight"
 	  arrow
 	  popupRender={() => dropdownContent}
-	  onOpenChange={(open) => {
-		if (open) loadNotifications();
+	  open={open}
+	  onOpenChange={(nextOpen) => {
+		setOpen(nextOpen);
+		if (nextOpen) loadNotifications();
 	  }}
 	  overlayClassName="notifications-dropdown"
+	  autoAdjustOverflow
 	>
-      <Badge count={unread} size="small">
+
+      <Badge count={unread} size="small" showZero={false}>
         <BellOutlined
           style={{ fontSize: 20, cursor: "pointer" }}
         />
       </Badge>
     </Dropdown>
+	
   );
 };
 

@@ -66,9 +66,11 @@ export default function HomePage() {
                 <Link to="/inscription" className="btn backgroundYellow">
                   {getAContent("cmp_vetonest.com_Cm22Er00Te")}
                 </Link>
-                <Link to="/recherche" className="btn backgroundBlack text-white">
-                  {getAContent("cmp_vetonest.com_Tv66Ve88Ri")}
-                </Link>
+                  {/*
+				  <Link to="/recherche" className="btn backgroundBlack text-white">
+					{getAContent("cmp_vetonest.com_Tv66Ve88Ri")}
+				  </Link>
+				  */}
               </div>
             </div>
 
@@ -91,7 +93,7 @@ export default function HomePage() {
             <p className="section-sub">
               {getAContent("cmp_vetonest.com_Pv33Ve55Ve")}
             </p>
-
+			<p>&nbsp;</p>
             <div className="flags-row">
               {countries.map((c) => (
                 <div key={c.code} className="flag-item">
@@ -114,17 +116,18 @@ export default function HomePage() {
         <section className="why">
           <div className="container grid-2 align-top">
             <div className="why-text">
-              <div className="searchTitle">
+              <div className="customSectionTitle">
                 {getAContent("cmp_vetonest.com_Sm22Ma66Tc")}
               </div>
+			  <p>&nbsp;</p>
               <p>
-                {getAContent("cmp_vetonest.com_Gt88Al44Go")}
+                {getAContent("cmp_vetonest.com_Vn92Qw77Rt")}
               </p>
 			  <p>
                 <br/>
               </p>
 			  <p>
-                {getAContent("cmp_vetonest.com_Vn92Qw77Rt")}
+                {getAContent("cmp_vetonest.com_Gt88Al44Go")}
               </p>
             </div>
 
@@ -141,10 +144,10 @@ export default function HomePage() {
         {/* SERVICES */}
         <section className="services">
           <div className="container">
-            <div className="searchTitle">
+            <div className="customSectionTitle">
               {getAContent("cmp_vetonest.com_Dc22Co99Ad")}
             </div>
-
+			<p>&nbsp;</p>
             <div className="grid-3">
               <div className="card service-card">
                 <div className="image-wrapper">
@@ -186,13 +189,15 @@ export default function HomePage() {
         <section className="ai-section">
           <div className="container grid-2">
             <div>
-              <div className="searchTitle">
+              <div className="customSectionTitle">
                 {getAContent("cmp_vetonest.com_Cs99Sy11As")}
               </div>
-
-              <p>
+				<p>&nbsp;</p>
+              { /* <p>
                 {getAContent("cmp_vetonest.com_Rs33Sy44In")}
               </p>
+			  <p>&nbsp;</p>
+			  */ }
               <p>
                 {getAContent("cmp_vetonest.com_Fv55Ve66Cl")}
               </p>
@@ -216,7 +221,7 @@ export default function HomePage() {
         <section className="trust">
           <div className="container grid-2">
             <div>
-              <div className="searchTitle">
+              <div className="customSectionTitle">
                 {getAContent("cmp_vetonest.com_Dv99Ve11Tr")}
               </div>
               <p className="lead">
@@ -224,11 +229,14 @@ export default function HomePage() {
               </p>
 				<p>&nbsp;</p>
               <ul className="checklist">
-                <li>{getAContent("cmp_vetonest.com_Vv33Ve44Ex")}</li>
                 <li>{getAContent("cmp_vetonest.com_Av55Vi66Qu")}</li>
                 <li>{getAContent("cmp_vetonest.com_Dm77Se88Cu")}</li>
                 <li>{getAContent("cmp_vetonest.com_Vd99Me11St")}</li>
                 <li>{getAContent("cmp_vetonest.com_Rr11Rd22Vz")}</li>
+				<li>{getAContent("cmp_vetonest.com_Vv33Ve44Ex")}</li>
+				<li>{getAContent("cmp_vetonest.com_ClReg33Bt")}</li>
+				<li>{getAContent("cmp_vetonest.com_VtInv44Bt")}</li>
+				
               </ul>
             </div>
 

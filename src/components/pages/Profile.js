@@ -308,9 +308,9 @@ const Profile = ( params ) => {
 			setHollydays( hollydays );
 			setCountHollydays( hollydays.length );
 			
-		}
+		} 
 		a();
-	}, [ modalProfileIdentityOpen, profileFormUpdated ] ); 
+	}, [ modalProfileIdentityOpen, profileFormUpdated, fileList ] ); 
 
 	useEffect(() => {
 		// get user pet'
@@ -539,8 +539,6 @@ const Profile = ( params ) => {
 	  }
 	}, [userPets]);
 
-
-
 	// build pets list 
 	const BuildUserPetsList = () =>{ 
 		if( !userPets.length ) 
@@ -548,7 +546,6 @@ const Profile = ( params ) => {
 		
 		return(
 		<>
-
 				{
 					userPets.map( e => (
 						<div className="pet-card" key={e.id}>
@@ -682,17 +679,18 @@ const Profile = ( params ) => {
             }
             style={{ width: '100%' }}
           />
-
+			<div className="gray">
+			{ getAContent( 'cmp_vetonest.com_Ph44Pr11Pu' ) }
+			</div>
           <div className="mt-3">
             <Dragger {...props}>
               <i className="fa fa-camera" />{' '}
               {getAContent('cmp_vetonest.com_Su6Qp0zVtY')}
             </Dragger>
           </div>
-			<div className="gray">
-			{ getAContent( 'cmp_vetonest.com_Ph44Pr11Pu' ) }
-			</div>
+			
         </div>
+		<p>&nbsp;</p>
       </div>
 
       {/* ========== RIGHT COLUMN : CONTENT ========== */}
