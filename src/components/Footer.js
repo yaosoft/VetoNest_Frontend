@@ -229,7 +229,7 @@ const Footer = () => {
                <div className="container">
                   <div className="row">
                      <div className="col-md-10 offset-md-1">
-                        <p > © 2025 <span id="cmp_vetonest.com_hMmiaD2Hx6">All Rights Reserved.</span> </p>
+                        <p > © 2026 <span id="cmp_vetonest.com_hMmiaD2Hx6">All Rights Reserved.</span> </p>
                      </div>
                   </div>
                </div>

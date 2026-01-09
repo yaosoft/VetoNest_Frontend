@@ -40,11 +40,6 @@ display: block;
 }
 
 /* ================= 2. Layout Helpers ================= */
-.container {
-max-width: 1200px;
-margin: 0 auto;
-padding: 0 20px;
-}
 
 section {
 padding: 35px 0;

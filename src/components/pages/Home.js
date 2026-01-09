@@ -186,25 +186,22 @@ export default function HomePage() {
         </section>
 
         {/* AI */}
-        <section className="ai-section">
-          <div className="container grid-2">
-            <div>
+		<section className="why">
+          <div className="container grid-2 align-top">
+            <div className="why-text">
               <div className="customSectionTitle">
                 {getAContent("cmp_vetonest.com_Cs99Sy11As")}
               </div>
-				<p>&nbsp;</p>
-              { /* <p>
-                {getAContent("cmp_vetonest.com_Rs33Sy44In")}
-              </p>
 			  <p>&nbsp;</p>
-			  */ }
               <p>
                 {getAContent("cmp_vetonest.com_Fv55Ve66Cl")}
               </p>
-			  <p>&nbsp;</p>
 			  <p>
-			    {getAContent("cmp_vetonest.com_Pl88Za22Xm")}
-			  </p>
+                <br/>
+              </p>
+			  <p>
+                {getAContent("cmp_vetonest.com_Pl88Za22Xm")}
+              </p>
             </div>
 
             <div className="image-card">
