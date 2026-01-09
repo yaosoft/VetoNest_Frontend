@@ -236,13 +236,13 @@ const SignIn = ( params ) => {
 
 	return (
 		<>
+		  <div className="sticky-stack">
+			<Header />
+			<Title title={getAContent( 'cmp_vetonest.com_OK6429mzTG' )} />
+		  </div>
 
-		<Header />
-
-            <Title title = { getAContent( 'cmp_vetonest.com_OK6429mzTG' ) } />
-			<div className="afterSticky row">&nbsp;</div>
-			<div className="login-form-bg h-100">
-				<div className="container h-100">
+			
+				<div className="container">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="">
@@ -360,7 +360,7 @@ const SignIn = ( params ) => {
 							
 					</div>
 				</div>
-			</div>
+			
 			<div>&nbsp;</div>
 			<div className ="displayNone" >
 				<span 

@@ -638,9 +638,10 @@ console.log( 'Check email', rep );
 					
 		</Modal>
 		
-		<Header />
-		<Title title = { getAContent( 'cmp_vetonest.com_bL1MO9LnVv' ) } />
-		<div className="afterSticky row">&nbsp;</div>
+		  <div className="sticky-stack">
+			<Header />
+			<Title title={getAContent( 'cmp_vetonest.com_bL1MO9LnVv' )} />
+		  </div>
            
 			<div className="login-form-bg h-100">
 				<div className="container h-100">

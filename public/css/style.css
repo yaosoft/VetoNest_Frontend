@@ -35,7 +35,10 @@
 
 .container {
      /* max-width: 1170px; */
-	 max-width: 98%;
+	max-width: 98%;
+	margin: 0 auto;
+	/* padding: 20px; */
+	padding: 20px;
 }
 
 html {
@@ -1926,7 +1929,7 @@ button {
   height: 40px;
   line-height: 40px;
   background-color: #fff;
-  border-bottom: 1px solid #2eb34c;
+  border-bottom: 0px solid #2eb34c;
 }
 
 .page-content {
@@ -1939,7 +1942,7 @@ button {
 
 .App{
   background-color: #fff;
-  margin-top: 3%;
+  /* margin-top: 2%; */
 }
 
 .afterSticky {
@@ -3006,7 +3009,7 @@ ul.social_icon li a:hover {
 /* ================= PROFILE / PANELS ================= */
 
 .profile-page {
-  padding-top: 24px;
+  padding-top: 15px;
 }
 
 .profile-block {
@@ -3198,9 +3201,9 @@ ul.social_icon li a:hover {
 }
 
 .layout-container {
-  max-width: 1200px;
+  /* max-width: 1200px; */
   margin: 0 auto;
-  padding: 0 24px;
+  /* padding: 0 24px; */
 }
 
 body {
