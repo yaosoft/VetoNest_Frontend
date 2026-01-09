@@ -386,18 +386,20 @@ console.log( '>>>>>>>>>> res', res );
 					  <div className="row mb-4">
 						<div className="col-12">
 						  <h4>Vets</h4>
-						  <Table rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
+						  <Table scroll={{ x: true }} rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
 						</div>
 					  </div>
 
 					  <div className="row">
 						<div className="col-12">
-						  <h4>getAContent( 'cmp_vetonest.com_In51Za84Ct' )</h4>
+						  <h4>{ getAContent( 'cmp_vetonest.com_In51Za84Ct' ) }</h4>
 						  <Table
+							scroll={{ x: true }}
 							rowKey={(r) => r.id}
 							dataSource={invitations}
 							columns={invitationColumns}
 							pagination={{ pageSize: 5 }}
+							scroll={{ x: true }}
 						  />
 						</div>
 					  </div>
@@ -431,7 +433,7 @@ console.log( '>>>>>>>>>> res', res );
 					<div className="row mb-3">
 					  <div className="col-12">
 						<h4>Vets</h4>
-						<Table rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
+						<Table scroll={{ x: true }} rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
 					  </div>
 					</div>
 				  )}
@@ -440,7 +442,7 @@ console.log( '>>>>>>>>>> res', res );
 					<div className="row mb-3">
 					  <div className="col-12">
 						<h4>Vets</h4>
-						<Table rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
+						<Table scroll={{ x: true }} rowKey={(r) => r.id} dataSource={vets} columns={vetColumns} pagination={{ pageSize: 5 }} />
 					  </div>
 					</div>
 				  )}
@@ -453,5 +455,6 @@ console.log( '>>>>>>>>>> res', res );
 		</>
 	);
 };
+
 
 export default Etablissement;

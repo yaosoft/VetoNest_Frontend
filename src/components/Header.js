@@ -147,7 +147,7 @@ console.log( '>>>>>>>>>>> currentUser:', currentUser );
 	return (
 		<>
 		<SecuredPagesAuth />
-			<header className="stick" style={{marginTop:0}}>
+			<header className="stick">
 				<div className="header">
 					<div className="container">
 					<div className="header-row">
