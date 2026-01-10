@@ -33,7 +33,7 @@ export default function HomePage() {
         <section className="hero">
           <div
             className="hero-bg"
-            style={{ backgroundImage: "url('/img/home/hero-bg-blur.jpg')" }}
+            style={{ backgroundImage: "url('/img/Home/hero-bg-blur.jpg')" }}
           />
           <div className="hero-overlay" />
 
@@ -76,7 +76,7 @@ export default function HomePage() {
 
             <div className="hero-image">
               <img
-                src="/img/home/hero.jpg"
+                src="/img/Home/hero.jpg"
                 alt={getAContent("cmp_vetonest.com_Cv00Ch44In")}
               />
             </div>
@@ -133,7 +133,7 @@ export default function HomePage() {
 
             <div className="image-card">
               <img
-                src="/img/home/smart-matching.jpg"
+                src="/img/Home/smart-matching.jpg"
                 alt={getAContent("cmp_vetonest.com_Ti55Pr44Im")}
                 loading="lazy"
               />
@@ -152,7 +152,7 @@ export default function HomePage() {
               <div className="card service-card">
                 <div className="image-wrapper">
                   <img
-                    src="/img/home/online.jpg"
+                    src="/img/Home/online.jpg"
                     alt={getAContent("cmp_vetonest.com_Ce33Li11Ne")}
                   />
                 </div>
@@ -163,7 +163,7 @@ export default function HomePage() {
               <div className="card service-card">
                 <div className="image-wrapper">
                   <img
-                    src="/img/home/clinic.jpg"
+                    src="/img/Home/clinic.jpg"
                     alt={getAContent("cmp_vetonest.com_Ce55Cl22In")}
                   />
                 </div>
@@ -174,7 +174,7 @@ export default function HomePage() {
               <div className="card service-card">
                 <div className="image-wrapper">
                   <img
-                    src="/img/home/home.jpg"
+                    src="/img/Home/home.jpg"
                     alt={getAContent("cmp_vetonest.com_Cd77Do11Mi")}
                   />
                 </div>
@@ -206,7 +206,7 @@ export default function HomePage() {
 
             <div className="image-card">
               <img
-                src="/img/home/ai-chat.jpg"
+                src="/img/Home/ai-chat.jpg"
                 alt={getAContent("cmp_vetonest.com_Av77Ia88Ch")}
                 loading="lazy"
               />
@@ -239,7 +239,7 @@ export default function HomePage() {
 
             <div className="image-card">
               <img
-                src="/img/home/vets-trust.jpg"
+                src="/img/Home/vets-trust.jpg"
                 alt={getAContent("cmp_vetonest.com_Ev33Pr44Tr")}
                 loading="lazy"
               />
@@ -268,7 +268,7 @@ export default function HomePage() {
 
             <div className="image-card">
               <img
-                src="/img/home/app.jpg"
+                src="/img/Home/app.jpg"
                 alt={getAContent("cmp_vetonest.com_Am55Mo11Vn")}
                 loading="lazy"
               />
