@@ -51,12 +51,12 @@ export const SiteProvider = ({ children }) => {
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend api url 
-	const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	// const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
 
 	// Backend public url 
-	const base_url = 'http://localhost/vetonest_backend/public/'; // dev
-	// const base_url = 'https://backend.vetonest.com/'// prod 
+	// const base_url = 'http://localhost/vetonest_backend/public/'; // dev
+	const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
