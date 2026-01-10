@@ -1909,7 +1909,7 @@ button {
 .sticky-stack {
   position: sticky;
   top: 0;
-  z-index: 2000;
+  z-index: 100;
   background: #00BF63;
   /* margin-bottom: 3%; */
 }
