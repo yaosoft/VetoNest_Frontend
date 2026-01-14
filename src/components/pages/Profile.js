@@ -263,6 +263,7 @@ const Profile = ( params ) => {
 			return
 		// get user profile info
 		const a = async () => {
+
 			// veto clinic info
 			if( profileTypeId == 2 ){
 				const vetoCliniqueInfo = await getVetoCliniqueInfo( profileId );
@@ -315,6 +316,7 @@ const Profile = ( params ) => {
 	useEffect(() => {
 		// get user pet'
 		const a = async() => {
+			// User pets
 			const userPets = await getUserPets( profileId );
 			if( userPets.length ){
 				setUserPets( userPets );
@@ -509,6 +511,17 @@ const Profile = ( params ) => {
 		return monthName;
 	}
 
+	const getEspeceName = ( especeId ) => {
+		if( !especes.length )
+			return '.'
+
+		const especeName = especes.filter( j => j.id == especeId ) [0] ? 
+								getAContent( especes.filter( j => j.id == especeId ) [0].tagRef ) : '—' 
+		
+		return especeName;
+	}
+	
+
 	// separator
 	const SectionSeparator = () => (
 	  <div className="row my-4">
@@ -526,12 +539,14 @@ const Profile = ( params ) => {
 		for (const pet of userPets) {
 		  if (pet?.espece?.id && pet?.race?.id) {
 			const breeds = await speciesBreedList(pet.espece.id);
+console.log( "++++++++++++++ breeds", breeds );			
 			const breed = breeds.find(b => b.id === pet.race.id);
+console.log( "aaaaaaaaaaaaaaaa breed", breed );	
 			map[pet.id] = breed ? breed.nom : '—';
 		  }
 		}
-
 		setBreedNames(map);
+		console.log( "bbbbbbbbbbbbbbbbb BreedNames", map );
 	  };
 
 	  if (userPets?.length) {
@@ -543,7 +558,7 @@ const Profile = ( params ) => {
 	const BuildUserPetsList = () =>{ 
 		if( !userPets.length ) 
 			return
-		
+console.log( 'uuuuuuuu', userPets );
 		return(
 		<>
 				{
@@ -582,8 +597,7 @@ const Profile = ( params ) => {
 
 							<div className="pet-meta">
 							  <div className="pet-meta-line">
-								<strong>{getAContent('cmp_vetonest.com_Sp94Te63Kz')}</strong> : { especes.filter( j => j.id == e.espece.id ) [0] ? 
-								getAContent( especes.filter( j => j.id == e.espece.id ) [0].tagRef ) : '—' }
+								<strong>{getAContent('cmp_vetonest.com_Sp94Te63Kz')}</strong> : { getEspeceName( e.espece.id ) }
 							  </div>
 							  <div className="pet-meta-line">
 								<strong>{getAContent('cmp_vetonest.com_Br61Mx80Qp')}</strong> : {breedNames[e.id] || '—'}
