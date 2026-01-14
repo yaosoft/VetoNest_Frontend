@@ -34,12 +34,12 @@ export const AuthProvider = ({ children }) => {
 		if( response.status == 200 ){
 			return response.json(); // parses JSON response into native JavaScript objects
 		}
-		
+
 	}
 
 	// Backend url 
-	// const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	const base_api_url	= 'https://backend.vetonest.com/api/' // prod 
+	const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	// const base_api_url	= 'https://backend.vetonest.com/api/' // prod 
 
 	// user
 	const [ user, setUser ] = useState( JSON.parse( localStorage.getItem( 'user' ) ) );

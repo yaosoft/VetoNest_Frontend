@@ -417,22 +417,29 @@ background: var(--green);
 }
 
 @media (max-width: 992px) {
-.grid-2,
-.grid-3,
-.hero-grid {
-grid-template-columns: 1fr;
+	.grid-2,
+	.grid-3,
+	.hero-grid {
+	grid-template-columns: 1fr;
+	}
+
+	.hero h1 {
+	font-size: 2.1rem;
+	}
+
+	.hero-image,
+	.image-card,
+	.app-image {
+	margin: 0 auto;
+	max-width: 100%;
+	}
 }
 
-.hero h1 {
-font-size: 2.1rem;
-}
+@media (max-width: 376px) {
 
-.hero-image,
-.image-card,
-.app-image {
-margin: 0 auto;
-max-width: 100%;
-}
+	.hero-image {
+		display: none;
+	}
 }
 
 @media (max-width: 768px) {
