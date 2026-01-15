@@ -111,7 +111,7 @@ const Header = () => {
 		const a = async () => {
 			// current user
 			const user = await getUser();
-console.log( '>>>>>>>>>>> currentUser:', currentUser );
+// console.log( '>>>>>>>>>>> currentUser:', currentUser );
 			setCurrentUser( user );
 			
 			// default site language
