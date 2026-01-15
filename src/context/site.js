@@ -51,12 +51,12 @@ export const SiteProvider = ({ children }) => {
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend api url 
-	// const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
 
 	// Backend public url 
-	// const base_url = 'http://localhost/vetonest_backend/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	const base_url = 'http://localhost/vetonest_backend/public/'; // dev
+	// const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -72,7 +72,8 @@ export const SiteProvider = ({ children }) => {
 	
 	// get user referrer
 	const getReferrer = () => {
-		return site.referrer;
+		return "/profile"; // temporary hack
+		// return site.referrer;
 	}
 
 	// check if email is not already registered
@@ -284,8 +285,8 @@ export const SiteProvider = ({ children }) => {
 		return str;
 	}
 
-	// const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
-	const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
+	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
+	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
