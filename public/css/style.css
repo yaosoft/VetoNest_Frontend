@@ -3232,6 +3232,9 @@ body {
   .notifications-popup {
     width: 90vw;
   }
+  .container {
+	max-width: 100%;
+  }
 }
 
 @media (max-width: 420px) {
