@@ -285,8 +285,8 @@ export const SiteProvider = ({ children }) => {
 		return str;
 	}
 
-	// cconst base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
-	onst base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
+	// const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
+	const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
