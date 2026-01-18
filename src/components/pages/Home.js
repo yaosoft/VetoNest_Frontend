@@ -215,6 +215,19 @@ export default function HomePage() {
 			  <p>
                 {getAContent("cmp_vetonest.com_Pl88Za22Xm")}
               </p>
+			  <p>
+                <br/>
+              </p>
+			  <div className="hero-cta">
+                <Link to="/inscription" className="btn btn-success">
+                  {getAContent("cmp_vetonest.com_TalkToVet_Bt")}
+                </Link>
+                  {/*
+				  <Link to="/recherche" className="btn backgroundBlack text-white">
+					{getAContent("cmp_vetonest.com_Tv66Ve88Ri")}
+				  </Link>
+				  */}
+              </div>
             </div>
 
             <div className="image-card">
