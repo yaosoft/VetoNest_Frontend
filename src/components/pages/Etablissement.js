@@ -63,7 +63,7 @@ const Etablissement = () => {
 
 // Read only userId from query string
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const etablissementId = params.get("etablissementId") || null;
+  const [ etablissementId, setEtablissementId ] = useState( params.get( "etablissementId" ) || null );
 
   // Internal state for role and currentVetId if relevant
   const [role, setRole] = useState(null);
@@ -91,7 +91,7 @@ const Etablissement = () => {
 		// set clinic's data
 		const clinicData = await getEtablissementInfo( etablissementId );
 console.log( '--------- > clinicData:', clinicData );
-console.log( '--------- > allSpecialities:', allSpecialities );
+console.log( '--------- > etablissementId:', etablissementId );
 
 		setInvitationMessage( clinicData.nom  + ' ' + getAContent( 'cmp_vetonest.com_Jx84Pm20Qw' ) );
 		// clinicData.locations = [
