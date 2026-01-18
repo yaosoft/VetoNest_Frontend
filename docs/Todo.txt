@@ -1,0 +1,4 @@
+- Titre: multilinge
+- Notofocation: action du bouton Marquer tout comme lu
+- Creation de compte: Renvoie du code de validation de boite email
+- affichage sur Ipad et Asus

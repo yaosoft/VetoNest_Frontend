@@ -130,7 +130,16 @@ export default function HomePage() {
                 {getAContent("cmp_vetonest.com_Gt88Al44Go")}
               </p>
             </div>
-
+			<div className="hero-cta">
+                <Link to="/inscription" className="btn btn-success">
+                  {getAContent("cmp_vetonest.com_GetAppt_Bt")}
+                </Link>
+                  {/*
+				  <Link to="/recherche" className="btn backgroundBlack text-white">
+					{getAContent("cmp_vetonest.com_Tv66Ve88Ri")}
+				  </Link>
+				  */}
+              </div>
             <div className="image-card">
               <img
                 src="/img/Home/smart-matching.jpg"
