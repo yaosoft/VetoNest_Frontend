@@ -259,8 +259,8 @@ console.log( '>>>>>>>>>> res', res );
       width: 160,
 	  render: (_, vetos) => <div style={{ maxWidth: 420, whiteSpace: "normal" }}>{
 		  ( allSpecialities.length && vetos.vetoSpecialite ) ?
-		    allSpecialities.filter( e => e.id == vetos.vetoSpecialite.id )[0].name
-		  : '-'
+		    getAContent( allSpecialities.filter( e => e.id == vetos.vetoSpecialite.id )[0].tagRef )
+		  : getAContent( 'cmp_vetonest.com_Ga83Kd92Lm' )
 		}</div>,
     },
     {

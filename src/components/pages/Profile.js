@@ -538,15 +538,12 @@ const Profile = ( params ) => {
 
 		for (const pet of userPets) {
 		  if (pet?.espece?.id && pet?.race?.id) {
-			const breeds = await speciesBreedList(pet.espece.id);
-console.log( "++++++++++++++ breeds", breeds );			
+			const breeds = await speciesBreedList(pet.espece.id);		
 			const breed = breeds.find(b => b.id === pet.race.id);
-console.log( "aaaaaaaaaaaaaaaa breed", breed );	
 			map[pet.id] = breed ? breed.nom : '—';
 		  }
 		}
 		setBreedNames(map);
-		console.log( "bbbbbbbbbbbbbbbbb BreedNames", map );
 	  };
 
 	  if (userPets?.length) {
@@ -558,7 +555,6 @@ console.log( "aaaaaaaaaaaaaaaa breed", breed );
 	const BuildUserPetsList = () =>{ 
 		if( !userPets.length ) 
 			return
-console.log( 'uuuuuuuu', userPets );
 		return(
 		<>
 				{

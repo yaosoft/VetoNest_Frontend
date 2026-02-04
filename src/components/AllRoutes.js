@@ -12,6 +12,8 @@ import NotFound from './pages/NotFound';
 import PasswordForgot from './pages/PasswordForgot';
 import PasswordForgotReset from './pages/PasswordForgotReset';
 import Etablissement from './pages/Etablissement';
+import VetProfile from './pages/VetProfile';
+import VetListing from './pages/VetListing';
 const AllRoutes = {
 
 	routes: [
@@ -62,6 +64,14 @@ const AllRoutes = {
 		{	// etablissement
 			element:  <Etablissement />,
 			path: '/etablissement',
+		},
+		{	// vet profile page
+			element:  <VetProfile />,
+			path: '/vet',
+		},
+		{	// vet listing page
+			element:  <VetListing />,
+			path: '/vet-listing',
 		},
 		{	// Not found page
 			element: <NotFound 

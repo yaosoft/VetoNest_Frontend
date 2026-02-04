@@ -179,6 +179,12 @@ const SingleFieldManager = ( params ) => {
 	
 	
 	const BuildArrowContent = ( type ) => { 
+		if( type == 0 )		// add
+			return(
+				<span>
+					&nbsp;
+				</span>
+			)
 		if( type == 1 )		// add
 			return(
 				<span>
@@ -201,6 +207,16 @@ const SingleFieldManager = ( params ) => {
 					</a>
 				</span>
 			)
+		else if( type == 4 ) // booking
+			return(
+				<span>
+					<a
+						href= { goToLink }
+					>
+						{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
+					</a>
+				</span>
+			)
 	}
 	
 	return (
@@ -217,7 +233,7 @@ const SingleFieldManager = ( params ) => {
 						</span>
 					</div> 
 					<div
-						className={`buttonDiv borderRadius18 singleFieldManagerArrow ${!type ? backgroundColor : 'backgroundYellow'}`}
+						className={`arrowWidth borderRadius18 singleFieldManagerArrow ${!type ? backgroundColor : 'backgroundYellow'}`}
 						role="button"
 						tabIndex={0}
 						onClick={() => handleClickField(fieldName)}
