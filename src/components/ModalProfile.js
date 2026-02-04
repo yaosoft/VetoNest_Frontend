@@ -1206,14 +1206,16 @@ console.log( openedError );
 				//	formHasEmpty = 'profileEtablissement_infoEmpty';
 				//	setEtablissementInfoError( formHasEmpty );
 				// }
-				// if( !lieuCountries.length ){
-				//	formHasEmpty = 'profileEtablissement_countryEmpty';
-				//	setLieuCountryError( formHasEmpty );
-				// }
-				// if( !lieuCities.length ){
-				//	formHasEmpty = 'profileEtablissement_countryEmpty';
-				//	setLieuCityError( formHasEmpty );
-				// }
+				
+	
+				if( !form.getFieldValue('LieuCountry') ){
+					formHasEmpty = getAContent( 'cmp_vetonest.com_SelectCountry_Txt' );
+					setLieuCountryError( formHasEmpty );
+				}
+				if( !form.getFieldValue('LieuCity') ){
+					formHasEmpty = getAContent( 'cmp_vetonest.com_SelectCity_Txt' );
+					setLieuCityError( formHasEmpty );
+				}
 				form.validateFields();
 			}
 			await checkFormEmpty();
@@ -3148,8 +3150,11 @@ console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 					form.setFieldsValue( { Info: lieu.info } );
 					// pays, ville
 					if( lieu.pays ){
+console.log( '>>>>>>>>>>> lieu', lieu  );
 						const countryId = lieu.pays.id;
-						const cityId = lieu.ville.id;
+						var cityId = '';
+						if( lieu.ville )
+							cityId = lieu.ville.id;
 
 						form.setFieldsValue( { LieuCountry: countryId } );
 						const lieuVilles = await getPaysVilles( countryId ); 
@@ -3208,7 +3213,7 @@ console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 		}
 		a()
 
-	}, [ userProfile, params.params, selectedTimeslotOpen, form ]) 
+	}, [ userProfile, params.params, selectedTimeslotOpen, vetos, form ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -3461,17 +3466,18 @@ console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 									<div className="col-sm-12 col-md-6">
 										<Form.Item
 											name="LieuCountry"
-											label= { getAContent( 'cmp_vetonest.com_n17Fd02Cka' ) }
+											label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
 											rules={[
 												{
+													required: true, // This ensures the field is mandatory
 													message: lieuCountryError,
-													validator: (value) => {
+													validator: (rule, value) => {
 														if (lieuCountryError) return Promise.reject(lieuCountryError);
 														return Promise.resolve();
 													}
 												}
 											]}
-											 /* initialValue={lieuCountrySelected ? lieuCountrySelected : getAContent( 'cmp_vetonest.com_k3a92hFsP1' )} */ 
+											/* initialValue={lieuCountrySelected ? lieuCountrySelected : getAContent( 'cmp_vetonest.com_k3a92hFsP1' )} */
 										>
 											<Select
 												variant="borderless"
@@ -3487,10 +3493,11 @@ console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 												}
 												options={BuildLieuCountriesOptions()}
 												notFoundContent={lieuCountryDefault}
-												placeholder= { getAContent( 'cmp_vetonest.com_k3a92hFsP1' ) }
+												placeholder={getAContent('cmp_vetonest.com_k3a92hFsP1')}
 											/>
 										</Form.Item>
 									</div>
+
 
 									<div className="col-sm-12 col-md-6">
 										<Form.Item
@@ -3498,6 +3505,7 @@ console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 											label={ getAContent( 'cmp_vetonest.com_L20sx18Qmv' ) }
 											rules={[
 												{
+													required: true, // This ensures the field is mandatory
 													message: lieuCityError,
 													validator: (value) => {
 														if (lieuCityError) return Promise.reject(lieuCityError);

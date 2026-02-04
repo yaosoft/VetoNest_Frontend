@@ -1006,8 +1006,18 @@ select:-webkit-autofill {
 
 .singleFieldManager > div{
     height: 45px;
-    padding-left: 2%;
+    padding-left: 1%;
 	margin-bottom: 10px;
+}
+
+.arrowWidth{
+	width: 20%;
+	
+}
+
+.arrowWidth hover{
+	background-color: background: var(--black);
+	cursor: pointer;
 }
 
 .myh2{
@@ -1021,11 +1031,6 @@ select:-webkit-autofill {
 .search_box input[type=text] {
 	margin-top: 9%;
     width: 135% !important;
-}
-
-.btn-warning {
-  background-color: #C1FF72; /* Your desired hover color */
-  border-color: #00FF00; /* Optional: Match border color */
 }
 
 .search_box input::-webkit-input-placeholder{
@@ -3305,3 +3310,9 @@ body {
   }
 }
 
+@media (min-width: 768px) {
+	.singleFieldManager {
+	  width: 90%;
+	  margin: 1%;
+	}
+}

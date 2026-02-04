@@ -51,12 +51,12 @@ export const SiteProvider = ({ children }) => {
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend api url 
-	// const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
+	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
 
 	// Backend public url 
-	// const base_url = 'http://localhost/vetonest_backend/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	const base_url = 'http://localhost/vetonest_backend/public/'; // dev
+	// const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -285,8 +285,8 @@ export const SiteProvider = ({ children }) => {
 		return str;
 	}
 
-	// const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
-	const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
+	const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
+	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
@@ -795,6 +795,20 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// Get a vet profile
+	const getAVetoProfile = async ( profileVetoId ) => {
+		const url		= base_api_url + 'profileVeto/show/?profileVetoId=' + profileVetoId ;
+// console.log( '------------------- url', url );
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'none' );
+		const rep = await fetchData( url, data, method );
+// console.log( '------------------- rep', rep );
+		setSpiner( 'none' );
+	
+		return rep;
+	}
+
 	const [ selectedLieuId, setSelectedLieuId ] = useState( null );
 
 	// RPPS validator
@@ -850,7 +864,7 @@ export const SiteProvider = ({ children }) => {
 	// get a user pets book
 	const getUserPets = async ( userProfileId ) => { 
 		const url		= base_api_url + "carnetAnimal/user?profileUserId=" + userProfileId;
-console.log( 'uuuuuuuuuuuuuuu url', url );
+
 		const data 		= '';
 		const method 	= 'GET';
 		// setSpiner( 'block' );
@@ -905,6 +919,41 @@ console.log( 'uuuuuuuuuuuuuuu url', url );
 	// const [ countries, setCountries ] = useState( [] );
 	const [ countriesAllowed, setCountriesAllowed ] = useState( [] );
 
+	// veto and clinic name auto complette
+	const getVetAutocomplete = async ( name, limit ) => { 
+		const url		= base_api_url + "v1/autocomplete/veterinarians?q=" + name + "&limit=" + limit;
+
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// veto speciality and clinic type auto complette
+	const getTypeSpecialityAutocomplete = async ( name, limit ) => {  // /api/v1/autocomplete/specialties?q=${encodeURIComponent(q)}&limit=8`
+		const url		= base_api_url + "v1/autocomplete/specialties?q=" + name + "&limit=" + limit;
+
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+	
+	// places auto complette
+	const getPlaceAutocomplete = async ( name, limit ) => {  // /api/v1/autocomplete/specialties?q=${encodeURIComponent(q)}&limit=8`
+		const url		= base_api_url + "v1/autocomplete/place?q=" + name + "&limit=" + limit;
+
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
 	
 	useEffect(() => {
 		const a = async () =>{
@@ -1393,7 +1442,11 @@ console.log( 'uuuuuuuuuuuuuuu url', url );
 				isAGuest,
 				selectedLieuId, 
 				setSelectedLieuId,
-				getALieu
+				getALieu,
+				getVetAutocomplete,
+				getTypeSpecialityAutocomplete,
+				getPlaceAutocomplete,
+				getAVetoProfile
 			}}
 		>
 
