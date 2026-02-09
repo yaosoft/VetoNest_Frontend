@@ -1260,7 +1260,7 @@ console.log( openedError );
 				return;
 			}
 			else{	// Lieux transport 
-				const etsTransport = transports.map( ( v, k ) => {
+				const etsTransport = transports.map( ( v, k ) => { 
 					// const elt = document.getElementsByName( v.nom )[0];
 					// const elt = dynamicValues.filter( ( key, val ) => key == v.nom ) );
 					const description = dynamicValues[ v.fieldName ];

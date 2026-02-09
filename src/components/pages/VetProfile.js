@@ -43,6 +43,7 @@ const VetProfile = () => {
 		siteLocale,
 		base_url,
 		allSpecialities,
+		transports
 	} = useContext(SiteContext);
 	
 	const navigate = useNavigate();
@@ -62,6 +63,7 @@ const VetProfile = () => {
 	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
 
 	const [ title, setTitle ] = useState( null );
+	const [ transport, setTransport ] = useState( null );
 
 	// Fetch vet data from the backend based on vetId
 	useEffect(() => {
@@ -74,7 +76,7 @@ const VetProfile = () => {
 			
 			const vetData = await getAVetoProfile(vetId);
 			setVetData(vetData);
-// console.log( 'vvvvvvvvvvvvvvvv vetData: ', vetData );			
+			
 			const title = await getAContent('cmp_vetonest.com_ProfileOf_Txt') + ' ' + vetData.nom;
 			setTitle( title );
 
@@ -87,7 +89,8 @@ const VetProfile = () => {
 			setAbsences( vetAbsences );
 			const vetLieux  = await getAVetoLieux( { profileVetoId: vetId });
 			setVetLieux( vetLieux );
-
+			
+console.log( 'ttttttttttttttttttttttt transports: ', transports );
 		};
 		a();
 
@@ -327,7 +330,7 @@ const VetProfile = () => {
 							</p>
 							<p><strong>Parking:</strong> <CarOutlined /> { vetLieux.length && vetLieux[0].parking ? vetLieux[0].parking : getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
 							</p>
-							<p><strong>Autre info:</strong> <InfoCircleOutlined /> { vetLieux.length && vetLieux[0].parking ? vetLieux[0].parking : getAContent( 'cmp_vetonest.com_wI6NjnXH8S' ) }
+							<p><strong>Autre info:</strong> <InfoCircleOutlined /> { vetLieux.length && vetLieux[0].parking ? vetLieux[0].info : getAContent( 'cmp_vetonest.com_wI6NjnXH8S' ) }
 							</p>
                             <p><strong>{ getAContent( 'cmp_vetonest.com_Zp83Na41Lt' ) }:</strong> <PhoneOutlined /> {vetData.phone || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
 							</p>
