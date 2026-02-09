@@ -1012,12 +1012,11 @@ select:-webkit-autofill {
 
 .arrowWidth{
 	width: 20%;
-	
+	cursor: pointer;
 }
 
 .arrowWidth hover{
 	background-color: background: var(--black);
-	cursor: pointer;
 }
 
 .myh2{

@@ -67,11 +67,15 @@ const AllRoutes = {
 		},
 		{	// vet profile page
 			element:  <VetProfile />,
-			path: '/vet',
+			path: '/vet-profile',
 		},
 		{	// vet listing page
 			element:  <VetListing />,
 			path: '/vet-listing',
+		},
+		{	// vet listing page
+			element:  <VetListing />,
+			path: '/clinic-listing',
 		},
 		{	// Not found page
 			element: <NotFound 

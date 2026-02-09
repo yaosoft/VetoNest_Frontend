@@ -504,6 +504,19 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// list etablissements
+	const [ etablissements, setEtablissements ] = useState( [] );
+	const getEtablissements = async () => {
+		const url		= base_api_url + 'etablissement/list';
+		const data 		= '';
+		const method 	= 'GET';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+
 	// list specialité
 	const [ allEtablissementTypes, setAllEtablissementTypes ] = useState( [] );
 	const getAllEtablissementTypes = async () => {
@@ -997,6 +1010,10 @@ export const SiteProvider = ({ children }) => {
 			const vetos = await getVetos();
 			setVetos( vetos )
 
+			// veto list
+			const etablissements = await getEtablissements();
+
+			setEtablissements( etablissements )
 		}
 
 		a()
@@ -1427,6 +1444,7 @@ export const SiteProvider = ({ children }) => {
 				transports,
 				lieuTransportUpdate,
 				vetos,
+				etablissements,
 				getVetoInvitationNotification,
 				getUserNotifications,
 				getVetoEtablissementStatus,
