@@ -32,8 +32,6 @@ const Header = () => {
 		siteUrl,
 		siteDomain,
 		siteDomainName,
-		getSiteContent,
-		setSiteContent,
 		getLanguagePreference,
 		defaultLanguageId,
 		defaultLanguage,
@@ -46,7 +44,8 @@ const Header = () => {
 		flag,
 		userProfile,
 		getVetoInvitationNotification,
-		profileFormUpdated
+		profileFormUpdated,
+		getAContent,
 	} = useContext( SiteContext );
 	
 	const navigate = useNavigate();
@@ -168,7 +167,7 @@ const Header = () => {
 										  <img src="/img/logo02.png" alt="VetoNest" />
 										</Link>
 										<span className="headerSlogan">
-										  Consultation Vétérinaire
+											{ getAContent( 'cmp_vetonest.com_Xp6Qv2mLsR' ) }
 										</span>
 									  </div>
 									</div>
@@ -223,7 +222,7 @@ const Header = () => {
 									<li className="nav-item">
 									  {isAuthenticated() ? (
 										<Link className="nav-link" onClick={handleClickLogInOut}>
-										  Déconnexion
+											{ getAContent( 'cmp_vetonest.com_mzCrCgj9rj' ) }
 										</Link>
 									  ) : (
 										<Link className="nav-link" onClick={() => handleClickGoto("inscription")}>

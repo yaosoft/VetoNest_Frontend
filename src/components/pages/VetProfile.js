@@ -1,13 +1,19 @@
 import React, { useMemo, useState, useEffect, useContext, useParams } from "react";
 import { Button, Card, Row, Col, Rate, Modal, message } from "antd";
-import { PhoneOutlined, CalendarOutlined } from '@ant-design/icons';
+import { 
+	PhoneOutlined, 
+	CalendarOutlined, 
+	FlagOutlined, 
+	EnvironmentOutlined, 
+	InfoCircleOutlined,
+	CarOutlined
+} from '@ant-design/icons';
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
 import { MessageOutlined } from '@ant-design/icons'; // Import the chat icon
 import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
-
 
 import Header from '../Header';
 import Footer from '../Footer';
@@ -38,12 +44,14 @@ const VetProfile = () => {
 		base_url,
 		allSpecialities,
 	} = useContext(SiteContext);
+	
 	const navigate = useNavigate();
-  
+    const location = useLocation();
+
 	const [vetData, setVetData] = useState([]);
 
-	const params = useMemo(() => new URLSearchParams(window.location.search), []);
-	const [ vetId, setVetId ] = useState( params.get( "vetId" ) || null );
+	// const params = useMemo(() => new URLSearchParams(window.location.search), []);
+	const [ vetId, setVetId ] = useState( null );
 
 	const [ vetTimeslot, setVetTimeslot ] = useState([]);
 	const [ vetHollyday, setVetHollyday ] = useState([]);
@@ -53,13 +61,23 @@ const VetProfile = () => {
 	const [ profilePhoto, setProfilePhoto ] = useState('');	
 	const [ photoDefaultSrc, setPhotoDefaultSrc ] = useState( '/img/user/1.jpg' );
 
+	const [ title, setTitle ] = useState( null );
+
 	// Fetch vet data from the backend based on vetId
 	useEffect(() => {
+
 		// Fetch data from your backend API, replace with actual API call
 		const a = async () => {
+			// get the query parametter
+			const currentParams = new URLSearchParams(location.search);
+			const vetId = currentParams.get("vetId");
+			
 			const vetData = await getAVetoProfile(vetId);
 			setVetData(vetData);
-console.log( '>>>>> vetData: ', vetData );
+// console.log( 'vvvvvvvvvvvvvvvv vetData: ', vetData );			
+			const title = await getAContent('cmp_vetonest.com_ProfileOf_Txt') + ' ' + vetData.nom;
+			setTitle( title );
+
 			const timeslot  = await getTimeslot(vetId);
 			const vetTimeslot = await Object.entries( timeslot );
 			setVetTimeslot( vetTimeslot );
@@ -73,11 +91,11 @@ console.log( '>>>>> vetData: ', vetData );
 		};
 		a();
 
-	}, [vetId]);
+	}, [location.search, title]);
 
 // Build timeslot
 	const BuildTimeslot = () => {
-		if( !vetTimeslot )
+		if( !vetTimeslot.length )
 			return
 
 		const getHoraire = ( dateObj01, dateObj02 ) => { return(
@@ -107,8 +125,7 @@ console.log( '>>>>> vetData: ', vetData );
 				return 'hollydays'
 		}
 
-		return(
-			vetTimeslot.map( ( e, index ) => 
+		const resp = vetTimeslot.map( ( e, index ) => 
 				<div className="row singleFieldManager" key={index}>
 					<SingleFieldManager 
 						key={'timeslot_' + index}
@@ -130,11 +147,14 @@ console.log( '>>>>> vetData: ', vetData );
 							dayId:			e[0],
 							timeSlotId:		e[1].timeSlotId,
 							type: 			e[1].opened ? 4 : 0,
-							goToLink:		"foo/bar"
+							goToLink:		"#"
 						}}
 					/>
 				</div>
 			)
+// console.log( 'rrrrrrrrrrrr resp', resp );
+		return(
+			resp
 		)
 	}
 	
@@ -208,7 +228,7 @@ console.log( '>>>>> vetData: ', vetData );
 					<strong>{getAContent('cmp_vetonest.com_kFunk0HFRg')}</strong>:&nbsp;
 					{vetLieux.map((e, index) => (
 						<span key={index}>
-							{truncateString(e.adresse, 40)}&nbsp;
+							{truncateString(e.adresse, 100)}&nbsp;,
 							{e.villeTagRef && getAContent(e.villeTagRef)}&nbsp;
 							{e.paysTagRef && getAContent(e.paysTagRef)}&nbsp;
 						</span>
@@ -217,9 +237,6 @@ console.log( '>>>>> vetData: ', vetData );
 			</>
 		);
 	};
-
-
-
 
 	// Get a day name from day number
 	const getDayName = ( dayNumber, locale = siteLocale ) => {
@@ -240,8 +257,8 @@ console.log( '>>>>> vetData: ', vetData );
 	const handleGetAppointment = () => {
 		// Redirect to an appointment booking page or show modal
 		Modal.success({
-			title: 'Appointment Request',
-			content: 'Redirecting you to the appointment page...',
+			title: getAContent( 'cmp_vetonest.com_AppointRequest_Txt' ) ,
+			content: getAContent( 'cmp_vetonest.com_Redirecting_Txt' ) + '...' ,
 		});
 	};
 
@@ -253,7 +270,7 @@ console.log( '>>>>> vetData: ', vetData );
 		<>
 			<div className="sticky-stack">
 				<Header />
-				<Title title={ getAContent('cmp_vetonest.com_ProfileOf_Txt') + ' ' + vetData.nom }  />
+				<Title title={ title }  />
 			</div>
 
 			<div className="vet-profile-page">
@@ -278,7 +295,7 @@ console.log( '>>>>> vetData: ', vetData );
                                     ? getAContent(allSpecialities.filter(e => e.id === vetData.vetoSpecialite.id)[0].tagRef)
                                     : getAContent('cmp_vetonest.com_nDHuiDhEz3')}
                             </h3>
-                            <h3>0 consultation</h3>
+                            <h3> { getAContent( 'cmp_vetonest.com_Ta91Qm72Fs' ) } : 0 </h3>
                             <Rate disabled value={vetData.rating || 0} />
 							<p className="vet-profile-buttons marginTop20">
 								<Button
@@ -287,7 +304,7 @@ console.log( '>>>>> vetData: ', vetData );
 									size="large"
 									onClick={handleGetAppointment}
 								>
-									{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
+									&nbsp;{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
 								</Button>
 								&nbsp;
 								<Button
@@ -296,22 +313,32 @@ console.log( '>>>>> vetData: ', vetData );
 									size="large"
 									onClick={handleGetAppointment}
 								>
-									Talk to this vet
+									&nbsp;{ getAContent( 'cmp_vetonest.com_TalkToThisVet_Bt' ) }
 								</Button>
 							</p>
                             <div className="marginTop10">&nbsp;</div>
                             {vetData.biography && vetData.biography.trim() && (
                                 <p><strong>{ getAContent( 'cmp_vetonest.com_Vn5Xk3bHsD' ) }:</strong> {vetData.biography}</p>
                             )}
-                            
-                            
 							<BuildVetoLieux />
-                            <p><strong>{ getAContent( 'cmp_vetonest.com_Zp83Na41Lt' ) }:</strong> <PhoneOutlined /> {vetData.phone || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }</p>
-                            <p><strong>{ getAContent( 'cmp_vetonest.com_Qr84Lm20Ps' ) }:</strong> {vetData.tarifConsultation || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) } EUR</p>
+                            <p><strong>{ getAContent( 'cmp_vetonest.com_n17Fd02Cka' ) }:</strong> <FlagOutlined /> { vetLieux.length ? getAContent( vetLieux[0].paysTagRef ) : getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
+							</p>
+							<p><strong>{ getAContent( 'cmp_vetonest.com_L20sx18Qmv' ) }:</strong> <EnvironmentOutlined /> { vetLieux.length ? vetLieux[0].ville.nom : getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
+							</p>
+							<p><strong>Parking:</strong> <CarOutlined /> { vetLieux.length && vetLieux[0].parking ? vetLieux[0].parking : getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
+							</p>
+							<p><strong>Autre info:</strong> <InfoCircleOutlined /> { vetLieux.length && vetLieux[0].parking ? vetLieux[0].parking : getAContent( 'cmp_vetonest.com_wI6NjnXH8S' ) }
+							</p>
+                            <p><strong>{ getAContent( 'cmp_vetonest.com_Zp83Na41Lt' ) }:</strong> <PhoneOutlined /> {vetData.phone || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }
+							</p>
+                            <p><strong>{ getAContent( 'cmp_vetonest.com_Qr84Lm20Ps' ) }:</strong> {vetData.tarifConsultation ? vetData.tarifConsultation + ' EUR' : getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) } </p>
                             
-                            {vetData.tarifConsultationVideo && vetData.tarifConsultationVideo.trim() && (
-                                <p><strong>{ getAContent( 'cmp_vetonest.com_Mn92Ks41Wa' ) } :</strong> {vetData.tarifConsultationVideo} EUR</p>
-                            )}
+                            <p>
+							  <strong>{getAContent('cmp_vetonest.com_Mn92Ks41Wa')}:</strong> 
+							  {vetData.tarifConsultationVideo && vetData.tarifConsultationVideo !== '0' && vetData.tarifConsultationVideo !== 0
+								? vetData.tarifConsultationVideo + ' EUR' 
+								: ' ' + getAContent('cmp_vetonest.com_NotAvail_Txt')}
+							</p>
                             
                             <p><strong>SIRET:</strong> {vetData.siret || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }</p>
                             <p><strong>RPPS:</strong> {vetData.rpps || getAContent( 'cmp_vetonest.com_NotAvail_Txt' ) }</p>
@@ -323,9 +350,9 @@ console.log( '>>>>> vetData: ', vetData );
 				{/* Availability (Time Slots) */}
 				<Row className="availability-section">
 					<Col span={24}>
-						<Card title="Availability" className="vet-availability-card">
+						<Card className="vet-availability-card">
 							<h3>{ getAContent( 'cmp_vetonest.com_AvailSlots_Txt' ) }:</h3>
-							<BuildTimeslot />
+							<BuildTimeslot/>
 						</Card>
 					</Col>
 				</Row>

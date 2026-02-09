@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useContext } from "react";
-import { AutoComplete, message } from "antd";
+import { AutoComplete } from "antd";
 import { useNavigate } from "react-router-dom";
 import { SiteContext } from "../context/site";
 
@@ -23,77 +23,128 @@ export default function ResponsiveSearch() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
-
-  // values
-  const [veto, setVeto] = useState("");
+  const [veto, setVeto] = useState(""); 
+  const [locationInput, setLocation] = useState("");
   const [vetoType, setVetoType] = useState("");
-  const [location, setLocation] = useState("");
 
-  // options for autocomplete
   const [vetoOptions, setVetoOptions] = useState([]);
   const [vetoTypeOptions, setVetoTypeOptions] = useState([]);
   const [locationOptions, setLocationOptions] = useState([]);
 
+  // Load Vet / Clinic options
   const loadVeto = useMemo(
     () =>
       debounce(async (text) => {
         const q = text.trim();
-        if (q.length < MIN_CHARS) return setVetoOptions([]);
+        // If you want it to show NOTHING when empty, keep this. 
+        // If you want it to show default list, remove the length check.
+        // if (q.length < MIN_CHARS) return setVetoOptions([]);
         try {
           const limit = 8;
           const data = await getVetAutocomplete(q, limit);
+
           setVetoOptions(
-            data.map((x) => ({
-              value: x.value,
-              label: x.type ? `${x.value} (${x.type})` : x.value,
-              icon: "fa fa-user-md", // Doctor icon for vets
-            }))
+            data.map((x) => {
+              const isVet = x.type === 'vet';
+              const iconClass = isVet ? 'fa fa-user-md' : 'fa fa-hospital-o';
+              return {
+                value: `${x.type}-${x.id}`,
+                label: (
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <i className={iconClass} style={{ marginRight: 10 }}></i>
+                    {`${x.value} (${x.type})`}
+                  </div>
+                ),
+                realId: x.id,
+                type: x.type,
+                rawName: x.value
+              };
+            })
           );
-        } catch {
+        } catch (error) {
+          console.error("Error fetching autocomplete data:", error);
           setVetoOptions([]);
         }
       }, 300),
-    []
+    [getVetAutocomplete]
   );
+
+	// Updated Select handler for Vet / Clinic
+    const onSelectVeto = (value, option) => {
+		setVeto(option.rawName);
+
+		// Delay navigation slightly to allow state to settle
+		setTimeout(() => {
+		  if (option.type === 'vet') {
+			navigate(`/vet-profile?vetId=${option.realId}`);
+		  } else if (option.type === 'clinic') {
+			navigate(`/etablissement?etablissementId=${option.realId}`);
+		  }
+		}, 100);
+    };
 
   const loadVetoType = useMemo(
     () =>
       debounce(async (text) => {
         const q = text.trim();
-        const limit = 8;
-        if (q.length < MIN_CHARS) return setVetoTypeOptions([]);
-
+        // if (q.length < MIN_CHARS) return setVetoTypeOptions([]);
         try {
+          const limit = 8;
           const data = await getTypeSpecialityAutocomplete(q, limit);
-          const result = await Promise.all(
-            data.map(async (x) => ({
-              value: x.value,
-              label: await getAContent(x.value), // Await getAContent if it's async
-              icon: "fa fa-home", // House icon for establishments
+          setVetoTypeOptions(
+            data.map((x) => ({
+              value: `${x.type}-${x.id}`,
+              label: (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <i className="fa fa-home" style={{ marginRight: 10 }}></i>
+                  {getAContent(x.value)}
+                </div>
+              ),
+              realId: x.id,
+              type: x.type,
+              rawName: x.value
             }))
           );
-
-          setVetoTypeOptions(result);
-        } catch {
+        } catch (error) {
           setVetoTypeOptions([]);
         }
       }, 300),
-    [getAContent]
+    [getAContent, getTypeSpecialityAutocomplete]
   );
+
+  // Updated Select handler for Vet Specialty / Clinic Type
+  const onSelectVetoType = (value, option) => {
+    setVetoType( getAContent( option.rawName ) );
+    setTimeout(() => {
+      if (option.type === 'vet') {
+        navigate(`/vet-listing?searchName=vetoSpecialityId&searchValue=${option.realId}`);
+      } else if (option.type === 'type') {
+        navigate(`/vet-listing?searchName=etablissementTypeId&searchValue=${option.realId}`);
+      }
+    }, 100);
+  };
 
   const loadLocation = useMemo(
     () =>
       debounce(async (text) => {
         const q = text.trim();
-        if (q.length < MIN_CHARS) return setLocationOptions([]);
-
+        // if (q.length < MIN_CHARS) return setLocationOptions([]);
         try {
-          const data = await getPlaceAutocomplete(q, 8); // Assuming this returns the places data
-          setLocationOptions(data.map((x) => ({
-            value: x.value,
-            label: x.value,
-            icon: "fa fa-map-marker", // Marker icon for location
-          })));
+          const dataMix = await getPlaceAutocomplete(q, 8);
+          const uniqueMap = new Map(dataMix.map(item => [item.value, item]));
+          const data = Array.from(uniqueMap.values());
+   
+          setLocationOptions(
+            data.map((x) => ({
+              value: x.value,
+              label: (
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <i className="fa fa-map-marker" style={{ marginRight: 10 }}></i>
+                  {x.value}
+                </div>
+              ),
+            }))
+          );
         } catch (error) {
           setLocationOptions([]);
         }
@@ -101,59 +152,41 @@ export default function ResponsiveSearch() {
     [getPlaceAutocomplete]
   );
 
-  const onSubmit = () => {
-    if (!veto && !vetoType && !location) {
-      message.warning(getAContent("cmp_vetonest.com_Fv29Qp84Lm") || "Veuillez saisir un critère.");
-      return;
-    }
+  // Updated Select handler for Location
+  const onSelectLocation = (value, option) => {
+    setLocation(option.value);
 
-    const params = new URLSearchParams();
-    if (veto) params.set("q", veto);
-    if (vetoType) params.set("specialty", vetoType);
-    if (location) params.set("place", location);
-
-    setOpen(false);
-    navigate(`/veterinaires?${params.toString()}`);
+    setTimeout(() => {
+      navigate(`/vet-listing?searchName=location&searchValue=${option.value}`);
+    }, 100);
   };
+
+  const onSubmit = () => navigate('/vet-listing');
 
   return (
     <div className="search-wrapper">
       <div className="responsive-search">
-        {/* Mobile trigger */}
-        <button
-          className="search-toggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Open search"
-          type="button"
-        >
+        <button className="search-toggle" onClick={() => setOpen((v) => !v)} type="button">
           <span className="search-icon">🔍</span>
           <span className="search-placeholder">
             {getAContent("cmp_vetonest.com_Fv29Qp84Lm")}
           </span>
         </button>
 
-        {/* Search panel */}
         <div className={`search-panel ${open ? "open" : ""}`}>
-          {/* Vet / établissement */}
+          
+          {/* 1. Vet / Clinic */}
           <div className="search-field backgroundYellow">
             <i className="fa fa-search search_icon" style={{ fontSize: "1.8em", color: "#000" }} />
             <div className="spaceBeforeIcon"></div>
-
             <AutoComplete
               className="width100per100"
               value={veto}
               options={vetoOptions}
-              onSearch={(t) => {
-                setVeto(t);
-                loadVeto(t);
-              }}
-              onSelect={(v) => setVeto(v)}
-              renderOption={(item) => (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <i className={item.icon} style={{ marginRight: 10 }}></i>
-                  {item.label}
-                </div>
-              )}
+              onSearch={(t) => { setVeto(t); loadVeto(t); }}
+              onSelect={onSelectVeto}
+              /* TRIGGERS DROPDOWN ON CLICK */
+              onFocus={() => loadVeto(veto)} 
             >
               <input
                 placeholder={getAContent("cmp_vetonest.com_6MUu5pTZNM")}
@@ -162,26 +195,18 @@ export default function ResponsiveSearch() {
             </AutoComplete>
           </div>
 
-          {/* Spécialité / Type */}
+          {/* 2. Vet Specialty / Clinic Type */}
           <div className="search-field backgroundYellow with-separator">
             <i className="fa fa-map-signs" style={{ fontSize: "1.8em", color: "#000" }} />
             <div className="spaceBeforeIcon"></div>
-
             <AutoComplete
               className="width100per100"
               value={vetoType}
               options={vetoTypeOptions}
-              onSearch={(t) => {
-                setVetoType(t);
-                loadVetoType(t);
-              }}
-              onSelect={(v) => setVetoType(v)}
-              renderOption={(item) => (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <i className={item.icon} style={{ marginRight: 10 }}></i>
-                  {item.label}
-                </div>
-              )}
+              onSearch={(t) => { setVetoType(t); loadVetoType(t); }}
+              onSelect={onSelectVetoType}
+              /* TRIGGERS DROPDOWN ON CLICK */
+              onFocus={() => loadVetoType(vetoType)}
             >
               <input
                 placeholder={getAContent("cmp_vetonest.com_8MTgkmDbBM")}
@@ -190,25 +215,18 @@ export default function ResponsiveSearch() {
             </AutoComplete>
           </div>
 
-          {/* Location (with backend data) */}
+          {/* 3. Location */}
           <div className="search-field backgroundYellow with-separator">
             <i className="fa fa-map-marker" style={{ fontSize: "1.8em", color: "#000" }} />
             <div className="spaceBeforeIcon"></div>
             <AutoComplete
               className="width100per100"
-              value={location}
+              value={locationInput}
               options={locationOptions}
-              onSearch={(t) => {
-                setLocation(t);
-                loadLocation(t);
-              }}
-              onSelect={(v) => setLocation(v)}
-              renderOption={(item) => (
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <i className={item.icon} style={{ marginRight: 10 }}></i>
-                  {item.label}
-                </div>
-              )}
+              onSearch={(t) => { setLocation(t); loadLocation(t); }}
+              onSelect={onSelectLocation}
+              /* TRIGGERS DROPDOWN ON CLICK */
+              onFocus={() => loadLocation(locationInput)}
             >
               <input
                 placeholder={getAContent("cmp_vetonest.com_a5m4GtOdzA")}

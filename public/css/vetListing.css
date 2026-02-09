@@ -22,6 +22,7 @@
   width: 100%;
   height: 200px;
   object-fit: cover;
+  margin-top: 20px;  /* Adds space between the image and the card top edge *
 }
 
 @media (max-width: 768px) {

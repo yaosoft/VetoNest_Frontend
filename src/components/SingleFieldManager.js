@@ -35,10 +35,6 @@ const SingleFieldManager = ( params ) => {
 
 	// context
 	const { 
-		getUser,
-		profileTypeId,
-		profileId,
-		userId,
 		user,
 		truncateString,
 	} = useContext( AuthContext );
@@ -222,7 +218,6 @@ const SingleFieldManager = ( params ) => {
 	return (
 	<>
 		{
-			user &&
 			<>
 				<div key={'timeslot_' + title} className="row singleFieldManager height40">
 					<div className={ 'dataDiv textAlignLeft ' + backgroundColor }>
@@ -233,7 +228,7 @@ const SingleFieldManager = ( params ) => {
 						</span>
 					</div> 
 					<div
-						className={`arrowWidth borderRadius18 singleFieldManagerArrow ${!type ? backgroundColor : 'backgroundYellow'}`}
+						className={`arrowWidth borderRadius18 ${!type ? backgroundColor : 'backgroundYellow'}`}
 						role="button"
 						tabIndex={0}
 						onClick={() => handleClickField(fieldName)}

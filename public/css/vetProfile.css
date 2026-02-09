@@ -9,11 +9,11 @@
 }
 
 .vet-profile-img .profile-img {
-	width: 250px !important;
-	height: 250px !important;
-    border-radius: 50% !important;
-    object-fit: cover !important;
-    margin-left: 5%;
+  width: 250px !important;
+  height: 250px !important;
+  border-radius: 10% !important;
+  object-fit: contain !important; /* Change this from cover to contain */
+  margin-left: 5%;
 }
 
 .vet-profile-card {
@@ -52,8 +52,9 @@
 }
 
 .profileBtn {
-    padding-top: 2px !important;
+    padding-top: 5px !important;
     padding-left: 12px !important;
+	margin-top: 10px;
 }
 
 .vet-profile-card p {
