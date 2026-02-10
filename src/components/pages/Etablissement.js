@@ -367,7 +367,7 @@ console.log( '>>>>>>>>>> res', res );
 				  </div>
 				  <div className="row mb-4">
 					<div className="col-12">
-					  <h5>Locations</h5>
+					  <h5>{ getAContent( 'cmp_vetonest.com_kFunk0HFRg' ) }</h5>
 					  <div className="d-flex gap-3 flex-wrap">
 						{ clinicData.lieux && clinicData.lieux.map((loc, idx) => (
 						  <div key={idx} className="border rounded p-2" style={{ minWidth: 180 }}>

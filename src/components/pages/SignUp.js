@@ -906,7 +906,7 @@ console.log( 'Check email', rep );
 											</Form.Item>
 											<div className='row'>
 												<div className='col-md-6 '>
-													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
+													<Link to='/vet-usage' className="text-primary">{ signUp_termsUsage }</Link>
 												</div>
 												<div className='col-md-6 textAlignRight'>
 													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
