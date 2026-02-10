@@ -14,6 +14,8 @@ import PasswordForgotReset from './pages/PasswordForgotReset';
 import Etablissement from './pages/Etablissement';
 import VetProfile from './pages/VetProfile';
 import VetListing from './pages/VetListing';
+import Usage from './pages/Usage';
+
 const AllRoutes = {
 
 	routes: [
@@ -76,6 +78,10 @@ const AllRoutes = {
 		{	// vet listing page
 			element:  <VetListing />,
 			path: '/clinic-listing',
+		},
+		{	// Usage
+			element:  <Usage />,
+			path: '/vet-usage',
 		},
 		{	// Not found page
 			element: <NotFound 
