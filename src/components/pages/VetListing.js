@@ -63,16 +63,45 @@ const ListingPage = () => {
   }, [vetos, etablissements, location.search, searchQuery]);
 
   // Handle Title
-  const displayTitle = useMemo(() => {
+const displayTitle = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const currentName = params.get("searchName");
     const currentValue = params.get("searchValue");
 
-    if (currentName === 'location' && currentValue) {
+    // Case 1: Search by Name (Vet or Clinic)
+    if (currentName === 'name') {
+      return `${getAContent('cmp_vetonest.com_SearchByName_Ph')} - ${currentValue}`;
+    }
+
+    // Case 2: Search by Veto Speciality
+    if (currentName === 'vetoSpecialityId') {
+      // Find the speciality in allSpecialities to get the tagRef
+      const speciality = allSpecialities.find(s => s.id == currentValue);
+      if (speciality) {
+        return `${getAContent('cmp_vetonest.com_SearchBy_Txt')} ${getAContent(speciality.tagRef)}`;
+      }
+      // Fallback if results are empty or ID not found
+      return getAContent('cmp_vetonest.com_NoVetFound_Txt');
+    }
+
+    // Case 3: Search by Clinic (Etablissement) Type
+    if (currentName === 'etablissementTypeId') {
+      // We can also find this by looking at the first item in the already filtered vetList
+      if (filteredVets.length > 0 && filteredVets[0].etablissementType) {
+        return `${getAContent('cmp_vetonest.com_SearchBy_Txt')} ${getAContent(filteredVets[0].etablissementType.tagRef)}`;
+      }
+      return getAContent('cmp_vetonest.com_NoEstablishmentFound_Txt');
+    }
+
+    // Case 4: Search by Location (City)
+    if (currentName === 'location') {
       return `${getAContent('cmp_vetonest.com_SearchInCity_Txt')} - ${currentValue}`;
     }
+
+    // Case 5: Default (All Vets)
     return getAContent('cmp_vetonest.com_AllVets_Txt');
-  }, [location.search, getAContent]);
+    
+  }, [location.search, filteredVets, allSpecialities, getAContent]);
 
   // Manage loading state
   useEffect(() => {
