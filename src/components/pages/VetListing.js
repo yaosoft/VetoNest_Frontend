@@ -95,7 +95,7 @@ const displayTitle = useMemo(() => {
 
     // Case 4: Search by Location (City)
     if (currentName === 'location') {
-      return `${getAContent('cmp_vetonest.com_SearchInCity_Txt')} - ${currentValue}`;
+      return `${getAContent('cmp_vetonest.com_SearchInCity_Txt')} ${currentValue}`;
     }
 
     // Case 5: Default (All Vets)
