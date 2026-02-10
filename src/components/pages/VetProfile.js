@@ -90,7 +90,7 @@ const VetProfile = () => {
 			const vetLieux  = await getAVetoLieux( { profileVetoId: vetId });
 			setVetLieux( vetLieux );
 			
-console.log( 'ttttttttttttttttttttttt transports: ', transports );
+// console.log( 'ttttttttttttttttttttttt transports: ', transports );
 		};
 		a();
 
@@ -292,7 +292,7 @@ console.log( 'ttttttttttttttttttttttt transports: ', transports );
 					</Col>
 					<Col xs={24} sm={16} md={18}>
 						<Card className="vet-profile-card">
-							<h2>{vetData.nom} {vetData.prenom}</h2>
+							<h2>{vetData.prenom} {vetData.nom}</h2>
                             <h3>
                                 {allSpecialities.length && vetData.vetoSpecialite
                                     ? getAContent(allSpecialities.filter(e => e.id === vetData.vetoSpecialite.id)[0].tagRef)
