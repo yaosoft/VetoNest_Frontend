@@ -1,125 +1,91 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Input, Row, Col, Card, Button, Rate, Skeleton } from 'antd';
 import { SearchOutlined, CalendarOutlined, ProfileOutlined } from '@ant-design/icons';
 import { SiteContext } from "../../context/site";
-import { AuthContext } from "../../context/AuthProvider";
 import Title from '../Title';
 import Header from '../Header';
 import Footer from '../Footer';
+
 const { Meta } = Card;
 
 const ListingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [vetList, setVetList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState('');
-  // const params = useMemo(() => new URLSearchParams(window.location.search), []);
-
+  
   const { 
-    getAContent, getAVetoProfile, getTimeslot, getHollydays, getAbsences, truncateString,
-    getAVetoLieux, siteLocale, base_url, allSpecialities, vetos, etablissements 
+    getAContent, base_url, allSpecialities, vetos, etablissements 
   } = useContext(SiteContext);
-
-  const [photoDefaultSrc, setPhotoDefaultSrc] = useState('/img/user/1.jpg');
-  const [etablissementPhotoDefaultSrc, setEtablissementPhotoDefaultSrc] = useState('/img/etablissement/1.jpg');
-
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Fetching vet data
-  useEffect(() => {
-    // setLoading(true);
-// console.log( 'eeeeeeeeeee etablissements', etablissements );
-// console.log( 'vvvvvvvvvvv vetos', vetos );
-// console.log( 'sssssssssss searchName', searchName );
+  const photoDefaultSrc = '/img/user/1.jpg';
+  const etablissementPhotoDefaultSrc = '/img/etablissement/1.jpg';
 
-	// Get fresh values directly from the URL
-// Get fresh values directly from the URL
-    const currentParams = new URLSearchParams(location.search);
-    const currentName = currentParams.get("searchName");
-    const currentValue = currentParams.get("searchValue");
+  // 1. DERIVED DATA: This prevents state-syncing bugs.
+  const filteredVets = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const currentName = params.get("searchName");
+    const currentValue = params.get("searchValue");
 
-    if ( vetos.length || etablissements.length ) {
-	  var veterinarianList = Array();
-	  var etablissementList = Array();
-      if (currentName == 'name') {	// search by veto or clinic name: currently not in use
-		if ( vetos.length){
-			veterinarianList = vetos.filter((vet) =>
-			  vet.nom.toLowerCase().includes(currentName.toLowerCase()) ||
-			  vet.prenom && vet.prenom.toLowerCase().includes(currentName.toLowerCase()) ||
-			  vet.biography && vet.biography.toLowerCase().includes(currentName.toLowerCase())
-			);
-		}
-		if ( etablissements.length){
-			etablissementList = etablissements.filter((etablissement) =>
-			  etablissement.nom.toLowerCase().includes(currentValue.toLowerCase()) ||
-			  etablissement.presentation.toLowerCase().includes(currentValue.toLowerCase())
-			);
-		}
+    let results = [];
 
-        setVetList(veterinarianList.concat(etablissementList));
+    // Safety check for data load
+    if (!vetos.length && !etablissements.length) return [];
 
-        const title = getAContent( 'cmp_vetonest.com_SearchByName_Ph' ) + ' - ' + currentValue;
-        setTitle(title);
-      }
-      else if (currentName == 'vetoSpecialityId') { // search by veto speciality
-        const vetList = vetos.filter((vet) => vet.vetoSpecialite.id == currentValue);
-        setVetList(vetList);
-		
-		var title = '';
-		if( vetList.length )
-			title = getAContent( 'cmp_vetonest.com_SearchBy_Txt' ) + ' - ' + getAContent(vetList[0].vetoSpecialite.tagRef);
-		else
-			title = getAContent( 'cmp_vetonest.com_NoVetFound_Txt' );
-		setTitle(title);
-      }
-      else if (currentName == 'etablissementTypeId') { // search clinic type
-        const etablissementList = etablissements.filter((etablissement) => etablissement.etablissementType.id == currentValue);
-        setVetList(etablissementList);
-
-		var title = '';
-		if( etablissementList.length )
-			title = getAContent( 'cmp_vetonest.com_SearchBy_Txt' ) + ' - ' + getAContent( etablissementList[0].etablissementType.tagRef );
-		else
-			title = getAContent( 'cmp_vetonest.com_NoEstablishmentFound_Txt' );
-        setTitle(title);
-      }
-      else if (currentName == 'location') { // search by location ( city id )
-		if ( vetos.length){		// search vets
-			veterinarianList = vetos.filter((vet) =>
-			  vet.villes.includes(currentValue))
-		}
-		if ( etablissements.length){ // search clinics
-			etablissementList = etablissements.filter((etablissement) =>
-			  etablissement.villes.includes(currentValue))
-		}
-
-        setVetList(veterinarianList.concat(etablissementList));
-
-        const title = getAContent( 'cmp_vetonest.com_SearchInCity_Txt' ) + ' - ' + currentValue;
-        setTitle(title);
-      }
-	  else{ // search all
-		setVetList(vetos.concat(etablissements));
-        const title = getAContent( 'cmp_vetonest.com_AllVets_Txt' );
-        setTitle(title);
-	  }
+    if (currentName === 'location' && currentValue) {
+      // Filter both lists by city
+      const vList = vetos.filter((v) => v.villes?.includes(currentValue));
+      const eList = etablissements.filter((e) => e.villes?.includes(currentValue));
+      results = [...vList, ...eList];
+    } 
+    else if (currentName === 'vetoSpecialityId') {
+      results = vetos.filter((v) => v.vetoSpecialite?.id == currentValue);
+    } 
+    else if (currentName === 'etablissementTypeId') {
+      results = etablissements.filter((e) => e.etablissementType?.id == currentValue);
+    } 
+    else if (currentName === 'name' && currentValue) {
+      const vList = vetos.filter((v) => v.nom.toLowerCase().includes(currentValue.toLowerCase()));
+      const eList = etablissements.filter((e) => e.nom.toLowerCase().includes(currentValue.toLowerCase()));
+      results = [...vList, ...eList];
     }
-    setLoading(false);
-  }, [vetos, etablissements, location.search]);
+    else {
+      results = [...vetos, ...etablissements];
+    }
 
-  const filteredVets = vetList.filter((vet) =>
-    vet.nom.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    // Filter by the secondary search bar ("Search in list")
+    return results.filter((item) =>
+      item.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.prenom && item.prenom.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [vetos, etablissements, location.search, searchQuery]);
 
+  // Handle Title
+  const displayTitle = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const currentName = params.get("searchName");
+    const currentValue = params.get("searchValue");
+
+    if (currentName === 'location' && currentValue) {
+      return `${getAContent('cmp_vetonest.com_SearchInCity_Txt')} - ${currentValue}`;
+    }
+    return getAContent('cmp_vetonest.com_AllVets_Txt');
+  }, [location.search, getAContent]);
+
+  // Manage loading state
+  useEffect(() => {
+    if (vetos.length || etablissements.length) {
+      setLoading(false);
+    }
+  }, [vetos, etablissements]);
 
   const handleGetAppointment = (id, type) => {
-    if (type == 'vet') {
-      navigate('/vet-profile?vetId=' + id);
-    } else if (type == 'clinic') {
-      navigate('/etablissement?etablissementId=' + id);  // Modify the route as needed
+    if (type === 'vet') {
+      navigate(`/vet-profile?vetId=${id}`);
+    } else {
+      navigate(`/etablissement?etablissementId=${id}`);
     }
   };
 
@@ -127,94 +93,92 @@ const ListingPage = () => {
     <>
       <div className="sticky-stack">
         <Header />
-        <Title title={title} />
+        <Title title={displayTitle} />
       </div>
 
       <div className="listing-page">
-        {/* Search and Filter */}
         <div className="search-bar">
           <Input
-            placeholder= { getAContent( 'cmp_vetonest.com_SearchInList_Ph' ) + '...' }
+            placeholder={getAContent('cmp_vetonest.com_SearchInList_Ph') + '...'}
             prefix={<SearchOutlined />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             allowClear
-            style={{ width: 300 }}
+            style={{ width: 300, marginBottom: '20px' }}
           />
         </div>
 
-        {/* Vet List */}
-        <Row gutter={16} className="vet-list">
+        {/* CRITICAL FIX: Adding key={location.search} to the Row forces 
+            the entire grid to unmount and remount when the URL changes. 
+        */}
+        <Row gutter={[16, 16]} className="vet-list" key={location.search}>
           {loading ? (
-            <Col span={8}>
-              <Skeleton active />
-            </Col>
+            <Col span={24}><Skeleton active /></Col>
           ) : (
-            filteredVets.map((vet) => (
-              <Col xs={24} sm={12} md={8} key={vet.id}>
-                <Card
-                  hoverable
-                  cover={
-                    vet.creatorProfile ?
-                      <img src={etablissementPhotoDefaultSrc} alt="Clinic page" />
-                      :
-                      <img
-                        src={vet.picture ? base_url + 'uploads/files/profile/' + vet.picture : photoDefaultSrc}
-                        alt={ getAContent( 'cmp_vetonest.com_VetPage_Txt' ) }
+            filteredVets.map((item) => {
+              // 2. CRITICAL FIX: Generate a TRULY unique key.
+              // Since IDs 14 and 15 are duplicated between Vets and Clinics, 
+              // we must prefix them to keep React's diffing algorithm happy.
+              const isClinic = !!item.creatorProfile;
+              const itemKey = isClinic ? `clinic-${item.id}` : `vet-${item.id}`;
+
+              return (
+                <Col xs={24} sm={12} md={8} key={itemKey}>
+                  <Card
+                    hoverable
+                    className="vet-card"
+                    cover={
+                      <img 
+                        alt="example" 
+                        src={isClinic 
+                          ? etablissementPhotoDefaultSrc 
+                          : (item.picture ? base_url + 'uploads/files/profile/' + item.picture : photoDefaultSrc)
+                        } 
+                        style={{ height: 250, objectFit: 'cover' }}
                       />
-                  }
-                  className="vet-card"
-                >
-                  <Meta
-                    title={vet.nom}
-                    description={
-                      <>
-                        <p>
-                          {
-							!vet.creatorProfile ?
-								allSpecialities.length && vet.vetoSpecialite
-								? getAContent(
-									allSpecialities.filter(
-									  (e) => e.id === vet.vetoSpecialite.id
-									)[0].tagRef
-								  )
-								: getAContent('cmp_vetonest.com_nDHuiDhEz3')
-							:
-								getAContent( vet.type )
-						  }
-                        </p>
-                        <Rate disabled value={vet.rating} />
-                        <p>&nbsp;</p>
-                      </>
                     }
-                  />
-                  {/* Buttons: Get an Appointment and Visit the Vet Page */}
-                  <Button
-                    type="primary"
-                    icon={<CalendarOutlined />}
-                    size="large"
-                    block
-                    onClick={() => handleGetAppointment(vet.id, vet.creatorProfile ? 'clinic' : 'vet')}
                   >
-					{ getAContent( "cmp_vetonest.com_GetAppt_Bt" ) }
-                  </Button>
-                  <Button
-                    type="default"
-                    icon={<ProfileOutlined />}
-                    size="large"
-                    block
-                    onClick={() => handleGetAppointment(vet.id, vet.creatorProfile ? 'clinic' : 'vet')}
-                    style={{ marginTop: '10px', backgroundColor: '#f0f0f0' }}
-                  >
-				   { !vet.creatorProfile ? getAContent( "cmp_vetonest.com_VisitVetPage_Bt" ) : getAContent( "cmp_vetonest.com_VisitClinicPage_Bt" ) } 
-                  </Button>
-                </Card>
-              </Col>
-            ))
+                    <Meta
+                      title={(item.prenom ? item.prenom + ' ' : '') + item.nom}
+                      description={
+                        <>
+                          <p style={{ minHeight: '1.5em' }}>
+                            {isClinic 
+                              ? getAContent(item.type) 
+                              : getAContent(item.vetoSpecialite?.tagRef || 'cmp_vetonest.com_nDHuiDhEz3')
+                            }
+                          </p>
+                          <Rate disabled value={item.rating || 0} />
+                          <p>&nbsp;</p>
+                        </>
+                      }
+                    />
+                    <Button
+                      type="primary"
+                      icon={<CalendarOutlined />}
+                      size="large"
+                      block
+                      onClick={() => handleGetAppointment(item.id, isClinic ? 'clinic' : 'vet')}
+                    >
+                      {getAContent("cmp_vetonest.com_GetAppt_Bt")}
+                    </Button>
+                    <Button
+                      type="default"
+                      icon={<ProfileOutlined />}
+                      size="large"
+                      block
+                      onClick={() => handleGetAppointment(item.id, isClinic ? 'clinic' : 'vet')}
+                      style={{ marginTop: '10px', backgroundColor: '#f0f0f0' }}
+                    >
+                      {isClinic ? getAContent("cmp_vetonest.com_VisitClinicPage_Bt") : getAContent("cmp_vetonest.com_VisitVetPage_Bt")}
+                    </Button>
+                  </Card>
+                </Col>
+              );
+            })
           )}
         </Row>
       </div>
-      <div>&nbsp;</div>
       <Footer />
     </>
   );
