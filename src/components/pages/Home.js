@@ -40,11 +40,11 @@ export default function HomePage() {
           <div className="container hero-grid">
             <div className="hero-text">
               <div className="heroTitle">
-                {getAContent("cmp_vetonest.com_Sv24Ve07Rh")}
+                {getAContent("cmp_vetonest.com_zDVB9q7a2d")}
               </div>
 
               <p className="hero-sub">
-                {getAContent("cmp_vetonest.com_Cv88Li99Ne")}
+                {getAContent("cmp_vetonest.com_Booking247_Txt")}
               </p>
 
               <div className="hero-steps steps">
