@@ -1,0 +1,117 @@
+I need a kind of user's space inside my project. I don't know if this user space will require one component for all the needed pages, or many. 
+  You"ll tell me. 
+  
+  This user space will have 2 main columns:
+  Column 1: the left menu. These are the current left menu items 
+  [ Create a new consultation ] 
+  [ My consultations ]
+  Colomn 2: the content. Depending of the active menu item: 
+
+  I. Create a new consultation
+	* Description: this is where the pet parent ask a consultation to a veterinarian. To create a new consultation request to send to a vet, we need to get these 3 infos from the user in this order: 
+		a) A pet: each pet is represented by it's health book. When the user reaches this page he can already have one or many pets registered on the platform, from his profile page.  
+		- If he does not have a pet in the system: we'll display the form to create one. See a sample attached.
+		- If he alaready have one or many pet: on the platform, we"ll display them as cards, horizontaly maybe with a scrolling. Each card will have the pet's info ( Picture, name, birthdate, specie, bread etc ) and a button to select the pet we want. When this is done: 
+		b) A date and hour: When user reaches this page he may already have a date got on the vet profile page, without the consultation hour.  
+		- If he does, we'll display a timepicker to help him choose he desired consultation time. 
+		- If he don't have a consultation's  date yet ( stored in a context variable ), we'll display a dateTime picker. Or maybe a date + a time picker nearby separately. You'll tell me. 
+		c) The pet's symptoms: we are developing a pet symptoms collector on another chat here. The tool will use AI to help user to collect observations on its pet in an interactive maner.  
+	When those 3 steps are done, we can alert the vet about his consultation request.
+	* URL: /consultation/creation
+
+  II. My consultations
+    * Description: we list all user consultations in 2 horizontal main zone: 
+		a) The first zone lists the current user's consultations. These are the user consultations wich have their date/time > to curent date/time. We'll display: 
+		- The consultation date / time
+		- The consultation status ( not read / read / accepted )
+		- The pet's infos
+		- the pets symptoms: few lines with a read more button to open the entire text in a modal
+		- a cancellation button [ cancel this consultation request ]
+		b) The second zone above lists the past user's consultations.
+		- The consultation date / time
+		- The consultation status ( done / canceled )
+		- The pet's infos
+		- The pets symptoms: few lines with a read more button to open the entire text in a modal
+		- A rating element to rate the consultation and the vet
+		- A comment element to let the user leave a comment about the consultation and tha vet
+	* URL: /consultation
+
+  This is the current page layout code ( also see attached ) :
+	import React, { useState, useEffect, useContext } from "react";
+	import { useNavigate, useLocation } from "react-router-dom";
+	import { AuthContext } from "../../context/AuthProvider";
+	import { SiteContext } from "../../context/site";
+
+	import { ConfigProvider } from 'antd';
+
+	import Header from '../Header';
+	import Footer from '../Footer';
+	import Title from '../Title';
+
+	const Consultation = () => {
+		const { 
+				getUser,
+				profileTypeId,
+				profileId,
+				userId,
+				user,
+				setUser,
+		} = useContext( AuthContext );
+		const { getAContent, getUserPets } = useContext(SiteContext);
+
+		const [ isCreation, setIsCreation ] = useState( null );
+		const [ animals, setAnimals ] = useState( null );
+		const [ animal, setAnimal ] = useState( null );
+
+		const location = useLocation();
+
+		useEffect(() => {
+			// user path
+			if (location.pathname.includes('/consultation/creation')) {
+			  console.log("User is on the consultation request page!");
+			  setIsCreation( true );
+			}
+			else{
+			  console.log("User is on the consultation request page!");
+			  setIsCreation( true );
+			}
+
+			// user pets
+			const a = async () => {
+				
+				const userPets = await getUserPets( profileId );
+				const countUserAnimal = userPets.length;
+	console.log( 'profileId: ' + profileId ); 
+	console.log( 'TotalAnimal: ' + countUserAnimal );
+	console.log( '>>>>>>>>>>>>>>> userPets', userPets );
+				if( userPets.length ){
+					setAnimals( userPets );
+				}
+				else{
+	console.log( 'No Animal' );
+				}
+		   }
+		   a();
+
+		}, [location.pathname]);
+
+	  return (
+		<>
+		  <div className="sticky-stack">
+			<Header />
+			<Title title={isCreation ? 'Demande de consultation' : 'Vos consultations'} />
+		  </div>
+			<br/>
+		  <div className="usage-content" style={{ marginLeft: '70px', marginRight: '20px' }}>
+			<h2>foo</h2>
+			<br/>
+			
+		  </div>
+
+		  <Footer />
+		</>
+	  );
+	};
+
+
+	export default Consultation;

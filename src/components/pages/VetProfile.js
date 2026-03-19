@@ -43,7 +43,11 @@ const VetProfile = () => {
 		siteLocale,
 		base_url,
 		allSpecialities,
-		transports
+		transports,
+		setConsultationSelectedVet,
+		setCurrentConsultationDate,
+		setConsultationTimeslot,
+		setCurrentConsultationPet,
 	} = useContext(SiteContext);
 	
 	const navigate = useNavigate();
@@ -90,11 +94,11 @@ const VetProfile = () => {
 			const vetLieux  = await getAVetoLieux( { profileVetoId: vetId });
 			setVetLieux( vetLieux );
 			
-// console.log( 'ttttttttttttttttttttttt transports: ', transports );
+console.log( 'ttttttttttttttttttttttt vetTimeslot: ', vetTimeslot );
 		};
 		a();
 
-	}, [location.search, title]);
+	}, [location.search]);
 
 // Build timeslot
 	const BuildTimeslot = () => {
@@ -102,8 +106,8 @@ const VetProfile = () => {
 			return
 
 		const getHoraire = ( dateObj01, dateObj02 ) => { return(
-			dayjs( dateObj01 ).format( 'HH:ss' ) + ' - ' + 
-			dayjs( dateObj02 ).format( 'HH:ss' ) 
+			dayjs( dateObj01 ).format( 'HH:mm' ) + ' - ' + 
+			dayjs( dateObj02 ).format( 'HH:mm' ) 
 		)};
 		
 		const getFieldName = ( type ) => {
@@ -150,7 +154,8 @@ const VetProfile = () => {
 							dayId:			e[0],
 							timeSlotId:		e[1].timeSlotId,
 							type: 			e[1].opened ? 4 : 0,
-							goToLink:		"#"
+							goToLink:		"#",
+							onClick:		e[1].opened ? () => handleGetAppointmentFromSlot( e[0] ) : undefined,
 						}}
 					/>
 				</div>
@@ -256,13 +261,48 @@ const VetProfile = () => {
 		return monthName;
 	}
 
-	// Handle appointment booking
-	const handleGetAppointment = () => {
-		// Redirect to an appointment booking page or show modal
-		Modal.success({
-			title: getAContent( 'cmp_vetonest.com_AppointRequest_Txt' ) ,
-			content: getAContent( 'cmp_vetonest.com_Redirecting_Txt' ) + '...' ,
-		});
+	// Returns the next upcoming date (YYYY-MM-DD) for a given slot index (0=Mon … 6=Sun)
+	const getNextDateForWeekday = (slotIndex) => {
+		// slotIndex: 0=Mon, 1=Tue … 6=Sun  |  JS getDay(): 0=Sun, 1=Mon … 6=Sat
+		const jsTarget = Number(slotIndex) === 6 ? 0 : Number(slotIndex) + 1;
+		const today    = new Date();
+		let daysAhead  = jsTarget - today.getDay();
+		if (daysAhead <= 0) daysAhead += 7; // always a future date
+		const result = new Date(today);
+		result.setDate(today.getDate() + daysAhead);
+		return result.toISOString().split('T')[0]; // "YYYY-MM-DD"
+	};
+
+	// "Get an appointment" from a timeslot row — pre-fills vet + next matching date + timeslot
+	const handleGetAppointmentFromSlot = async (slotIndex) => {
+		const currentParams = new URLSearchParams(location.search);
+		const id = currentParams.get("vetId");
+
+		setConsultationSelectedVet({ ...vetData, id: Number(id) });
+		setCurrentConsultationDate(getNextDateForWeekday(slotIndex));
+		setCurrentConsultationPet(null); // always start at step 1 — pet selection
+
+		try {
+			const ts = await getTimeslot(id);
+			setConsultationTimeslot(ts);
+		} catch {
+			setConsultationTimeslot(null);
+		}
+
+		navigate('/consultation/creation');
+	};
+
+	// "Get an appointment" from the profile header — pre-fills vet only, date left to user
+	const handleGetAppointment = async () => {
+		const currentParams = new URLSearchParams(location.search);
+		const id = currentParams.get("vetId");
+
+		setConsultationSelectedVet({ ...vetData, id: Number(id) });
+		setCurrentConsultationDate(null);
+		setConsultationTimeslot(null);
+		setCurrentConsultationPet(null); // always start at step 1 — pet selection
+
+		navigate('/consultation/creation');
 	};
 
 	if (!vetData) {

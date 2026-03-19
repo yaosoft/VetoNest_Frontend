@@ -1,0 +1,15 @@
+When the user is on a vet's profile page and he clicks on Get an appointment button, update the context variables consultationSelectedVet and currentConsultationDate and  heads to the 1-4 booking request steps.
+
+When the user is on it's profile page and he clicks on Consultation button for one of it's pet, update currentConsultationPet and heads to the 1-4 booking request steps.
+
+When the user starts the 1 - 4 steps to request a consultation:
+- if the context variable currentConsultationVet is not null, the user is comming from the vet's profile page where he clicked on Get an appointment. See attached. In this case, we already have the consultation date in currentConsultationDate and the timeslot in currentConsultationTimeslot. 
+  * We'll fill and select the day in step2 for him and if it's possible, we'll limit the time picker options to match the timeslot opening and clocing date of the selected vet.
+  * On step 4, the choosen vet card will sit on the top of the stack with a blue bkackground header and the text 'Selected vet' or better text.
+
+- if the context variable consultationSelectedPet is not null, the user is comming from his profile page where he clicked on Get an appointment for one one his pet. See attached. In this case, we'll already know the pet
+  * We'll select the pet in step 1 for him.
+
+Other updates:
+- in step4, update 'Book a vet' to 'Book a vet for' + [chosen date]
+- remove the online marks on the vets photo. we"ll build a better online system based on websocket or better.

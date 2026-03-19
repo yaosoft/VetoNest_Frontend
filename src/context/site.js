@@ -221,26 +221,31 @@ export const SiteProvider = ({ children }) => {
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
 		const languages = await languageList();
-// console.log( languageId );		
 		const language = await languages.filter( e => e.id == languageId )[0];
-// console.log( language );
 		const languageCode = language ? language.languageCode : defaultLanguageCode;
 		const flag = '/img/flags/' + languageCode + '.svg';
-// console.log( 'Flag, ' + flag );	
-
 		setLanguageFlag( flag );
 		setSiteLanguage( languageCode );
-		setSiteLocale( languageCode ? languageCode + '-' + languageCode.toUpperCase() : 'fr-FR' ); // en-En
-		
+
+		// ── Language code → correct BCP 47 locale ────────────────────────────
+		// Some languages have a different country code than their language code
+		const localeMap = {
+			'en': 'en-GB',
+			'fr': 'fr-FR',
+			'de': 'de-DE',
+			'es': 'es-ES',
+			'it': 'it-IT',
+			'ee': 'et-EE',  // Estonian: language code "et", country code "EE"
+		};
+		const locale = localeMap[languageCode] ?? (languageCode + '-' + languageCode.toUpperCase());
+		setSiteLocale( locale );
 
 		// get content
 		const siteContentData = {
 			siteLanguage: languageCode,
 		}
 		const siteContent = await getSiteContent( siteContentData );
-
-		setSiteContent( siteContent ); // to use in secondary DOMs ( modal )
-		
+		setSiteContent( siteContent );
 	}
 
 	const getLanguagePreference = async ( userData ) => {
@@ -346,7 +351,7 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
-	
+
 	const [ userProfile, setUserProfile ] = useState( '' );
 
 	// update user / veto profile
@@ -399,6 +404,38 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Veto notification - get appointment request Notification
+	const getVetoAppointmentRequestNotification = async (consultationId) => {
+		const url    = base_api_url + 'consultation/vet/appointment/notification?consultationId=' + consultationId;
+		const method = 'GET';
+		setSpiner('block');
+		const rep = await fetchData(url, null, method);
+		setSpiner('none');
+		return rep;
+	}
+
+	// Pet parent notification - get confirmed appointment request 
+	const getPetConfirmedAppointmentNotification = async ( userProfileId ) => {
+		const url		= base_api_url + 'consultation/pet/confirmed/appointment/notification/?vetoProfileId=' + userProfileId;
+		const data 		= "";
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Pet parent notification - get confirmed appointment request 
+	const getPetDeclinedAppointmentNotification = async ( userProfileId ) => {
+		const url		= base_api_url + 'consultation/pet/declined/appointment/notification/?vetoProfileId=' + userProfileId;
+		const data 		= "";
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
 		return rep;
 	}
 
@@ -539,6 +576,71 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
+		return rep;
+	}
+
+	// all consultation types
+	const [allConsultationTypes,    setAllConsultationTypes]    = useState([]);
+	const getAllConsultationTypes = async () => {
+		const url		= base_api_url + 'consultationType/list';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// all consultation statuses
+	const [allConsultationStatuses, setAllConsultationStatuses] = useState([]);
+	const getAllConsultationStatuses = async () => {
+		const url		= base_api_url + 'consultationStatus/list';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Consultation list
+	const getPetOwnerConsultationList = async ( profileId ) => {
+		const url		= base_api_url + 'consultation/list/pet-owner?profileId=' + profileId;
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Consultation cancel
+	const consultationCancel = async ( consultationId ) => {
+		const url		= base_api_url + 'consultation/cancel?consultationId=' + consultationId;
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Consultation list
+	const getVetConsultationList = async (profileVetoId) => {
+		const url    = base_api_url + 'consultation/list/vet?profileVetoId=' + profileVetoId;
+		const method = 'GET';
+		const rep    = await fetchData(url, null, method);
+		return rep;
+	}
+
+	// Consultation accept
+	const consultationAccept = async (consultationId) => {
+		const url    = base_api_url + 'consultation/accept';
+		const data   = { consultationId };
+		const method = 'POST';
+		setSpiner('block');
+		const rep = await fetchData(url, data, method);
+		setSpiner('none');
 		return rep;
 	}
 
@@ -968,6 +1070,62 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 	
+	// Consultation primary complaint
+	const consultationPrimaryComplaint = async ( symptomData ) => {
+		const url		= base_api_url + 'symptoms/primary-complaint';
+		const data 		= symptomData;
+		const method 	= 'POST';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Save symptom
+	const saveSymtom = async ( symptomData ) => {
+		const url		= base_api_url + 'symptoms/save';
+		const data 		= symptomData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Save consultation
+	const saveConsultation = async ( consultationData ) => {
+		const url		= base_api_url + 'consultation/edit';
+		const data 		= consultationData;
+		const method 	= 'POST';
+		setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		setSpiner( 'none' );
+		return rep;
+	}
+
+	// Save rating
+	const saveRating = () =>{
+console.log( 'Save ratings' )	
+	}
+	
+	// Save consultation finish
+	const consultationFinish = () =>{
+console.log( 'finish Consultation' )	
+	}
+
+	//  Consultation date
+	const [ currentConsultationDate, setCurrentConsultationDate ] = useState( null );
+	//  Consultation pet
+	const [ currentConsultationPet, setCurrentConsultationPet ] = useState( null );
+	//   Consultation recommended speciality
+	const [ recommendedSpecialityId, setRecommendedSpecialityId ] = useState( null );
+	//  Consultation recommended clinic
+	const [ recommendedClinicTypeId, setRecommendedClinicTypeId ] = useState( null );
+	//  Consultation timeslot
+	const [ consultationTimeslot, setConsultationTimeslot ] = useState( null );
+	//  Consultation timeslot
+	const [ consultationSelectedVet, setConsultationSelectedVet ] = useState( null );
+
 	useEffect(() => {
 		const a = async () =>{
 			// Languages
@@ -1010,8 +1168,16 @@ export const SiteProvider = ({ children }) => {
 			const vetos = await getVetos();
 			setVetos( vetos )
 
-			// veto list
+			// veto etablissement
 			const etablissements = await getEtablissements();
+			
+			// Fetch consultation types
+			const consultationTypes = await getAllConsultationTypes();
+			setAllConsultationTypes(consultationTypes);
+
+			// Fetch consultation statuse
+			const consultationStatuses = await getAllConsultationStatuses();
+			setAllConsultationStatuses(consultationStatuses);
 
 			setEtablissements( etablissements )
 		}
@@ -1444,6 +1610,10 @@ export const SiteProvider = ({ children }) => {
 				transports,
 				lieuTransportUpdate,
 				vetos,
+				recommendedSpecialityId,
+				setRecommendedSpecialityId,
+				recommendedClinicTypeId,
+				setRecommendedClinicTypeId,
 				etablissements,
 				getVetoInvitationNotification,
 				getUserNotifications,
@@ -1464,7 +1634,29 @@ export const SiteProvider = ({ children }) => {
 				getVetAutocomplete,
 				getTypeSpecialityAutocomplete,
 				getPlaceAutocomplete,
-				getAVetoProfile
+				getAVetoProfile,
+				currentConsultationDate, 
+				setCurrentConsultationDate,
+				currentConsultationPet,
+				setCurrentConsultationPet,
+				consultationPrimaryComplaint,
+				consultationSelectedVet,
+				setConsultationSelectedVet,
+				consultationTimeslot,
+				setConsultationTimeslot,
+				saveSymtom,
+				saveConsultation,
+				allConsultationTypes,
+				allConsultationStatuses,
+				consultationCancel,
+				getPetOwnerConsultationList,
+				getVetConsultationList,
+				consultationAccept,
+				getVetoAppointmentRequestNotification,
+				getPetConfirmedAppointmentNotification,
+				getPetDeclinedAppointmentNotification,
+				saveRating,
+				consultationFinish
 			}}
 		>
 

@@ -15,6 +15,9 @@ import Etablissement from './pages/Etablissement';
 import VetProfile from './pages/VetProfile';
 import VetListing from './pages/VetListing';
 import Usage from './pages/Usage';
+import Consultation from './pages/Consultation';
+import ConsultationListPetOwner from './pages/ConsultationListPetOwner';
+import ConsultationListVet from './pages/ConsultationListVet';
 
 const AllRoutes = {
 
@@ -79,9 +82,25 @@ const AllRoutes = {
 			element:  <VetListing />,
 			path: '/clinic-listing',
 		},
-		{	// Usage
+		{	// usage
 			element:  <Usage />,
 			path: '/vet-usage',
+		},		
+		{	// consultation
+			element:  <Consultation />,
+			path: '/consultation',
+		},
+		{	// consultation / creation
+			element:  <Consultation />,
+			path: '/consultation/creation',
+		},
+		{	// consultation / list
+			element:  <ConsultationListPetOwner />,
+			path: '/consultation/list',
+		},
+		{	// consultation / list
+			element:  <ConsultationListVet />,
+			path: '/consultation/vet/list',
 		},
 		{	// Not found page
 			element: <NotFound 

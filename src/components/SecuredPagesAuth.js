@@ -19,6 +19,8 @@ const SecuredPagesAuth = () => {
 	const securedPagesPath 	= [
 		'/profile',
 		'/clinic',
+		'/consultation',
+		'/consultation/creation'
 	]
 	
 	// pages to not referrer

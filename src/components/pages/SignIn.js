@@ -212,9 +212,31 @@ const SignIn = ( params ) => {
 			await languageSetup( resp.languageId );
 
 		
-		// goto validation
-		const path	= getReferrer() ? getReferrer() : '/profile';
+		/**
+		 * Determines the redirection path based on referrer and profile type.
+		 * @param {string|null} referrer - The referrer URL
+		 * @param {number} profileId - The ID of the profile type
+		 * @returns {string} The final redirect path
+		 */
+		const getConsultationPath = (referrer, profileTypeId ) => {
+console.log( '>>>>>>>>>>> referrer', referrer );
+		  // 1. Priority: If we have a referrer, use it immediately
+		  if (referrer) return referrer;
 
+		  // 2. Logic: Fallback to profile-specific paths
+		  const paths = {
+			1: '/consultation/creation',
+			2: '/consultation/vet/list'
+		  };
+
+		  // Return the mapped path or a default home/dashboard path if ID is unknown
+		  return paths[profileTypeId] || '/';
+		};
+console.log( '>>>>>>>>>>> resp.profileTypeId', resp.profileTypeId );
+		// Usage:
+		const path = await getConsultationPath(getReferrer(), resp.profileTypeId);
+	
+console.log( '>>>>>>>>>>> path', path );
 		navigate( path );
 	}
 
