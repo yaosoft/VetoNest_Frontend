@@ -44,6 +44,7 @@ const Header = () => {
 		flag,
 		userProfile,
 		getVetoInvitationNotification,
+		getVetoAppointmentRequestNotification,
 		profileFormUpdated,
 		getAContent,
 	} = useContext( SiteContext );
@@ -202,11 +203,17 @@ const Header = () => {
 								<div className={`navbar-collapse ${menuOpen ? "open" : ""}`}>
 								  <ul className="navbar-nav">
 									<li className="nav-item">
-									  <Link className="nav-link" onClick={() => handleClickGoto("blog")}>
-										Blog
+									  <Link className="nav-link" onClick={() => handleClickGoto(Number(profileTypeId) === 2 ? "consultation/vet/list" : "consultation/creation")}>
+										  { getAContent( 'cmp_vetonest.com_Consultation_Txt' ) }
 									  </Link>
 									</li>
-
+									{/*
+										<li className="nav-item">
+										  <Link className="nav-link" onClick={() => handleClickGoto("blog")}>
+											Blog
+										  </Link>
+										</li>
+									*/}
 									<li className="nav-item">
 									  {isAuthenticated() ? (
 										<Link className="nav-link" onClick={() => handleClickGoto("profile")}>
@@ -214,7 +221,7 @@ const Header = () => {
 										</Link>
 									  ) : (
 										<Link className="nav-link" onClick={() => handleClickGoto("connexion")}>
-										  Connexion
+										  getAContent( 'cmp_vetonest.com_f82Ns91Qaz' )
 										</Link>
 									  )}
 									</li>
@@ -226,7 +233,7 @@ const Header = () => {
 										</Link>
 									  ) : (
 										<Link className="nav-link" onClick={() => handleClickGoto("inscription")}>
-										  Inscription
+											{ getAContent( 'cmp_vetonest.com_Registration_Txt' ) }
 										</Link>
 									  )}
 									</li>

@@ -206,11 +206,17 @@ const SingleFieldManager = ( params ) => {
 		else if( type == 4 ) // booking
 			return(
 				<span>
-					<a
-						href= { goToLink }
-					>
-						{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
-					</a>
+					{ params.params.onClick
+						? <span
+							style={{ cursor: 'pointer' }}
+							onClick={ (e) => { e.stopPropagation(); params.params.onClick(); } }
+						>
+							{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
+						</span>
+						: <a href={ goToLink }>
+							{ getAContent( 'cmp_vetonest.com_BXJ8ERfKvZ' ) }
+						</a>
+					}
 				</span>
 			)
 	}

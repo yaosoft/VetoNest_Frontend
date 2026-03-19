@@ -118,6 +118,11 @@ const displayTitle = useMemo(() => {
     }
   };
 
+useEffect(() => {
+	console.log( '>>>>>>> vetList', vetos );
+	console.log( '>>>>>>> etablissements', etablissements );
+}, []); 
+
   return (
     <>
       <div className="sticky-stack">
@@ -184,20 +189,11 @@ const displayTitle = useMemo(() => {
                     />
                     <Button
                       type="primary"
-                      icon={<CalendarOutlined />}
-                      size="large"
-                      block
-                      onClick={() => handleGetAppointment(item.id, isClinic ? 'clinic' : 'vet')}
-                    >
-                      {getAContent("cmp_vetonest.com_GetAppt_Bt")}
-                    </Button>
-                    <Button
-                      type="default"
                       icon={<ProfileOutlined />}
                       size="large"
                       block
                       onClick={() => handleGetAppointment(item.id, isClinic ? 'clinic' : 'vet')}
-                      style={{ marginTop: '10px', backgroundColor: '#f0f0f0' }}
+                      style={{ marginTop: '10px' }}
                     >
                       {isClinic ? getAContent("cmp_vetonest.com_VisitClinicPage_Bt") : getAContent("cmp_vetonest.com_VisitVetPage_Bt")}
                     </Button>

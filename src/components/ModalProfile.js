@@ -4644,7 +4644,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 								</Form.Item>
 							</div>
 
-							{/* Birthdate */}
+							{/* Pet birthdate */}
 							<Form.Item
 								name="AnimalBirthdate"
 								label={getAContent('cmp_vetonest.com_Kd41Ws97Pl')}

@@ -101,7 +101,8 @@ const Profile = ( params ) => {
 		getEtablissementVeto,
 		especes,
 		races,
-		speciesBreedList
+		speciesBreedList,
+		setCurrentConsultationPet,
 	} = useContext( SiteContext );
 
 	const [ profile, setProfile ] = useState( '' );
@@ -510,7 +511,8 @@ const Profile = ( params ) => {
 		const monthName = date.toLocaleDateString( locale, { month: 'short' } );
 		return monthName;
 	}
-
+	
+	// Get espece name from ID
 	const getEspeceName = ( especeId ) => {
 		if( !especes.length )
 			return '.'
@@ -535,14 +537,17 @@ const Profile = ( params ) => {
 	useEffect(() => {
 	  const loadBreeds = async () => {
 		const map = {};
-
+// console.log( 'Uuuuuuuuuuuuuuuu userPets', userPets );
 		for (const pet of userPets) {
 		  if (pet?.espece?.id && pet?.race?.id) {
 			const breeds = await speciesBreedList(pet.espece.id);		
+// console.log( 'bbbbbbbbbbbbbbbbb breeds', breeds );			
 			const breed = breeds.find(b => b.id === pet.race.id);
+// console.log( '----------------- breed', breed );	
 			map[pet.id] = breed ? breed.nom : '—';
 		  }
 		}
+// console.log( 'mmmmmmmmmmmmmmmmmmmm map', map );
 		setBreedNames(map);
 	  };
 
@@ -607,7 +612,10 @@ const Profile = ( params ) => {
 
 						  {/* Actions */}
 						  <div className="pet-actions-secondary">
-							<button className="btn-consultation">Consultation</button>
+							<button className="btn-consultation" onClick={() => {
+								setCurrentConsultationPet(e);
+								navigate('/consultation/creation');
+							}}>Consultation</button>
 							<button className="btn-delete">Supprimer</button>
 						  </div>
 
