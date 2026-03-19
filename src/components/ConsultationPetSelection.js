@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { SiteContext } from "../context/site";
 
 const ConsultationPetSelection = ({ animals, setAnimal, selectedPet }) => {
+  const navigate = useNavigate();
   const { 
     base_url,
     photoAnimalDefaultSrc,
@@ -68,7 +70,12 @@ const ConsultationPetSelection = ({ animals, setAnimal, selectedPet }) => {
         </div>
       ) : 
 	    <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button className="consultation-next-button">{ getAContent( 'cmp_vetonest.com_CreateNewPet_Btn' ) }</button>
+          <button
+            className="consultation-next-button"
+            onClick={() => navigate("/profile")}
+          >
+            { getAContent( 'cmp_vetonest.com_CreateNewPet_Btn' ) }
+          </button>
         </div>
 	  }
     </div>
