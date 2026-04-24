@@ -11,7 +11,7 @@ import { Space, Modal, Spin, Button, notification, message, Popconfirm, Upload }
 
 import LanguageSelector from './LanguageSelector';
 
-import Notifications from "./Notifications.js";
+import Notifications from "./Notifications.js"; 
 
 
 const Header = () => {
@@ -43,8 +43,6 @@ const Header = () => {
 		siteLanguage,
 		flag,
 		userProfile,
-		getVetoInvitationNotification,
-		getVetoAppointmentRequestNotification,
 		profileFormUpdated,
 		getAContent,
 	} = useContext( SiteContext );
@@ -202,9 +200,17 @@ const Header = () => {
 								{/* COLLAPSIBLE MENU */}
 								<div className={`navbar-collapse ${menuOpen ? "open" : ""}`}>
 								  <ul className="navbar-nav">
+									{/* "MY PETS" LINK - VISIBLE ONLY FOR USER PROFILES (NOT VETS) */}
+									
+										<li className="nav-item">
+										  <Link className="nav-link" onClick={() => handleClickGoto("my-pets")}>
+											  { getAContent( 'cmp_vetonest.com_MyPets_Txt' ) }
+										  </Link>
+										</li>
+									
 									<li className="nav-item">
-									  <Link className="nav-link" onClick={() => handleClickGoto(Number(profileTypeId) === 2 ? "consultation/vet/list" : "consultation/creation")}>
-										  { getAContent( 'cmp_vetonest.com_Consultation_Txt' ) }
+									  <Link className="nav-link" onClick={() => handleClickGoto(Number(profileTypeId) === 1 ? "consultation/list" : "consultation/vet/list")}>
+										  { getAContent( 'cmp_vetonest.com_Consultations_Plural_Txt' ) }
 									  </Link>
 									</li>
 									{/*

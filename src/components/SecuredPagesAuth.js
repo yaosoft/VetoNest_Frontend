@@ -20,7 +20,10 @@ const SecuredPagesAuth = () => {
 		'/profile',
 		'/clinic',
 		'/consultation',
-		'/consultation/creation'
+		'/consultation/creation',
+		'/consultation/list',
+		'/consultation/vet/list',
+		'/my-pets',
 	]
 	
 	// pages to not referrer

@@ -1,13 +1,74 @@
-/* --- Base Styles (Desktop & General) --- */
-.left-menu {
-  /* display: flex; */
-  display: none;
-  flex-direction: row;
-  justify-content: flex-start;
-  padding: 10px;
-  background-color: #f4f4f4;
+/* =============================================================================
+   CONSULTATION.CSS
+   Styles for the consultation flow: pet selection, booking, symptoms form.
+   Structure:
+     1. Base / Layout
+     2. Navigation Menu
+     3. Pet Cards
+     4. Form Controls & Buttons
+     5. Symptoms Container
+     6. Booking Page (3-column layout)
+     7. Responsive (max-width: 1100px → 768px → 700px → 480px)
+   ============================================================================= */
+
+
+/* =============================================================================
+   1. BASE / LAYOUT
+   ============================================================================= */
+
+body {
+  /* Prevent horizontal scrollbar caused by scale() transforms */
+  overflow-x: hidden;
+}
+
+.content-area {
   width: 100%;
   margin-top: 20px;
+  padding: 0;
+}
+
+/* Centered column container used by most steps */
+.consultation-step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Step headings */
+.consultation-step-title {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Centered wrapper for the Next button */
+.next-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+
+/* =============================================================================
+   2. NAVIGATION MENU (currently hidden — toggle display to enable)
+   ============================================================================= */
+
+.left-menu {
+  display: none; /* set to flex to show */
+  flex-direction: row;
+  justify-content: flex-start;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f4f4f4;
   box-sizing: border-box;
 }
 
@@ -30,52 +91,86 @@
   font-weight: bold;
 }
 
-.content-area {
-  padding: 0px;
-  width: 100%;
-  margin-top: 20px;
-}
 
-/* --- consultation-pet Cards Logic --- */
+/* =============================================================================
+   3. PET CARDS
+   ============================================================================= */
+
+/* Cards container — wraps and centers cards, allows scale without clipping */
 .consultation-pet-cards-container {
   display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  /* padding: 20px 0; */
+  flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
+/* Custom scrollbar (visible when overflow-x: auto is active) */
+.consultation-pet-cards-container::-webkit-scrollbar { height: 8px; }
+.consultation-pet-cards-container::-webkit-scrollbar-track { background: #eee; border-radius: 10px; }
+.consultation-pet-cards-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+.consultation-pet-cards-container::-webkit-scrollbar-thumb:hover { background: #007bff; }
+
+/* Individual card */
 .consultation-pet-card {
-  width: 250px;
-  min-width: 250px;
-  height: 350px; /* Fixed height for consistency */
-  background-color: #f4f4f4;
-  border-radius: 10px;
-  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 220px;
+  min-height: 280px;
+  padding: 15px;
+  background-color: #f4f4f4;
+  border: 3px solid transparent; /* reserves space so selected border never shifts layout */
+  border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: transform 0.3s ease-in-out;
   cursor: pointer;
+  text-align: center;
+  transition: transform 0.3s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .consultation-pet-card:hover {
   transform: scale(1.05);
 }
 
-.consultation-pet-card img {
-  width: 80px !important;
-  height: 80px !important; /* Ensuring all images have the same height */
-  border-radius: 50% !important;
-  object-fit: cover !important; /* Ensures images are cropped correctly within the circle */
+.consultation-pet-card.selected {
+  border-color: #FFDE59;
 }
 
-/* consultation-pet details */
+/* Circular image container */
+.consultation-pet-image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e0e0e0; /* fallback while image loads */
+}
+
+/* Highlight ring on selected card image */
+.consultation-pet-card.selected .consultation-pet-image-container {
+  box-shadow: 0 0 0 3px #FFDE59;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.consultation-pet-card-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Pet card text */
 .consultation-pet-details {
   margin-top: 10px;
+  text-align: center;
 }
 
 .consultation-pet-name {
@@ -84,95 +179,67 @@
 }
 
 .consultation-pet-info {
-  font-size: 14px;
+  margin: 4px 0;
   color: #555;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
+.consultation-pet-info .date-line {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Select button hidden (selection handled by card click) */
 .select-button {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  display: none;
 }
 
-.select-button:hover {
-  background-color: #0056b3;
+
+/* =============================================================================
+   4. FORM CONTROLS & BUTTONS
+   ============================================================================= */
+
+.consultation-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: bold;
 }
 
-/* Styling for the date-time picker */
-.form-control {
+.consultation-form-control {
   width: 100%;
-  padding: 10px;
+  max-width: 300px;
+  max-height: 50px;
   margin: 10px 0;
-  border-radius: 5px;
+  padding: 10px;
   border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
 }
 
-.next-button {
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
+/* Primary action button */
+button.consultation-next-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #FFDE59;
+  color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.next-button:hover {
+button.consultation-next-button:hover {
   background-color: #0056b3;
+  color: white;
 }
 
-.next-button:disabled {
+button.consultation-next-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
 
-
-/* --- Title for Step 1 --- */
-.step-title {
-  text-align: center; /* Center align the title */
-  font-size: 20px; /* Larger font size for better visibility */
-  font-weight: bold;
-  margin-bottom: 20px; /* Add some space between the title and the cards */
-  color: #333; /* Ensure the text color is consistent */
-}
-
-/* --- Title for Step 1 and Step 2 --- */
-.consultation-step-title {
-  text-align: center; /* Center align the title */
-  font-size: 20px; /* Larger font size for better visibility */
-  font-weight: bold;
-  margin-bottom: 20px; /* Add some space between the title and the cards */
-  color: #333; /* Ensure the text color is consistent */
-}
-
-/* --- Styling for the form controls (Date, Time) --- */
-.consultation-form-control {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.consultation-label {
-  display: block;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.consultation-next-button {
-  padding: 10px; 
-  /* background-color: #007bff;*/
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
+/* Complaint-specific next button (blue variant) */
 .consultation-next-button-complaint {
   padding: 10px;
   background-color: #007bff;
@@ -182,159 +249,16 @@
   cursor: pointer;
 }
 
-.consultation-next-button:hover {
-  background-color: #0056b3;
-}
 
-.consultation-next-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
+/* =============================================================================
+   5. SYMPTOMS CONTAINER
+   ============================================================================= */
 
-/* --- Title for Step 1 and Step 2 --- */
-.consultation-step-title {
-  text-align: center; /* Center align the title */
-  font-size: 20px; /* Larger font size for better visibility */
-  font-weight: bold;
-  /* margin-bottom: 20px; Add some space between the title and the cards */
-  color: #333; /* Ensure the text color is consistent */
-}
-
-/* --- Step Container --- */
-.consultation-step-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* --- Form Controls (DatePicker, TimePicker) --- */
-.consultation-form-control {
-  width: 100%;
-  max-width: 300px; /* Limit the width of the DatePicker and TimePicker */
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-
-.consultation-label {
-  display: block;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-/* --- Next Button --- */
-.consultation-next-button {
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.consultation-next-button:hover {
-  background-color: #0056b3;
-}
-
-.consultation-next-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-/* --- Pet Cards Styling --- */
-/* --- Pet Cards Styling --- */
-.consultation-pet-cards-container {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-  padding: 10px; /* gives scaled cards room to breathe without clipping */
-  overflow: visible; /* allow scale transform to show fully */
-  /* Prevent page-level horizontal scrollbar by constraining to parent width */
-  box-sizing: border-box;
-}
-
-.consultation-pet-card {
-  width: 200px;
-  height: 250px;
-  background-color: #f4f4f4;
-  border-radius: 10px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.3s ease-in-out;
-}
-
-.consultation-pet-card:hover {
-  transform: scale(1.05);
-}
-
-.consultation-pet-card.selected {
-  border: 3px solid #FFDE59;
-}
-
-.consultation-pet-card-img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.consultation-pet-details {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.select-button {
-  display: none; /* Remove the button since it's no longer needed */
-}
-
-.consultation-next-button {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* Centering the Next button */
-/* --- Container for Next Button --- */
-.next-button-container {
-  display: flex;
-  justify-content: center; /* Center the Next button horizontally */
-  margin-top: 5px; /* Add some spacing from the pet cards */
-}
-
-.consultation-step-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center horizontally */
-  justify-content: center;
-  width: 100%;
-  max-width: 960px; /* widened to accommodate 3-col booking layout */
-  margin: 0 auto; /* Center the container horizontally */
-  padding: 20px;
-  box-sizing: border-box;
-}
+.consultation-symptoms-container {
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
 }
 
 .pet-details-summary {
@@ -342,15 +266,8 @@
 }
 
 .pet-details-summary h4 {
-  font-size: 18px;
   margin-bottom: 10px;
-}
-
-.consultation-label {
-  display: block;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-size: 18px;
 }
 
 .submit-symptoms-button {
@@ -375,108 +292,12 @@
   cursor: not-allowed;
 }
 
-.consultation-symptoms-container {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
 
-.pet-details-summary {
-  margin-bottom: 20px;
-}
+/* =============================================================================
+   6. BOOKING PAGE — 3-COLUMN LAYOUT
+   ============================================================================= */
 
-.pet-details-summary h4 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.consultation-label {
-  display: block;
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.consultation-form-control {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  max-height: 50px;
-}
-
-button.consultation-next-button {
-  padding: 10px 20px;
-  background-color: #ffde59;
-  color: black;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  
-}
-
-button.consultation-next-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-
-/* Custom Scrollbar for the consultation-pet Container */
-.consultation-pet-cards-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.consultation-pet-cards-container::-webkit-scrollbar-track {
-  background: #eee;
-  border-radius: 10px;
-}
-
-.consultation-pet-cards-container::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 10px;
-}
-
-.consultation-pet-cards-container::-webkit-scrollbar-thumb:hover {
-  background: #007bff;
-}
-
-
-/* --- Media Queries --- */
-
-/* Mobile and Laptop screens */
-@media (max-width: 768px) {
-  .usage-content {
-    display: flex;
-    flex-direction: column; 
-    padding: 10px;
-  }
-
-  /* Only updating what changes on mobile */
-  .menu-item {
-    font-size: 14px; 
-  }
-
-  .sticky-stack {
-    position: relative;
-  }
-}
-
-/* Hidden elements */
-@media (min-width: 769px) {
-  .hamburger-menu {
-    display: none;
-  }
-}
-/* Prevent horizontal scrollbar from scale transforms */
-body {
-  overflow-x: hidden;
-}
-
-/* ── Booking page three-column layout ────────────────────────────────────── */
-
-/* Widen the booking page beyond the default container */
+/* Wider container for the booking step */
 .consultation-booking-container {
   width: 100%;
   max-width: 1400px;
@@ -485,6 +306,7 @@ body {
   box-sizing: border-box;
 }
 
+/* Grid: [filters | vet list | AI panel] */
 .booking-layout {
   display: grid;
   grid-template-columns: 220px 1fr 300px;
@@ -492,7 +314,7 @@ body {
   align-items: flex-start;
 }
 
-/* Left column — filters (stacked vertically, sticky) */
+/* Left column — filter controls, sticky */
 .booking-filters {
   position: sticky;
   top: 260px;
@@ -501,7 +323,6 @@ body {
   gap: 10px;
 }
 
-/* Filter inputs fill full width of their column */
 .booking-filters input,
 .booking-filters select,
 .booking-filters .ant-select,
@@ -516,53 +337,89 @@ body {
   width: 500px;
 }
 
-/* Right column — AI recommendation panel (sticky) */
+/* Right column — AI recommendation panel, sticky */
 .booking-right {
   position: sticky;
   top: 260px;
-  padding-top: 0px;
 }
 
 
-/* ── Responsive: tablet → 2 cols (filters + list), AI panel full width below */
+/* =============================================================================
+   7. RESPONSIVE
+   ============================================================================= */
+
+/* Tablet — 2 cols: filters + list; AI panel spans full width below */
 @media (max-width: 1100px) {
   .booking-layout {
     grid-template-columns: 200px 1fr;
-    grid-template-rows: auto auto;
   }
+
   .booking-right {
     grid-column: 1 / -1;
     position: static;
-    padding-top: 0;
   }
+
   .booking-vets {
     width: auto;
   }
 }
 
-/* ── Responsive: mobile → single column, everything stacks */
+/* Small tablet / large mobile */
+@media (max-width: 768px) {
+  .menu-item {
+    font-size: 14px;
+  }
+
+  .consultation-pet-card {
+    width: 190px;
+    padding: 12px;
+  }
+
+  .consultation-pet-name {
+    font-size: 14px;
+  }
+
+  .consultation-pet-info {
+    font-size: 11px;
+  }
+
+  /* Hamburger menu shown on desktop is hidden on mobile */
+  .hamburger-menu {
+    display: none;
+  }
+}
+
+/* Mobile — single column, everything stacks */
 @media (max-width: 700px) {
   .booking-layout {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
-  .booking-filters {
-    position: static;
-    width: 100%;
-  }
-  .booking-vets {
-    width: 100%;
-  }
+
+  .booking-filters,
+  .booking-vets,
   .booking-right {
     width: 100%;
     position: static;
-    padding-top: 0;
   }
+
   .consultation-booking-container {
     padding: 0 8px;
   }
+
   .consultation-step-container {
     padding: 12px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .consultation-pet-card {
+    width: 170px;
+  }
+
+  .consultation-pet-info .date-line {
+    white-space: normal; /* allow wrapping on very small screens */
   }
 }

@@ -51,6 +51,7 @@ const SingleFieldManager = ( params ) => {
 	const [ description, setDescription ] = useState( '' );
 	const [ fieldName, setFieldName ] = useState( '' );
 	const [ goToLink, setGoToLink ] = useState( '' );
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	useEffect( () => {
 		// title
 		const title = params.params.title;
@@ -76,7 +77,7 @@ const SingleFieldManager = ( params ) => {
 		// go to Link
 		const goToLink = params.params.goToLink && params.params.goToLink;
 		setGoToLink( goToLink );
-// console.log( 'fffffffffffffff', fieldName );
+
 		// style
 		if( fieldName == 'Opened' )
 			setBackgroundColor( 'backgroundOlive' )
@@ -100,10 +101,8 @@ const SingleFieldManager = ( params ) => {
 			const allowed = totalAnimals < maxAnimals ? true : false;
 			setModalAllowed( allowed )
 		}
-		
 
-
-	}, [title, params.params] );
+	}, [params.params] ); // title removed from deps — it is set inside this effect, including it causes a re-render loop
 
 
 	const handleClickField = ( fieldName ) => {

@@ -124,6 +124,11 @@ const Profile = ( params ) => {
 	const [ vetoLieux, setVetoLieux ] = useState( [] ); 
 	const MAX_LIEUX = 2; // max number of paces
 	
+	// Vet location display
+	const [ vetLocationAddress, setVetLocationAddress ] = useState('');
+	const [ vetLocationCity, setVetLocationCity ] = useState('');
+	const [ vetLocationCountry, setVetLocationCountry ] = useState('');
+	
 	// animals
 	const MAX_ANIMALS = 4; // max number of animals
 	const [ breedNames, setBreedNames ] = useState( [] ); 
@@ -170,16 +175,15 @@ const Profile = ( params ) => {
 	// modal photo
 	const [ isModalPhotoOpen, setIsModalPhotoOpen ] = useState(false);
 	useEffect(() => {
-
 		const a = async() => {
-			if ( isModalPhotoOpen ) {
+			if ( isModalPhotoOpen && profilePhoto?.originFileObj ) {
 				const dataUri = await getBase64( profilePhoto.originFileObj );
 				const elt = document.getElementById( "profilePhotoId" );
-				elt.src = dataUri;
+				if (elt) elt.src = dataUri;
 			}
 		}
 		a();
-	}, [fileList, profileFormUpdated]); // Dependency array ensures effect runs when isModalOpen changes
+	}, [isModalPhotoOpen, fileList]); // profileFormUpdated removed — photo preview only needs to update when a new file is picked or the modal opens
 
 
 	const modalPhotoHandleOk = async() => {
@@ -236,7 +240,7 @@ const Profile = ( params ) => {
 	const handleClickGoToClinic = ( cliniqueId ) => {
 		var url = '';
 		!cliniqueId ?
-			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo.id}`
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo?.id}`
 		:
 			url = "/etablissement" + `?userId=${userId}&etablissementId=${cliniqueId}`
 		navigate( url );
@@ -245,7 +249,7 @@ const Profile = ( params ) => {
 	const getCLinicLink = ( cliniqueId ) => {
 		var url = '';
 		!cliniqueId ?
-			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo.id}`
+			url = "/etablissement" + `?userId=${userId}&etablissementId=${vetoCliniqueInfo?.id}`
 		:
 			url = "/etablissement" + `?userId=${userId}&etablissementId=${cliniqueId}`
 		return url;
@@ -257,97 +261,123 @@ const Profile = ( params ) => {
 	const [ biography, setBiography ] = useState( '' );
 	const [ profileNom, setProfileNom ] = useState( '' );
 	const [ sexId, setSexId ] = useState( '' );
+	const [ selectedCountryId, setSelectedCountryId ] = useState( null );
 	const [ countClinicVets, setCountClinicVets] = useState( 0 );
 	useEffect(() => {
+  if (modalProfileIdentityOpen === true) return;
+  
+  const fetchProfileData = async () => {
+    try {
+      // veto clinic info - only for vet profiles (profileTypeId == 2)
+      if (profileTypeId == 2 && profileId) {
+        try {
+          const vetoCliniqueInfo = await getVetoCliniqueInfo(profileId);
+          if (vetoCliniqueInfo && !vetoCliniqueInfo.error) {
+            setVetoCliniqueInfo(vetoCliniqueInfo);
+          } else {
+            console.log('No clinic info found for vet');
+            setVetoCliniqueInfo(null);
+          }
+        } catch (clinicError) {
+          console.error('Error fetching clinic info:', clinicError);
+          setVetoCliniqueInfo(null);
+        }
 
-		if( modalProfileIdentityOpen === true )
-			return
-		// get user profile info
-		const a = async () => {
+        // get clinic's invitations
+        const statusId = 2; // invitation accepted (clinic member)
+        const aGuest = await isAGuest(profileId); // return clinic id of false
+        setAGuest(aGuest); 
+        
+        // count veterinaries
+        if (vetoCliniqueInfo && vetoCliniqueInfo?.id) {
+          const vetos = await getEtablissementVeto(statusId, vetoCliniqueInfo?.id);
+          setCountClinicVets(vetos.length);
+        }
+      }
 
-			// veto clinic info
-			if( profileTypeId == 2 ){
-				const vetoCliniqueInfo = await getVetoCliniqueInfo( profileId );
-				setVetoCliniqueInfo( vetoCliniqueInfo );
+      const profile = await profileGet(profileId, profileTypeId);
+      if (profile && !profile.error) {
+        setUserProfile(profile);
+        setName(profile.nom);
+        setFirstName(profile.prenom);
+        setSexId(profile.userSexeId);
+        // Capture the saved country — field name may vary; adjust if your API returns a different key
+        setSelectedCountryId(profile.paysDelaConsultationId ?? profile.pays_de_la_consultation_id ?? null);
+        
+        const birthDate = profile.dateNaissance ? profile.dateNaissance.date : ''; 
+        const dateNaissanceFormatted = birthDate ? await dateFormater(birthDate) : '';
+        setDateNaissance(dateNaissanceFormatted);
+        
+        setBiography(profile.biography);
+        setProfileNom(profile.nom && truncateString(profile.nom, 12));
+        
+        const timeslotObj = await getTimeslot(profile.id);
+        const timeslotArray = await Object.entries(timeslotObj || {});
+        setTimeslot(timeslotArray);
+        
+        const absencesList = await getAbsences(profile.id);
+        setAbsences(absencesList || []); 
+        setCountAbsence(absencesList?.length || 0);
+        
+        const hollydaysList = await getHollydays(profile.id);
+        setHollydays(hollydaysList || []);
+        setCountHollydays(hollydaysList?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+    }
+  };
+  
+  fetchProfileData();
+}, [modalProfileIdentityOpen, profileFormUpdated, profileId, profileTypeId]); // fileList removed — photo upload should not trigger a full profile refetch
 
-				// get clinic's invitations
-				const statusId = 2; // invitation accepted ( clinic member )
-				const aGuest = await isAGuest( profileId ); // return clinic id of false
-				setAGuest( aGuest ); 
-				
-				// count veterinaries
-				if( vetoCliniqueInfo ) {
-					const statusId = 2; // invitation accepted ( clinic member )
-					const vetos = await getEtablissementVeto( statusId, vetoCliniqueInfo.id);
-
-					setCountClinicVets(vetos.length);
-				}
-			}
-
-			const profile = await profileGet( profileId, profileTypeId );
-
-			setUserProfile( profile );
-			const name = profile.nom;
-			setName( name );
-			const firstName = profile.prenom;
-			setFirstName( firstName );
-			const sexId = userProfile.userSexeId
-			setSexId( sexId );
-			const birthDate = profile.dateNaissance ? profile.dateNaissance.date : ''; 
-			const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
-			setDateNaissance( dateNaissance );
-			const biography = profile.biography
-			setBiography( biography );
-			const profileNom = profile.nom && truncateString( profile.nom, 12 );
-			setProfileNom( profileNom )
-			const timeslotObj = await getTimeslot( profile.id );
-			const timeslot = await Object.entries( timeslotObj );
-			setTimeslot( timeslot );
-			const absences = await getAbsences( profile.id );
-			setAbsences( absences ); 
-			setCountAbsence( absences.length );
-			const hollydays = await getHollydays( profile.id );
-			setHollydays( hollydays );
-			setCountHollydays( hollydays.length );
-			
-		} 
-		a();
-	}, [ modalProfileIdentityOpen, profileFormUpdated, fileList ] ); 
+	// ── Fetch pets & lieux ───────────────────────────────────────────────────
+	// Use stable primitive IDs (not the full objects) as deps to avoid firing
+	// every time userProfile or vetoCliniqueInfo object references change.
+	const userProfileId       = userProfile?.id       ?? null;
+	const userProfileAtHome   = userProfile?.atHome   ?? null;
+	const vetoCliniqueInfoId  = vetoCliniqueInfo?.id  ?? null;
 
 	useEffect(() => {
-		// get user pet'
 		const a = async() => {
 			// User pets
 			const userPets = await getUserPets( profileId );
 			if( userPets.length ){
 				setUserPets( userPets );
-				const countUserAnimal = userPets.length;
-				setUserTotalAnimal( countUserAnimal );
+				setUserTotalAnimal( userPets.length );
 			}
 			
 			// get a veto / etablissement lieux
 			if( profileTypeId == 2 ) {
 				var vetoLieux = [];
 				
-				if( userProfile.atHome ){
-					const data = {
-						profileVetoId: userProfile.id,
-					}
+				if( userProfileAtHome ){
+					const data = { profileVetoId: userProfileId };
 					vetoLieux = await getAVetoLieux( data );
 				}
-				else if ( !userProfile.atHome && vetoCliniqueInfo ){
-					const data = {
-						etablissementId:  vetoCliniqueInfo.id,
-					}
+				else if ( !userProfileAtHome && vetoCliniqueInfoId ){
+					const data = { etablissementId: vetoCliniqueInfoId };
 					vetoLieux = await getAVetoLieux( data );
 				}
 				setVetoLieux( vetoLieux );
+				
+				// Extract location for display (first lieu)
+				if (vetoLieux.length) {
+					const firstLieu = vetoLieux[0];
+					setVetLocationAddress(firstLieu.adresse || '');
+					setVetLocationCity(firstLieu.ville?.nom || '');
+					setVetLocationCountry(firstLieu.pays?.nom || '');
+				} else {
+					setVetLocationAddress('');
+					setVetLocationCity('');
+					setVetLocationCountry('');
+				}
 			}		
-			
 		}
 		
 		a()
-	}, [ vetoCliniqueInfo, userProfile, profileFormUpdated ] );
+	}, [ vetoCliniqueInfoId, userProfileId, userProfileAtHome, profileFormUpdated, profileId, profileTypeId ] );
+	// ↑ Primitive IDs instead of full objects — prevents infinite re-render loop
 
 	// Build timeslot
 	const BuildTimeslot = () => {
@@ -643,6 +673,7 @@ const Profile = ( params ) => {
 			<ModalProfile params={{
 					fieldName: visibleModalName,
 					title: visibleModalTitle,
+					selectedCountryId: selectedCountryId,
 				}}
 			/>
 			<Modal
@@ -786,17 +817,7 @@ const Profile = ( params ) => {
 											  type: 1,
 											}}
 										  />
-											<div className="marginTop10"></div>
-										  <SingleFieldManager
-											params={{
-											  fieldName: 'Country',
-											  title: getAContent('cmp_vetonest.com_Gq5Vc1nLsZ'),
-											  placeholder: getAContent('cmp_vetonest.com_Rm2Xk8pJdH'),
-											  value: getAContent('cmp_vetonest.com_Bt7Nq4vPfY'),
-											  type: 1,
-											}}
-										  />
-
+											{/* Country field removed - now managed via Lieu in ModalProfile */}
           </div>
         </div>
 
@@ -865,7 +886,7 @@ const Profile = ( params ) => {
 
           {/*  Activity area - Clinic management for bot a Home vet */}
           { /**  Activity area - doctor at home  **/ }
-											{ userProfile.atHome &&
+											{ userProfile.atHome && vetoCliniqueInfo &&
 												
 													<>
 														<SingleFieldManager 
@@ -873,7 +894,7 @@ const Profile = ( params ) => {
 																fieldName: 		'Etablissement_lieu',
 																title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
 																placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
-																value: 			vetoCliniqueInfo.name,
+																value: 			vetoCliniqueInfo?.name ?? '',
 																//cliniqueId: 	vetoCliniqueInfo.cliniqueId,
 																type: 1, // 1 = modify
 															}}
@@ -922,9 +943,9 @@ const Profile = ( params ) => {
 															<div className='width100per100 marginTop10px'>
 																<SingleFieldManager params={{
 																		fieldName: 	'Etablissement',
-																		title:	getAContent('cmp_vetonest.com_Su6Qp0zVtY') + ' ' + vetoCliniqueInfo.nom,
+																		title:	getAContent('cmp_vetonest.com_Su6Qp0zVtY') + ' ' + vetoCliniqueInfo?.nom ?? '',
 																		placeholder: getAContent('cmp_vetonest.com_Cn3Xk9bHwV'),
-																		value: vetoCliniqueInfo.nom,
+																		value: vetoCliniqueInfo?.nom ?? '',
 																		type: 2, // 3 = link
 																		goToLink: getCLinicLink (aGuest.id )
 																	}}
@@ -932,7 +953,7 @@ const Profile = ( params ) => {
 															</div>
 															<div className='marginTop2'>	
 																<a
-																	href={ getCLinicLink( vetoCliniqueInfo.id ) }
+																	href={ getCLinicLink( vetoCliniqueInfo?.id ) }
 																	className='text-info'
 																>
 																	{ getAContent( 'cmp_vetonest.com_Tb91Qw4NcR' ) } >
@@ -957,7 +978,7 @@ const Profile = ( params ) => {
 																		title:			getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
 																		placeholder: 	getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
 																		value: 			getAContent('cmp_vetonest.com_Ij0RMA6SpM'),
-																		cliniqueId: 	vetoCliniqueInfo.id,
+																		cliniqueId: 	vetoCliniqueInfo?.id,
 																		type: 1, // 1 = create
 																		}}
 																	/>
@@ -972,7 +993,7 @@ const Profile = ( params ) => {
 																		fieldName: 		'Etablissement_lieu',
 																		title:			getAContent('cmp_vetonest.com_Pj6Rm2vSnQ'),
 																		placeholder: 	getAContent('cmp_vetonest.com_Lc9Xk1bMvT'),
-																		value: 			vetoCliniqueInfo.name,
+																		value: 			vetoCliniqueInfo?.name ?? '',
 																		//cliniqueId: 	vetoCliniqueInfo.cliniqueId,
 																		type: 1, // 1 = create
 																	}}
@@ -986,6 +1007,19 @@ const Profile = ( params ) => {
 												</div>
 											}
 
+           {/* Display vet's own consultation location */}
+			{ (vetLocationCity || vetLocationCountry) && (
+			  <div className="row mt-4">
+				<div className="col-12">
+				  <div className="vet-location-box p-3 bg-light rounded">
+					<strong>{getAContent('cmp_vetonest.com_consultation_location') || 'Consultation location'}</strong><br />
+					{vetLocationAddress && <span>{vetLocationAddress}<br /></span>}
+					{vetLocationCity && <span>{vetLocationCity}</span>}
+					{vetLocationCountry && <span>, {vetLocationCountry}</span>}
+				  </div>
+				</div>
+			  </div>
+			)}
           
         </div>
       </div>
