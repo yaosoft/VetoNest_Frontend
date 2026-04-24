@@ -1,85 +1,190 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext, useMemo, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { SiteContext } from "../context/site";
+import { useCachedData } from "../hooks/useCachedData";
 
-const ConsultationPetSelection = ({ animals, setAnimal, selectedPet }) => {
+const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }) => {
   const navigate = useNavigate();
   const { 
     base_url,
-    photoAnimalDefaultSrc,
     especes,
     getAContent,
-    speciesBreedList
+    speciesBreedList,
   } = useContext(SiteContext);
   
-  const [breedNames, setBreedNames] = useState([]); 
+  const { fetchWithCache } = useCachedData();
+  const [imageErrors, setImageErrors] = useState({});
+  const [breedNames, setBreedNames] = useState({});
+  const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
+  const loadedSpeciesRef = useRef(new Set());
+  const photoDefaultSrc = '/img/user/1.jpg';
 
-  const getEspeceName = (especeId) => {
-    if (!especes.length) return '.';
-    const especeName = especes.filter(j => j.id === especeId)[0] ? 
-      getAContent(especes.filter(j => j.id === especeId)[0].tagRef) : '—';
-    return especeName;
-  };
+  // Memoize the species name mapping
+  const getEspeceName = useCallback((especeId) => {
+    if (!especes?.length) return '—';
+    const espece = especes.find(j => j.id === especeId);
+    return espece ? getAContent(espece.tagRef) : '—';
+  }, [especes, getAContent]);
 
+  const formatShortDate = useCallback((dateString) => {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }, []);
+
+  const getImageSrc = useCallback((pet) => {
+    if (imageErrors[pet.id]) return photoDefaultSrc;
+    if (pet.picture) return `${base_url}uploads/files/pets/${pet.picture}`;
+    return photoDefaultSrc;
+  }, [base_url, imageErrors]);
+
+  const handleImageError = useCallback((petId) => {
+    setImageErrors(prev => ({ ...prev, [petId]: true }));
+  }, []);
+
+  const handlePetClick = useCallback((pet) => {
+    setAnimal(pet);
+  }, [setAnimal]);
+
+  // Load breed names efficiently with caching
   useEffect(() => {
+    if (!animals?.length) return;
+
     const loadBreeds = async () => {
-      const map = {};
+      // Collect unique species that need breed loading
+      const speciesToLoad = [];
+      const breedMap = {};
+
       for (const pet of animals) {
-        if (pet?.espece?.id && pet?.race?.id) {
-          const breeds = await speciesBreedList(pet.espece.id);		
-          const breed = breeds.find(b => b.id === pet.race.id);
-          map[pet.race.id] = breed ? breed.nom : '—';
+        const speciesId = pet.espece?.id;
+        const breedId = pet.race?.id;
+        
+        if (speciesId && breedId && !loadedSpeciesRef.current.has(speciesId)) {
+          speciesToLoad.push(speciesId);
+        }
+        
+        // If breed name already exists in pet object, use it directly
+        if (pet.race?.nom) {
+          breedMap[breedId] = pet.race.nom;
         }
       }
 
-      setBreedNames(map);
+      // If all breeds are already in the pet objects, no need to fetch
+      const needsFetching = speciesToLoad.length > 0 && 
+        animals.some(pet => pet.race?.id && !pet.race?.nom);
+      
+      if (!needsFetching && Object.keys(breedMap).length === 0) {
+        // No fetching needed
+        return;
+      }
+
+      setIsLoadingBreeds(true);
+
+      try {
+        // Fetch breeds for each unique species (only once per species)
+        for (const speciesId of speciesToLoad) {
+          if (!loadedSpeciesRef.current.has(speciesId)) {
+            try {
+              const breeds = await fetchWithCache(
+                `breeds_${speciesId}`,
+                () => speciesBreedList(speciesId),
+                300000 // Cache for 5 minutes
+              );
+              
+              if (breeds && Array.isArray(breeds)) {
+                breeds.forEach(breed => {
+                  if (breed.id && breed.nom) {
+                    breedMap[breed.id] = breed.nom;
+                  }
+                });
+              }
+              loadedSpeciesRef.current.add(speciesId);
+            } catch (error) {
+              console.error(`Error loading breeds for species ${speciesId}:`, error);
+            }
+          }
+        }
+        
+        setBreedNames(breedMap);
+      } finally {
+        setIsLoadingBreeds(false);
+      }
     };
 
-    if (animals?.length) {
-      loadBreeds();
-    }
+    loadBreeds();
+  }, [animals, speciesBreedList, fetchWithCache]);
+
+  // Memoize animals list
+  const memoizedAnimals = useMemo(() => {
+    if (!animals?.length) return [];
+    return animals;
   }, [animals]);
 
-  const [photoDefaultSrc, setPhotoDefaultSrc] = useState('/img/user/1.jpg');
+  // If no animals, show create button
+  if (!memoizedAnimals.length) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <button
+          className="consultation-next-button"
+          onClick={() => navigate("/profile")}
+        >
+          {getAContent('cmp_vetonest.com_CreateNewPet_Btn')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      {/* Only display cards during step 1 */}
-      {animals.length ? (
-        <div className="consultation-pet-cards-container"> 
-          {animals.map((pet) => (
+      {isLoadingBreeds && (
+        <div style={{ textAlign: "center", padding: "10px" }}>
+          <span style={{ fontSize: "12px", color: "#888" }}>Loading breeds...</span>
+        </div>
+      )}
+      <div className="consultation-pet-cards-container"> 
+        {memoizedAnimals.map((pet) => {
+          // Get breed name from pet object or from fetched breeds
+          const breedName = pet.race?.nom || breedNames[pet.race?.id] || "Unknown";
+          
+          return (
             <div
               key={pet.id}
-              className={`consultation-pet-card ${selectedPet === pet ? 'selected' : ''}`} // Highlight selected pet
-              onClick={() => setAnimal(pet)} // Set the clicked pet as selected
+              className={`consultation-pet-card ${selectedPet?.id === pet.id ? 'selected' : ''}`}
+              onClick={() => handlePetClick(pet)}
             >
-              <img
-                src={pet.picture ? base_url + 'uploads/files/pets/' + pet.picture : photoDefaultSrc}
-                alt={pet.nom}
-              />
+              <div className="consultation-pet-image-container">
+                <img
+                  src={getImageSrc(pet)}
+                  alt={pet.nom}
+                  className="consultation-pet-card-img"
+                  loading="lazy"
+                  onError={() => handleImageError(pet.id)}
+                />
+              </div>
               <div className="consultation-pet-details">
                 <h4 className="consultation-pet-name">{pet.nom}</h4>
                 <p className="consultation-pet-info">
-				{getAContent( 'cmp_vetonest.com_Sp94Te63Kz' )} : {pet.espece ? getEspeceName(pet.espece.id) : "Unknoawn"} <br />
-					{ getAContent( 'cmp_vetonest.com_Br61Mx80Qp' )} : {pet.race ? breedNames[pet.race.id] : "Unknown"} <br />a
-						{getAContent( 'cmp_vetonest.com_f82Ns91Qaz' )} : {new Date(pet.dateNaissance.date).toLocaleDateString()}
+                  {getAContent('cmp_vetonest.com_Sp94Te63Kz')} : {pet.espece ? getEspeceName(pet.espece.id) : "Unknown"}
+                  <br />
+                  {getAContent('cmp_vetonest.com_Br61Mx80Qp')} : {breedName}
+                  <br />
+                  <span className="date-line">
+                    {getAContent('cmp_vetonest.com_f82Ns91Qaz')} : {formatShortDate(pet.dateNaissance?.date || pet.dateNaissance)}
+                  </span>
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-      ) : 
-	    <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            className="consultation-next-button"
-            onClick={() => navigate("/profile")}
-          >
-            { getAContent( 'cmp_vetonest.com_CreateNewPet_Btn' ) }
-          </button>
-        </div>
-	  }
+          );
+        })}
+      </div>
     </div>
   );
-};
+});
+
+ConsultationPetSelection.displayName = 'ConsultationPetSelection';
 
 export default ConsultationPetSelection;

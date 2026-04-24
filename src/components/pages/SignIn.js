@@ -219,7 +219,7 @@ const SignIn = ( params ) => {
 		 * @returns {string} The final redirect path
 		 */
 		const getConsultationPath = (referrer, profileTypeId ) => {
-console.log( '>>>>>>>>>>> referrer', referrer );
+
 		  // 1. Priority: If we have a referrer, use it immediately
 		  if (referrer) return referrer;
 
@@ -232,11 +232,10 @@ console.log( '>>>>>>>>>>> referrer', referrer );
 		  // Return the mapped path or a default home/dashboard path if ID is unknown
 		  return paths[profileTypeId] || '/';
 		};
-console.log( '>>>>>>>>>>> resp.profileTypeId', resp.profileTypeId );
+
 		// Usage:
 		const path = await getConsultationPath(getReferrer(), resp.profileTypeId);
 	
-console.log( '>>>>>>>>>>> path', path );
 		navigate( path );
 	}
 

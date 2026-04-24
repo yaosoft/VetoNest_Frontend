@@ -71,7 +71,7 @@ const ConsultationSymptoms = (params) => {
 
     try {
       const data = await consultationPrimaryComplaint(symptomData);
-
+console.log( '>>>>>>>>>>>> ddddddddd data', data );
       if (data.success) {
         setAiSymptoms(data.symptoms);
         setAiUrgency(data.urgency);
@@ -229,7 +229,7 @@ const ConsultationSymptoms = (params) => {
 				{animal.espece ? getEspeceName(animal.espece.id) : 'Unknown'}
 				{animal.race ? ` · ${breedNames[animal.race.id] || ''}` : ''}
 				{` · ${calculateAge(animal.dateNaissance?.date ?? '')} ${getAContent('cmp_vetonest.com_Years_Abbreviation')}`}
-				{animal.sexe ? ` · ${animal.sexe.id ? getAContent('cmp_vetonest.com_A91fd73KsP') : getAContent('cmp_vetonest.com_w31LdP9aQs')}` : ''}
+				{animal.sexe ? ` · ${animal.sexe.id ? getAContent('cmp_vetonest.com_Male_Gender') : getAContent('cmp_vetonest.com_w31LdP9aQs')}` : ''}
 			  </p>
 			</div>
         </div>
@@ -307,7 +307,7 @@ const ConsultationSymptoms = (params) => {
           {/* Error message */}
           {responseMessage && (
             <p style={{ color: "red", fontSize: "13px", margin: "6px 0 2px 0" }}>
-              {responseMessage}
+              {getAContent('cmp_vetonest.com_ServerError_Txt')}
             </p>
           )}
 
@@ -325,7 +325,7 @@ const ConsultationSymptoms = (params) => {
               </>
             )}
             {aiUrgency && (
-              <p style={{ margin: "4px 0 0" }}><strong>{getAContent('cmp_vetonest.com_Urgency_Label')}:</strong> {aiUrgency}</p>
+              <p style={{ margin: "4px 0 0" }}><strong>{getAContent('cmp_vetonest.com_Urgency_Label')}:</strong> { getAContent( aiUrgency ) }</p>
             )}
           </div>
         )}

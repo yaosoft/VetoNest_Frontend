@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
-import { createContext, useState, useEffect, useContext } from 'react'
+import { createContext, useState, useEffect, useContext, useCallback, useRef  } from 'react'
+
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 import {
 	RadiusBottomleftOutlined,
@@ -15,34 +16,50 @@ export const SiteProvider = ({ children }) => {
 
 	// spiner
 	const [ spiner, setSpiner ] = useState( 'none' );
-
+	const apiCache = new Map();
+	
 	// helper: Fetch data definition
-	async function fetchData( url, data, method ) {
-		// if( !isOnline ){
-// message.error( 'No network!' );
-		//	return false;
-		// }
-
-		const response = await fetch( url, {
-			method: method, // *GET, POST, PUT, DELETE, etc.
-			// mode: "no-cors", // no-cors, *cors, same-origin
+	async function fetchData(url, data, method) {
+		const response = await fetch(url, {
+			method: method,
 			headers: {
 				"Content-Type": "application/json",
-				// 'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			...( method == 'POST' && { body: JSON.stringify( data ), } )
+			...(method == 'POST' && { body: JSON.stringify(data) })
 		});
-// console.log( '+++++++++++++++++ response', response );
-		// setTimeout( setSpiner, 2000, 'none' );
-		if( response.status != 200 ){
-			return false;
+		
+		if (response.status != 200) {
+			const errorText = await response.text();
+			console.error('API Error:', response.status, errorText);
+			throw new Error(`API returned status ${response.status}`);
 		}
 		
-		if( response.status == 200 ){
-			return response.json(); // parses JSON response into native JavaScript objects
-		}
-		
+		return response.json();
 	}
+	
+	// helper: wrap your fetchData function with caching
+	const fetchWithCache = useCallback(async (url, options, method, cacheKey, ttl = 60000) => {
+		  const key = cacheKey || url;
+		  
+		  // Check cache
+		  if (apiCache.has(key)) {
+			const cached = apiCache.get(key);
+			if (Date.now() - cached.timestamp < ttl) {
+			  return cached.data;
+			}
+		  }
+		  
+		  // Make request
+		  const response = await fetchData(url, options, method);
+		  
+		  // Cache response
+		  apiCache.set(key, {
+			data: response,
+			timestamp: Date.now()
+		  });
+		  
+		  return response;
+	}, []);
 	
 	// Email verification code
 	const [ verificationCode, setVerificationCode ] = useState( localStorage.getItem( 'verificationCode' ) ? JSON.parse( localStorage.getItem( 'verificationCode' ) ) : '' );
@@ -51,12 +68,12 @@ export const SiteProvider = ({ children }) => {
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend api url 
-	// const base_api_url = 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
+	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
 
 	// Backend public url 
-	// const base_url = 'http://localhost/vetonest_backend/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	const base_url = 'http://localhost/VetoNest/public/'; // dev
+	// const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -72,8 +89,8 @@ export const SiteProvider = ({ children }) => {
 	
 	// get user referrer
 	const getReferrer = () => {
-		return "/profile"; // temporary hack
-		// return site.referrer;
+		// return "/profile"; // temporary hack
+		return site.referrer;
 	}
 
 	// check if email is not already registered
@@ -89,17 +106,27 @@ export const SiteProvider = ({ children }) => {
 	}
 
 	// send an email 
-	const sendEmail = async ( sendEmailData ) => {
-		const url	= base_api_url + 'user/send';
-
-		const data 		= sendEmailData;
-		const method	= 'POST';
-		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		
-		return rep;
-	}
+// Send email
+const sendEmail = async (emailData) => {
+    console.log('=== SEND EMAIL DEBUG ===');
+    console.log('Email data:', emailData);
+    console.log('Email template:', emailData.emailTemplate);
+    console.log('To email:', emailData.to_email);
+    
+    const url = base_api_url + 'user/send';
+    const method = 'POST';
+    setSpiner('block');
+    try {
+        const rep = await fetchData(url, emailData, method);
+        console.log('Email response:', rep);
+        return rep;
+    } catch (error) {
+        console.error('Error sending email:', error);
+        return null;
+    } finally {
+        setSpiner('none');
+    }
+};
 
 	// signup
 	const signUp = async ( signupData ) => {
@@ -290,8 +317,8 @@ export const SiteProvider = ({ children }) => {
 		return str;
 	}
 
-	// const base_cmp_Url = "http://localhost/diamta-cmp_backend/public/index.php/api/"; // dev
-	const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
+	const base_cmp_Url = "http://localhost/Diamta_CMP/public/index.php/api/"; // dev
+	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
@@ -529,17 +556,58 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// list vetos
+	// Inside your SiteContext provider component
 	const [ vetos, setVetos ] = useState( [] );
-	const getVetos = async () => {
-		const url		= base_api_url + 'profileVeto/list';
-		const data 		= '';
-		const method 	= 'GET';
-		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		return rep;
-	}
+	const vetosCache = useRef(new Map());
+	let vetosPendingRequest = null;
+
+	const getVetos = useCallback(async (forceRefresh = false) => {
+	  const cacheKey = 'vetos_list';
+	  
+	  if (!forceRefresh && vetosCache.current.has(cacheKey)) {
+		const cached = vetosCache.current.get(cacheKey);
+		if (Date.now() - cached.timestamp < 60000) {
+		  return cached.data;
+		}
+	  }
+	  
+	  if (vetosPendingRequest) {
+		return vetosPendingRequest;
+	  }
+	  
+	  setSpiner('block');
+	  
+	  vetosPendingRequest = (async () => {
+		const url = base_api_url + 'profileVeto/list';
+		
+		try {
+		  const rep = await fetchData(url, {}, 'GET');
+		  
+		  vetosCache.current.set(cacheKey, {
+			data: rep,
+			timestamp: Date.now()
+		  });
+		  
+		  setVetos(rep || []);
+		  return rep;
+		} catch (error) {
+		  console.error('Error fetching vetos:', error);
+		  return [];
+		} finally {
+		  setSpiner('none');
+		  vetosPendingRequest = null;
+		}
+	  })();
+	  
+	  return vetosPendingRequest;
+	}, [base_api_url]);
+
+	const refreshVetos = useCallback(() => {
+	  const cacheKey = 'vetos_list';
+	  vetosCache.current.delete(cacheKey);
+	  vetosPendingRequest = null;
+	  return getVetos(true);
+	}, [getVetos]);
 
 	// list etablissements
 	const [ etablissements, setEtablissements ] = useState( [] );
@@ -603,16 +671,27 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// Consultation list
-	const getPetOwnerConsultationList = async ( profileId ) => {
-		const url		= base_api_url + 'consultation/list/pet-owner?profileId=' + profileId;
-		const data 		= '';
-		const method 	= 'GET';
-		// setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		// setSpiner( 'none' );
-		return rep;
-	}
+	const getPetOwnerConsultationList = async (profileId) => {
+	  const url = base_api_url + 'consultation/list/pet-owner?profileId=' + profileId;
+	  const method = 'GET';
+	  setSpiner('block');
+	  try {
+		const rep = await fetchData(url, {}, method);
+		// The API returns an array directly, not an object
+		// Make sure we return an array
+		if (Array.isArray(rep)) {
+		  return { success: true, consultations: rep };
+		} else {
+		  console.error('Unexpected response format:', rep);
+		  return { success: false, consultations: [] };
+		}
+	  } catch (error) {
+		console.error('Error fetching consultations:', error);
+		return { success: false, consultations: [] };
+	  } finally {
+		setSpiner('none');
+	  }
+	};
 
 	// Consultation cancel
 	const consultationCancel = async ( consultationId ) => {
@@ -702,15 +781,25 @@ export const SiteProvider = ({ children }) => {
 
 	// get vetos's etablissement
 	const [ vetoCliniqueInfo, setVetoCliniqueInfo ] = useState( null );
-	const getVetoCliniqueInfo = async ( profileVetoId ) => {
-		const url		= base_api_url + 'etablissement/getVetoEtablissement?profileVetoId=' + profileVetoId;
-		const data 		= '';
-		const method 	= 'GET';
-		setSpiner( 'none' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
+	const getVetoCliniqueInfo = async (profileVetoId) => {
+	  if (!profileVetoId) {
+		console.error('getVetoCliniqueInfo: profileVetoId is required');
+		return null;
+	  }
+	  
+	  const url = base_api_url + 'vetoCliniqueInfo/get?profileVetoId=' + profileVetoId;
+	  const method = 'GET';
+	  setSpiner('block');
+	  try {
+		const rep = await fetchData(url, {}, method);
 		return rep;
-	}
+	  } catch (error) {
+		console.error('Error fetching veto clinic info:', error);
+		return null;
+	  } finally {
+		setSpiner('none');
+	  }
+	};
 	
 	// set veto etablissement
 	const setCliniqueVetos = async ( cliniqueVetoData ) => {
@@ -724,15 +813,27 @@ export const SiteProvider = ({ children }) => {
 	}
 
 	// get a user notifications
-	const getUserNotifications = async ( userId ) => {
-		const url		= base_api_url + 'notification/user/get?userId=' + userId;
-		const data 		= '';
-		const method 	= 'GET';
-		setSpiner( 'none' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		return rep;
-	}
+	const getUserNotifications = async (userId) => {
+		const url = base_api_url + 'notification/user/get?userId=' + userId;
+		const method = 'GET';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, {}, method);
+			// Ensure each notification has the needed fields
+			return rep.map(notification => ({
+				...notification,
+				// Add default values for new notification types if missing
+				petName: notification.petName || '',
+				vetId: notification.vetId || '',
+				rating: notification.rating || ''
+			}));
+		} catch (error) {
+			console.error('Error fetching notifications:', error);
+			return [];
+		} finally {
+			setSpiner('none');
+		}
+	};
 
 	// get a veto's etablissement invitation status
 	const getVetoEtablissementStatus = async ( profileVetoId ) => {
@@ -851,8 +952,8 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// etablissement lieu edit
-	const etablissementLieuUpdate = async ( etablissementLieuData ) => {
+	// lieu edit
+	const saveLieu  = async ( etablissementLieuData ) => {
 		const url		= base_api_url + 'lieu/edit';
 		const data 		= etablissementLieuData;
 		const method 	= 'POST';
@@ -861,6 +962,30 @@ export const SiteProvider = ({ children }) => {
 		setSpiner( 'none' );
 		return rep;
 	}
+
+const getUserLieu = async (profileUserId) => {
+  if (!profileUserId) return null;
+  
+  const url = `${base_api_url}lieu/get/userLieux?profileUserId=${profileUserId}`;
+  const method = 'GET';
+  setSpiner('block');
+  
+  try {
+    const rep = await fetchData(url, null, method);
+    setSpiner('none');
+    
+    // The endpoint returns an array of lieux; we take the first one
+    if (rep && Array.isArray(rep) && rep.length > 0) {
+      return rep[0];
+    }
+    return null;
+  } catch (error) {
+    setSpiner('none');
+    console.error('Error fetching user lieu:', error);
+    return null;
+  }
+};
+ 
 
 	// etablissement lieu delete
 	const lieuDelete = async ( lieuData ) => {
@@ -977,16 +1102,20 @@ export const SiteProvider = ({ children }) => {
 	}
 
 	// get a user pets book
-	const getUserPets = async ( userProfileId ) => { 
-		const url		= base_api_url + "carnetAnimal/user?profileUserId=" + userProfileId;
-
-		const data 		= '';
-		const method 	= 'GET';
-		// setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		// setSpiner( 'none' );
-		return rep;
-	}
+	const getUserPets = useCallback(async (profileId) => {
+	  const url = base_api_url + 'carnetAnimal/user?profileUserId=' + profileId;
+	  const method = 'GET';
+	  setSpiner('block');
+	  try {
+		const rep = await fetchData(url, {}, method);
+		return rep || [];
+	  } catch (error) {
+		console.error('Error fetching user pets:', error);
+		return [];
+	  } finally {
+		setSpiner('none');
+	  }
+	}, [base_api_url]); // Only depends on base_api_url
 	
 	// edit a user pets book
 	const editUserPets = async ( animalBook, animalPhoto ) => {
@@ -1103,15 +1232,221 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// Save rating
-	const saveRating = () =>{
-console.log( 'Save ratings' )	
-	}
+	// Save veto comments - simplified without frontend notifications
+	// Save veto comments
+const saveComment = async (commentData) => {
+    console.log('=== saveComment called ===');
+    console.log('Received commentData:', commentData);
+    
+    const url = base_api_url + 'comment/edit';
+    const data = {
+        commentId: commentData.commentId || null,
+        consultationId: commentData.consultationId,
+        commentText: commentData.comment,
+        profileUserId: commentData.profileId || commentData.profileUserId,
+        enabled: true,
+        locale: commentData.locale || 'en'
+    };
+    
+    console.log('Sending data to API:', data);
+    
+    const method = 'POST';
+    setSpiner('block');
+    try {
+        const rep = await fetchData(url, data, method);
+        console.log('saveComment response:', rep);
+        return rep;
+    } catch (error) {
+        console.error('Error saving comment:', error);
+        throw error;
+    } finally {
+        setSpiner('none');
+    }
+};
+
+	// Save veto rating - simplified without frontend notifications
+	const saveRating = async (ratingData) => {
+    console.log('=== saveRating called ===');
+    console.log('ratingData.ratingId:', ratingData.ratingId);
+    console.log('ratingData.rating:', ratingData.rating);
+    
+    const url = base_api_url + 'rating/edit';
+    const data = {
+        ratingId: ratingData.ratingId || null,  // Make sure this is sent
+        consultationId: ratingData.consultationId,
+        evaluation: ratingData.rating,
+        profileUserId: ratingData.profileId,
+        enabled: true,
+        locale: ratingData.locale || 'en'
+    };
+    
+    console.log('Data being sent to backend:', data);
+    
+    const method = 'POST';
+    setSpiner('block');
+    try {
+        const rep = await fetchData(url, data, method);
+        console.log('saveRating response:', rep);
+        return rep;
+    } catch (error) {
+        console.error('Error saving rating:', error);
+        throw error;
+    } finally {
+        setSpiner('none');
+    }
+};
+
+
+	// Mark consultation as finished
+	const consultationFinish = async (consultationId) => {
+		const url = base_api_url + 'consultation/finish';
+		const data = {
+			consultationId: parseInt(consultationId)  // Make sure it's a number
+		};
+		const method = 'POST';
+		
+		console.log('Sending finish request:', { url, data }); // Debug log
+		
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, data, method);
+			return rep;
+		} catch (error) {
+			console.error('Error finishing consultation:', error);
+			throw error;
+		} finally {
+			setSpiner('none');
+		}
+	};
+
+	// Get vet rating
+	const getVetRating = async (profileVetoId) => {
+		console.log('Fetching rating for vet:', profileVetoId);
+		const url = base_api_url + 'rating/getVetRating?profileVetoId=' + profileVetoId;
+		const method = 'GET';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, {}, method);
+			console.log('Rating response:', rep);
+			return rep;
+		} catch (error) {
+			console.error('Error fetching vet rating:', error);
+			// Return default values instead of throwing
+			return { success: false, averageRating: 0, ratingCount: 0 };
+		} finally {
+			setSpiner('none');
+		}
+	};
 	
-	// Save consultation finish
-	const consultationFinish = () =>{
-console.log( 'finish Consultation' )	
-	}
+
+	// Get vet comments
+	const getVetComments = async (profileVetoId, profileUserId = null) => {
+		let url = base_api_url + 'comment/getVetComments?profileVetoId=' + profileVetoId;
+		if (profileUserId) {
+			url += '&profileUserId=' + profileUserId;
+		}
+		const method = 'GET';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, {}, method);
+			return rep;
+		} catch (error) {
+			console.error('Error fetching vet comments:', error);
+			return { success: false, comments: [], totalComments: 0 };
+		} finally {
+			setSpiner('none');
+		}
+	};
+	
+	// Delete a comment
+	const deleteComment = async (commentId, profileUserId) => {
+    console.log('=== deleteComment called ===', { commentId, profileUserId });
+    const url = base_api_url + 'comment/deleteComment';
+    const data = {
+        commentId: commentId,
+        profileUserId: profileUserId
+    };
+    const method = 'POST';
+    setSpiner('block');
+    try {
+        const rep = await fetchData(url, data, method);
+        console.log('deleteComment response:', rep);
+        return rep;
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        throw error;
+    } finally {
+        setSpiner('none');
+    }
+};
+
+	// Mark comment as useful
+	const markCommentUseful = async (commentId, profileUserId) => {
+		const url = base_api_url + 'comment/markUseful';
+		const data = {
+			commentId: commentId,
+			profileUserId: profileUserId
+		};
+		const method = 'POST';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, data, method);
+			return rep;
+		} catch (error) {
+			console.error('Error marking comment as useful:', error);
+			throw error;
+		} finally {
+			setSpiner('none');
+		}
+	};
+
+	// Report abusive comment
+	const reportCommentAbuse = async (commentId, profileUserId, abuseReason) => {
+		const url = base_api_url + 'comment/reportAbuse';
+		const data = {
+			commentId: commentId,
+			profileUserId: profileUserId,
+			abuseReason: abuseReason
+		};
+		const method = 'POST';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, data, method);
+			return rep;
+		} catch (error) {
+			console.error('Error reporting comment:', error);
+			throw error;
+		} finally {
+			setSpiner('none');
+		}
+	};
+
+	
+	// Add reply to comment
+	const addCommentReply = async (replyData) => {
+		const url = base_api_url + 'comment/response/edit';
+		const data = {
+			commentResponseId: replyData.commentResponseId || null,
+			commentId: replyData.commentId,
+			profileUserId: replyData.profileUserId,
+			commentResponseText: replyData.replyText,
+			enabled: true,
+			locale: replyData.locale || 'en'  // Add locale
+		};
+		const method = 'POST';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, data, method);
+			return rep;
+		} catch (error) {
+			console.error('Error adding reply:', error);
+			throw error;
+		} finally {
+			setSpiner('none');
+		}
+	};
+
+	
 
 	//  Consultation date
 	const [ currentConsultationDate, setCurrentConsultationDate ] = useState( null );
@@ -1167,6 +1502,8 @@ console.log( 'finish Consultation' )
 			// veto list
 			const vetos = await getVetos();
 			setVetos( vetos )
+
+console.log('vetos changed in context', vetos?.length);
 
 			// veto etablissement
 			const etablissements = await getEtablissements();
@@ -1600,7 +1937,8 @@ console.log( 'finish Consultation' )
 				timeSlotDateUpdate,
 				timeSlotDayClose,
 				etablissementUpdate,
-				etablissementLieuUpdate,
+				saveLieu,
+				getUserLieu,
 				getVetoCliniqueInfo,
 				vetoCliniqueInfo, 
 				setVetoCliniqueInfo,
@@ -1610,6 +1948,8 @@ console.log( 'finish Consultation' )
 				transports,
 				lieuTransportUpdate,
 				vetos,
+				getVetos,
+				refreshVetos,
 				recommendedSpecialityId,
 				setRecommendedSpecialityId,
 				recommendedClinicTypeId,
@@ -1655,8 +1995,16 @@ console.log( 'finish Consultation' )
 				getVetoAppointmentRequestNotification,
 				getPetConfirmedAppointmentNotification,
 				getPetDeclinedAppointmentNotification,
-				saveRating,
-				consultationFinish
+				consultationFinish,
+				saveComment,  // Add this
+				saveRating,   // Add this
+				getVetRating,
+				getVetComments,
+				deleteComment,
+				markCommentUseful,
+				reportCommentAbuse,
+				addCommentReply,
+
 			}}
 		>
 

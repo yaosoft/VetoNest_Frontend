@@ -21,7 +21,7 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/de';
 import 'dayjs/locale/it';
 
-import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined, UserOutlined, CalendarOutlined, ManOutlined, WomanOutlined, GlobalOutlined, EnvironmentOutlined, HomeOutlined, MailOutlined, PhoneOutlined, EditOutlined } from '@ant-design/icons';
 import InputCode from "./InputCode";
 
 const ModalProfile = ( params ) => {
@@ -160,7 +160,7 @@ const ModalProfile = ( params ) => {
 		selectedTimeslotOpen,
 		timeSlotDayClose,
 		etablissementUpdate,
-		etablissementLieuUpdate,
+		saveLieu,                    // renamed from etablissementLieuUpdate
 		selectedLieuId,
 		setSelectedLieuId,
 		selectedVetoClinique,
@@ -176,13 +176,15 @@ const ModalProfile = ( params ) => {
 		getVetoCliniqueInfo,
 		setVetoCliniqueInfo,
 		getALieu,
-		lieuDelete
+		lieuDelete,
+		getAVetoLieux,
+		getUserLieu,                // NEW: to load user's location
 	} = useContext( SiteContext )
 	
 	// Dynamic fields error
 	const [errors, setErrors] = useState({});
 	
-	// Dynamic fields onchannge
+	// Dynamic fields onchange
 	const handleFieldChange = (field, value) => {
 		const { fieldErrorTagRef, fieldName } = field;
 		
@@ -237,10 +239,8 @@ const ModalProfile = ( params ) => {
 	const [ fileList, setFileList ] = useState([]);
 	const [ showUploadList, setShowUploadList ] = useState( false );
 	const handleBeforeUpload = ( file ) => {
-        // You can perform validation or other logic here
-        // Store the file in state to upload manually later
         setFileList([...fileList, file]);
-        return true; // Prevents automatic upload
+        return true;
     };
 	const props = {
 		accept: '.png,.jpg,.jpeg',
@@ -250,18 +250,11 @@ const ModalProfile = ( params ) => {
 		maxCount: 1,
 		showUploadList: showUploadList,
 		className: 'avatar-uploader',
-		/* beforeUpload: handleBeforeUpload, */
 		onChange(info) {
 			const a = async() => {
-
 				let newFileList = [...info.fileList];
 				setFileList( newFileList );
 				setAnimalPhoto( info.file );
-
-// console.log( 'info.file', info.file );
-
-				// open the modal
-				// await setIsModalPhotoOpen(true);
 			}
 			a()
 		},
@@ -282,7 +275,7 @@ const ModalProfile = ( params ) => {
 			elt.src = dataUri;
 		}
 		a();
-	}, [fileList]); // Dependency array ensures effect runs when isModalOpen changes
+	}, [fileList]);
 
 	
 	const modalPhotoCancel = () => {
@@ -291,18 +284,12 @@ const ModalProfile = ( params ) => {
 	const modalPhotoHandleOkClosed = () => {
 		console.log( 'modalPhotoHandleOkClosed' )
 	}
-	// const modalPhotoConfirmText = () => {
-		// return "D'accord"
-	// }
-	// const modalPhotoCancelText = () => {
-		// return "Annuler"
-	// }
 	
 	// flags
-	const [ selectedFlag, setSelectedFlag ] = useState( 'fr' ); // ToDo create default country in site context
+	const [ selectedFlag, setSelectedFlag ] = useState( 'fr' );
 
 	// phone
-	const [ selectedCountryCode, setSelectedCountryCode ] = useState( '+33' ); // ToDO
+	const [ selectedCountryCode, setSelectedCountryCode ] = useState( '+33' );
 	const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 
 	// title
@@ -322,14 +309,13 @@ const ModalProfile = ( params ) => {
 		const test = nameValidator( data )
 
 		if( data && test === false ){
-		
 			nameErrorText = signUp_nameErrorText
 		}
 
 		setNameError( nameErrorText );
 	}
 
-	// veto to invite ( all veto minus current veto )
+	// veto to invite
 	const [ vetosToInvite, setVetosToInvite ] = useState( [] );
 
 	// veto name
@@ -344,7 +330,6 @@ const ModalProfile = ( params ) => {
 		if( data && test === false ){
 			vetoNameErrorText = signUp_nameErrorText;
 		}
-		// signUpVetoNameErrorText = 'Your vetoName seems incorect'
 		setVetoNameError( vetoNameErrorText );
 	}
 
@@ -360,7 +345,6 @@ const ModalProfile = ( params ) => {
 		if( data && test === false )
 			vetoFirstNameErrorText = signUp_firstNameErrorText
 
-// signUpVetoFirstNameErrorText = 'Your firstname seems incorect'
 		setVetoFirstNameError( vetoFirstNameErrorText );
 	}
 	
@@ -480,15 +464,13 @@ const ModalProfile = ( params ) => {
 
 	// absence name and others names validator
 	const absenceNameValidator = (name) => {
-		// Allowed: letters (with accents), numbers, spaces, '-', ''', '&'
 		const rep = /^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s&'\-]+$/.test(name);
 		return rep;
 	}
 	
 	// parking name validator
 	const addressNameValidator = (name) => {
-		const rep = /^[\p{L}0-9\s&'\-’,.](?:[\p{L}0-9\s&'\-’,.€$()\/\\]*[\p{L}0-9\s&'\-’,.)])?$/u
-.test(name);
+		const rep = /^[\p{L}0-9\s&'\-’,.](?:[\p{L}0-9\s&'\-’,.€$()\/\\]*[\p{L}0-9\s&'\-’,.)])?$/u.test(name);
 		return rep;
 	}
 	
@@ -527,7 +509,6 @@ const ModalProfile = ( params ) => {
 			setModalProfileIdentityOpen( false );
 		}
 
-console.log('Item removed!');
 		message.success( getAContent('cmp_vetonest.com_Lb4kZw98Ds') );
 		setIsModalOpen(false);
 	}
@@ -546,7 +527,6 @@ console.log('Item removed!');
 		var openedErrorText = '';
 		if( timeValidator( time, endTime ) === false ){
 			openedErrorText = getAContent('cmp_vetonest.com_Yq2nFt77Wc');
-console.log( openedError );
 		}
 		setOpenedError( openedErrorText );
 		form.validateFields();
@@ -556,7 +536,6 @@ console.log( openedError );
 		var openedErrorText = '';
 		if( timeValidator( startTime, time ) === false ){
 			openedErrorText = getAContent('cmp_vetonest.com_Yq2nFt77Wc');
-console.log( openedError );
 		}
 		setOpenedError( openedErrorText );
 		form.validateFields();
@@ -570,32 +549,23 @@ console.log( openedError );
 	}
 
 	// animal espece
-	// const [ animalEspece, setAnimalEspece ] = useState( '' );
 	const [ animalEspeceError, setAnimalEspeceError ] = useState( '' );
 	const [ breedSpinner, setBreedSpinner ] = useState( false );
 	const handleChangeAnimalEspece = async ( specieId ) => {
-		// show spinner
 		setBreedSpinner(true);  
-		// get specie's breeds		
 		const breeds = await speciesBreedList( specieId );
 		setRaces( breeds );
-		// display breed Select
 		setShowBreeds( '' );	
-		// set selcted specie
 		setEspeceSelectedId( specieId );
-		// hide breed spiner
 		setBreedSpinner( false );
-		
 		setAnimalEspeceError( '' );
 		form.validateFields();
 	}
 
 	// animal race
-	// const [ animalRace, setAnimalRace ] = useState( '' );
 	const [ animalRaceError, setAnimalRaceError ] = useState( '' );
 	const handleChangeAnimalRace = ( raceId ) => {
 		setRaceSelectedId( raceId );
-
 		setAnimalRaceError( '' );
 		form.validateFields();
 	}
@@ -611,7 +581,6 @@ console.log( openedError );
 	const isValidEmail = ( email ) => {
 		if( !regexEmailValidation.test( email ) )
 			return false;
-
 		return true;
 	}
 	const [ signUpEmail, setSignUpEmail ] = useState( user ? user.email : '' );
@@ -624,8 +593,6 @@ console.log( openedError );
 		var signUpEmailErrorText = '';
 		if( data && !isValidEmail( data ) )
 			signUpEmailErrorText = signUp_emailErrorText
-
-// signUpEmailErrorText = 'Your email is not correct'
 
 		setSignUpEmailError ( signUpEmailErrorText );
 	}
@@ -654,7 +621,6 @@ console.log( openedError );
 			return
 
 		setVerificationCode( typedCode );
-// console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
 		if( countLetters == maxCodeLength ){
 			if( code != typedCode ){
 				message.error( getAContent('cmp_vetonest.com_Xc8rBn55Je') );
@@ -671,20 +637,15 @@ console.log( openedError );
 		else {
 			setDisplayCodeIncorrect( 'none' );
 		}
-		
 	}
 	
 	const handleCompletedCode = ( typedCode ) => {
-		
 		if( code != typedCode ){
-				// message.error( { signUp_codeIncorrect } );
-// message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
+			setDisplayCodeIncorrect( 'block' );
+			setEmailVerificationResult( false );
 		}
 		else{
 			message.success( signUp_codeCorrect );
-// message.success( 'Your code is correct' );
 			setDisplayCodeIncorrect( 'none' );
 			setEmailVerificationResult( true );
 			setDisplayCodeCorrect( 'block' );
@@ -694,7 +655,6 @@ console.log( openedError );
 	const [ loading, setLoading] = useState(false);
 	const [ signUpSpin, setSignUpSpin ] = useState( 'none' );
 	const [ sendingDisabled, setSendingDisabled ] = useState( false );
-	// type checkbox Modal
 	const showModalOptionType = () => {
 		setIsModalOptionTypeOpen(true);
 	};
@@ -704,7 +664,7 @@ console.log( openedError );
 	const modalOptionTypeHandleCancel = () => {
 		document.getElementById( 'signUpType1' ).checked = false;
 		document.getElementById( 'signUpType2' ).checked = false;
-		setIsModalOptionTypeOpen(false); // close modal 
+		setIsModalOptionTypeOpen(false);
 	}
 	const modalOptionTypeClosed = () => {
 		console.log( 'modalClosed' );
@@ -714,15 +674,11 @@ console.log( openedError );
 			setSendingDisabled( false );
 			return
 		}
-//setSignUpFirstNameError( "signUpFirstNameErrorText" );
-
 		const emailData = {
 			email: signUpEmail,
 			userId: user.userId
 		}
 		const rep = await updateEmail( emailData );
-
-// console.log( 'signUp rep: ' + rep );
 		setSignUpSpin( 'none' );
 		setSendingDisabled( false );
 		if( rep === false ){
@@ -731,7 +687,6 @@ console.log( openedError );
 		else{
 			user['email'] = signUpEmail;
 			await logIn( user );
-			
 			const random = generateRandomDigits(3);
 			setProfileFormUpdated( random );
 			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
@@ -761,7 +716,7 @@ console.log( openedError );
 
 	// sexe
 	const [ sexes, setSexes ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ sexe, setSexe ] = useState( '' ); // 1 for male, 2 for female
+	const [ sexe, setSexe ] = useState( '' );
 	const [ sexeError, setSexeError ] 	= useState( '' );
 	
 	const handleChangeProfileSex = (e) => {
@@ -772,27 +727,24 @@ console.log( openedError );
 
 	// animal sexe
 	const [ animalSexes, setAnimalSexes ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ animalSexe, setAnimalSexe ] = useState( userProfile.userAnimalSexeId );// 1 for male, 2 for female
+	const [ animalSexe, setAnimalSexe ] = useState( userProfile.userAnimalSexeId );
 	const [ animalSexeError, setAnimalSexeError ] 	= useState( '' );
 	
 	const handleChangeAnimalSex = (e) => {
 		const sexId = e.target.value;
-// alert(sexId);
 		setAnimalSexe( sexId );
-		
 		setAnimalSexeError( '' );
 		form.validateFields();
 	}
 
 	// animalInsurance
 	const [ animalInsurances, setAnimalInsurances ] = useState( [ { label: 'Male', value: '1' }, { label: 'female', value: '2' }, ] );
-	const [ animalInsurance, setAnimalInsurance ] = useState( userProfile.userAnimalInsuranceId );// 1 for male, 2 for female
+	const [ animalInsurance, setAnimalInsurance ] = useState( userProfile.userAnimalInsuranceId );
 	const [ animalInsuranceError, setAnimalInsuranceError ] 	= useState( '' );
 	
 	const handleChangeAnimalInsurance = (e) => {
 		const insurance = e.target.value;
 		setAnimalInsurance( insurance ); 
-		
 		setAnimalInsuranceError( '' );
 		form.validateFields();
 	}
@@ -809,15 +761,14 @@ console.log( openedError );
 			return
 		}
 		const dateStr = date.format('YYYY-MM-DD');
-		if( fieldName == 'Profile'  && dateStr < "2020-01-01" ){						// todo: dynamic
-			message.error( getAContent('cmp_vetonest.com_Ru6sKa87Xp') )	// todo
+		if( fieldName == 'Profile'  && dateStr < "2020-01-01" ){
+			message.error( getAContent('cmp_vetonest.com_Ru6sKa87Xp') )
 		}
 		else{
 			const dateNaissance = dayjs( dateStr );
 			setDateDeNaissance( dateNaissance );
 			setDateDeNaissanceRaw( dateStr );
 		}
-		
 		setDateDeNaissanceError( '' );
 		form.validateFields();
 	}
@@ -828,13 +779,11 @@ console.log( openedError );
 	const [ animalDateNaissanceRaw, setAnimalDateNaissanceRaw ] = useState( '' );
 	const [ animalDateNaissanceError, setAnimalDateNaissanceError ] = useState( '' );
 	const handleAnimalBirthDateChange = async ( date, dateString ) => {
-
 		const dateStr = date.format('YYYY-MM-DD');
 		const formatedDate = await dateFormater( dateStr );
 		setAnimalDateNaissance( formatedDate );
 		setAnimalDateNaissanceRaw( dateStr );
 		setAnimalBirthDatePickerValue( null );
-		
 		setAnimalDateNaissanceError( '' );
 		form.validateFields();
 	}
@@ -842,11 +791,9 @@ console.log( openedError );
 	// Absence
 	const [ dateAbsence, setDateAbsence ] = useState( '' );
 	const handleDateAbsenceChange = ( date ) => {
-		// const dateStr = date.format('YYYY-MM-DD');
 		setDateAbsence( date )
 	}
 	const disabledPastDates = (current) => {
-		// Disable dates before today
 		return current && current.isBefore(dayjs().startOf('day'));
 	};
 
@@ -855,21 +802,12 @@ console.log( openedError );
 	const [ biography, setBiography ] = useState( '' );
 	const handleChangeBiography = ( e ) => {
 		const data = e.target.value;
-		
-
-		// sync to Form so its rules/validation see the new value
 		form.setFieldsValue({ Biography: data });
-		
-		//
 		setBiography( data );
-
 		var biographyErrorText = '';
 		if( !isValidBiography( data ) )
 			biographyErrorText = getAContent('cmp_vetonest.com_Vm3fHt24Ls');
-
 		setBiographyError( biographyErrorText );
-
-		// optional: validate field immediately
 		form.validateFields(['Biography']).catch(() => {});
 	}
 	// Biography validation
@@ -885,71 +823,89 @@ console.log( openedError );
 			return true
 	}
 
-	// address
-	const [ address, setAddress ] = useState( '' );
-	const [ addressError, setAddressError ] = useState( '' );
-	const handleChangeAddress = ( e ) => {
-		const data = e.target.value;
-		setAddress( data );
+	// ========== VET LOCATION (Lieu) STATE & HANDLERS ==========
+	const [vetLieuId, setVetLieuId] = useState(null);
+	const [vetAddress, setVetAddress] = useState('');
+	const [vetCountryId, setVetCountryId] = useState(null);
+	const [vetCityId, setVetCityId] = useState(null);
+	const [vetCityOptions, setVetCityOptions] = useState([]);
+	const [vetCountryError, setVetCountryError] = useState('');
+	const [vetCityError, setVetCityError] = useState('');
+	const [vetAddressError, setVetAddressError] = useState('');
+	const [displayVetCity, setDisplayVetCity] = useState('none');
 
-		var addressErrorText = '';
-		const test = addressValidator( data )
-
-		if( data && test === false ){
-		
-			addressErrorText = profileIdentity_addressErrorText // cmp_vetonest.com_Wq7eNk90Bs
+	const handleVetCountryChange = async (countryId) => {
+		setVetCountryId(countryId);
+		setVetCityId(null);
+		setVetCityOptions([]);
+		setDisplayVetCity('none');
+		setVetCountryError('');
+		if (countryId) {
+			const cities = await getPaysVilles(countryId);
+			if (cities && cities.length) {
+				setVetCityOptions(cities);
+				setDisplayVetCity('block');
+			} else {
+				setDisplayVetCity('none');
+			}
 		}
-		// signUpAddressErrorText = 'Your address seems incorect'
-		setAddressError( addressErrorText );
-	}
-	const addressValidator = ( address ) => {
-		const rep = /^[A-Za-z0-9À-ÿ\s,'\.\-]+$/.test( address );
+		form.validateFields(['VetCountry']);
+	};
 
-		return rep
-	}
+	const handleVetCityChange = (cityId) => {
+		setVetCityId(cityId);
+		setVetCityError('');
+		form.validateFields(['VetCity']);
+	};
 
-	// codePostal
-	const [ codePostal, setCodePostal ] = useState( '' );
-	const [ codePostalError, setCodePostalError ] = useState( '' );
-	const handleChangeCodePostal = ( e ) => {
-		const data = e.target.value;
-		setCodePostal( data );
+	const handleVetAddressChange = (e) => {
+		const value = e.target.value;
+		setVetAddress(value);
+		setVetAddressError('');
+		form.validateFields(['VetAddress']);
+	};
 
-		var codePostalErrorText = '';
-		const test = codePostalValidator( data )
+	// ========== USER LOCATION (Lieu) STATE & HANDLERS ==========
+	const [userLieuId, setUserLieuId] = useState(null);
+	const [userAddress, setUserAddress] = useState('');
+	const [userCountryId, setUserCountryId] = useState(null);
+	const [userCityId, setUserCityId] = useState(null);
+	const [userCityOptions, setUserCityOptions] = useState([]);
+	const [userCountryError, setUserCountryError] = useState('');
+	const [userCityError, setUserCityError] = useState('');
+	const [userAddressError, setUserAddressError] = useState('');
+	const [displayUserCity, setDisplayUserCity] = useState('none');
 
-		if( data && test === false ){
-		
-			codePostalErrorText = getAContent('cmp_vetonest.com_Kt8vGd33Qw'); // profileIdentity_codePostalErrorText;
+	const handleUserCountryChange = async (countryId) => {
+		setUserCountryId(countryId);
+		setUserCityId(null);
+		setUserCityOptions([]);
+		setDisplayUserCity('none');
+		setUserCountryError('');
+		if (countryId) {
+			const cities = await getPaysVilles(countryId);
+			if (cities && cities.length) {
+				setUserCityOptions(cities);
+				setDisplayUserCity('block');
+			} else {
+				setDisplayUserCity('none');
+			}
 		}
-		// signUpCodePostalErrorText = 'Your codePostal seems incorect'
-		setCodePostalError( codePostalErrorText );
-	}
-	const codePostalValidator = ( codePostal ) => {
-		const rep = /^[a-zA-Z0-9\.\s,.'-:]*$/.test( codePostal );
-		return rep
-	}
+		form.validateFields(['UserCountry']);
+	};
 
-	// ville
-	const [ ville, setVille ] = useState( '' );
-	const [ villeError, setVilleError ] = useState( '' );
-	const handleChangeVille = ( e ) => {
-		const data = e.target.value;
-		setVille( data );
+	const handleUserCityChange = (cityId) => {
+		setUserCityId(cityId);
+		setUserCityError('');
+		form.validateFields(['UserCity']);
+	};
 
-		var villeErrorText = '';
-		const test = villeValidator( data )
-
-		if( data && test === false ){
-			villeErrorText = profileIdentity_villeErrorText // getAContent('cmp_vetonest.com_Sp1cMe44Uv');
-		}
-		// signUpVilleErrorText = 'Your ville seems incorect'
-		setVilleError( villeErrorText );
-	}
-	const villeValidator = ( ville ) => {
-		const rep = /^[a-zA-Z0-9\s,.'-]*$/.test( ville );
-		return rep
-	}
+	const handleUserAddressChange = (e) => {
+		const value = e.target.value;
+		setUserAddress(value);
+		setUserAddressError('');
+		form.validateFields(['UserAddress']);
+	};
 
 	// get datePicker local
 	const getDatePickerlocale = () =>{
@@ -961,8 +917,7 @@ console.log( openedError );
 			return locale_es
 		if( siteLanguage =='it' )
 			return locale_it
-		
-		return locale_en // falback
+		return locale_en
 	}
 	// get date format local
 	const getDateFormatLocale = () =>{
@@ -974,8 +929,7 @@ console.log( openedError );
 			return 'YYYY-MM-DD'
 		if( siteLanguage =='it' )
 			return 'YYYY-MM-DD'
-		
-		return 'YYYY-MM-DD' // falback
+		return 'YYYY-MM-DD'
 	}
 
 
@@ -1020,25 +974,18 @@ console.log( openedError );
 	const [isDeleting, setIsDeleting] = useState(false);
 	const handleLieuRemove = async () => {
 	  setIsDeleting(true);
-
 	  const rep = await lieuDelete({ lieuId: selectedLieuId });
-
 	  if (!rep) {
 		message.error(getAContent('cmp_vetonest.com_lMQqX2bptt'));
 		setIsDeleting(false);
 		return;
 	  }
-
 	  message.success(getAContent('cmp_vetonest.com_TrN9a8bKzV'));
-
-	  setIsLieuPopconfirmOpen(false);      // close Popconfirm
-	  modalProfileIdentityCancel(false);   // ✅ close Modal (CORRECT)
+	  setIsLieuPopconfirmOpen(false);
+	  modalProfileIdentityCancel(false);
 	  setProfileFormUpdated(generateRandomDigits(3));
-
 	  setIsDeleting(false);
 	};
-
-
 
 	// Build states options
 	const BuildStatesOptions = () => {
@@ -1108,11 +1055,9 @@ console.log( openedError );
 	const handleChangePwResetPassword = ( e ) => {
 		const data = e.target.value;
 		setPwResetPassword( data );
-		
 		var pwResetPasswordErrorText = '';
 		if( data && isValidPassword( data ) !== true )
 			pwResetPasswordErrorText = signUp_passwordErrorText
-
 		setPwResetPasswordError( pwResetPasswordErrorText );
 	}
 
@@ -1122,7 +1067,6 @@ console.log( openedError );
 	const handleChangePwResetPasswordRepeat = ( e ) => {
 		const data = e.target.value;
 		setPwResetPasswordRepeat( data );
-		
 		var pwResetPasswordRepeatErrorText = '';
 		if( data && isValidPasswordRepeat( data ) === false )
 			pwResetPasswordRepeatErrorText = signUp_passwordRepeatErrorText;
@@ -1149,65 +1093,34 @@ console.log( openedError );
 				vetoEtablissementStatusId: '',
 				etablissementId: vetoCliniqueInfo.id,
 				profileVetoIdStr: checkedVetoList.join( '*' ),
-				status: 1,	// 1 - pending, 2 - active.
+				status: 1,
 				enabled: 1,
 			}
-
-			const rep = await setCliniqueVetos( data );	// save
-			if( rep === false ){ //
+			const rep = await setCliniqueVetos( data );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 			}
 			else{
 				const random = await generateRandomDigits(3);
 				setProfileFormUpdated( random );
-				message.success( getAContent( 'cmp_vetonest.com_Js81Qm49Tf' )  ); // invitations sent
+				message.success( getAContent( 'cmp_vetonest.com_Js81Qm49Tf' )  );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 			}			
 		}
 		// Etablissement_lieu
 		if( fieldName == 'Etablissement_lieu' ){
-			
-			// check the form errors
-			// const checkFormErrors = async() => { 
-				// var errorsExist = false;
-				// if( etablissementAddressError != '' ){
-					// errorsExist = true
-				// }
-				// else if( etablissementParkingError != '' ){
-					// errorsExist = true
-				// }
-				// else if( etablissementInfoError != '' ){
-					// errorsExist = true
-				// }
-				// form.validateFields();
-				// return errorsExist
-			// }
-			// check errors in dynamic fields
 			const formHasErrors = form.getFieldsError().some(f => f.errors.length > 0);
-				
-			// const formHasErrors = await checkFormErrors();
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
 				return
 			}
-			// check empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = async( ) => {
 				if( !etablissementAddress ){
 					formHasEmpty = getAContent( 'cmp_vetonest.com_Lz52Qm14Br' );
 					setEtablissementAddressError( formHasEmpty );
 				}
-				// if( !etablissementParking ){
-				//	formHasEmpty = 'profileEtablissement_parkingEmpty';
-				//	setEtablissementParkingError( formHasEmpty );
-				// }
-				// if( !etablissementInfo ){
-				//	formHasEmpty = 'profileEtablissement_infoEmpty';
-				//	setEtablissementInfoError( formHasEmpty );
-				// }
-				
-	
 				if( !form.getFieldValue('LieuCountry') ){
 					formHasEmpty = getAContent( 'cmp_vetonest.com_SelectCountry_Txt' );
 					setLieuCountryError( formHasEmpty );
@@ -1219,50 +1132,38 @@ console.log( openedError );
 				form.validateFields();
 			}
 			await checkFormEmpty();
-			// check form empty fields
 			if( formHasEmpty ){
 				message.error( formHasEmpty );
-				// setPwResetSpin( 'none' );
-				// setSendingDisabled( false );
 				return
 			}
 
-			const etablissementLieuData = { // Lieux
+			const etablissementLieuData = {
 				...( selectedLieuId  && { lieuId: selectedLieuId } ),
                 adresse: form.getFieldValue('LieuAddress'),
                 info: form.getFieldValue('Info'),
 				parking: form.getFieldValue('Parking'),
 				paysId: form.getFieldValue('LieuCountry'),
 				villeId: form.getFieldValue('LieuCity'),
-				...( userProfile.atHome  && { vetoAtHome: userProfile.id } ),
+				...( userProfile.atHome  && { profileVetoId: userProfile.id } ),
 				...( !userProfile.atHome  && { etablissementId: vetoCliniqueInfo.id } ),
                 enabled: true,
 			}
 
-			// dynamic fields data
 			const dynamicFieldNames = transports.map( field => field.fieldName );
 			const allValues = await form.validateFields();
-			// Extract only dynamic fields
 			const dynamicValues = Object.fromEntries(
 				Object.entries(allValues).filter(([key]) =>
 					dynamicFieldNames.includes(key)
 				)
-
 			);
-// console.log( "transports:", transports);
-// console.log( "Dynamic fields names:", dynamicFieldNames);
-// console.log( "allValues:", allValues);
-// console.log( "dynamicValues:", dynamicValues);
 			
-			const lieuId = await etablissementLieuUpdate( etablissementLieuData );
-			if( lieuId === false ){ //
+			const lieuId = await saveLieu( etablissementLieuData );
+			if( lieuId === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
 				return;
 			}
-			else{	// Lieux transport 
+			else{
 				const etsTransport = transports.map( ( v, k ) => { 
-					// const elt = document.getElementsByName( v.nom )[0];
-					// const elt = dynamicValues.filter( ( key, val ) => key == v.nom ) );
 					const description = dynamicValues[ v.fieldName ];
 					const transportId = v.id;
 					const data = {
@@ -1271,65 +1172,50 @@ console.log( openedError );
 						'description': description,
 						'profileVetoId': profileId,
 					}
-console.log( 'etsTransport_data', data )
 					return data;
 				})
-
 				for ( const transport of etsTransport ){
 					const rep = await lieuTransportUpdate( transport );
 				}
 			}
-			
-			
 			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 			setModalProfileIdentityOpen( false );
 			const random = generateRandomDigits(3);
-			// setFormUpdated( random );
 			setProfileFormUpdated( random );
-			setSelectedLieuId( null ); // reset the update mode
+			setSelectedLieuId( null );
 			return;
 		}
 
 		// Etablissement
 		if( fieldName == 'Etablissement' ){
-			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( etablissementNameError != '' ){
 					errorsExist = true
-					//setPhoneNumberError( 'phoneNumberErrorText' );
 				}
 				else if( etablissementPresentationError != '' ){
 					errorsExist = true
-					//setVetoNameError( signUp_nameErrorText );
 				}
 				form.validateFields();
 				return errorsExist
 			}
-			
 			const formHasErrors = await checkFormErrors();
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
 				return
 			}
-
-
-			// check empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				// name
 				if( !etablissementName ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Wd52Kp87Qr' );
 					await setEtablissementNameError( errorMessage );
 					formHasEmpty = true
 				}
-
 				if( !etablissementPresentation ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Lk83Wt59Pq' );
 					await setEtablissementPresentationError( errorMessage );
 					formHasEmpty = true
 				}
-
 				if( selectedEtablissementTypes.length == 0 ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Uy67Hd91Ts' );
 					await setEtablissementTypeError( errorMessage );
@@ -1337,26 +1223,13 @@ console.log( 'etsTransport_data', data )
 				}
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			await checkFormEmpty();
-			// check form empty fields
-			if( formHasEmpty ){
-				message.error( formHasEmpty );
-				// setPwResetSpin( 'none' );
-				// setSendingDisabled( false );
-				return
-			}
-
 			const etablissementData = {
 				...(vetoCliniqueInfo && { etablissementId: vetoCliniqueInfo.id }),
                 nom: etablissementName,
@@ -1365,19 +1238,15 @@ console.log( 'etsTransport_data', data )
 				creatorProfileId: profileId,
                 enabled: true,
 			}
-
 			const resp = await etablissementUpdate( etablissementData );
-			if( resp === false ){ //
+			if( resp === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
 				return;
 			}
 			else{
-				//const random = generateRandomDigits(3);
-				//setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 				const random = generateRandomDigits(3);
-
 				setProfileFormUpdated( random );
 				return;
 			}
@@ -1385,17 +1254,14 @@ console.log( 'etsTransport_data', data )
 		
 		// Opened
 		if( fieldName == 'Opened' || fieldName == 'Closed' ){
-			// close selected day
-// alert( closeThisDay );
 			if( closeThisDay ){
 				const sendData = {
 					dayNumber:		dayId,
 					profileVetoId:	profileId,
 					enabled: 		true,
 				}
-				const rep = await timeSlotDayClose( sendData );	// save
-
-				if( rep === false ){ //
+				const rep = await timeSlotDayClose( sendData );
+				if( rep === false ){
 					message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 				}
 				else{
@@ -1406,14 +1272,11 @@ console.log( 'etsTransport_data', data )
 				}
 				return;
 			}
-			
-			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( openedError != '' ){
 					errorsExist = true
 				}
-
 				return errorsExist
 			}
 			const formHasErrors = await checkFormErrors();
@@ -1421,8 +1284,6 @@ console.log( 'etsTransport_data', data )
 				message.error( signUp_correctErrors );
 				return
 			}
-			
-			// check form empty fields
 			var formHasEmpty = '';
 			const checkFormEmpty = () => {
 				if( !startTime ){
@@ -1435,16 +1296,11 @@ console.log( 'etsTransport_data', data )
 				}
 				form.validateFields();
 			}
-
 			await checkFormEmpty();
-			
 			if( formHasEmpty ){
 				message.error( formHasEmpty );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
 				return
 			}
-
 			const sendData = {
 				timeSlotId: 	timeSlotId,
 				dayNumber:		dayId,
@@ -1453,12 +1309,9 @@ console.log( 'etsTransport_data', data )
 				profileVetoId:	profileId,
 				enabled: 		true,
 			}
-
-			const rep = await timeSlotDateUpdate( sendData );	// save
-
-			if( rep === false ){ //
+			const rep = await timeSlotDateUpdate( sendData );
+			if( rep === false ){
 				message.error( 'Veto profile cannot be updated' );
-				// return;
 			}
 			else{
 				const random = await generateRandomDigits(3);
@@ -1470,31 +1323,24 @@ console.log( 'etsTransport_data', data )
 			
 		// Absence
 		if( fieldName == 'Absence' ){
-// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( absenceNameError != '' ){
 					errorsExist = true
-					//setPhoneNumberError( 'phoneNumberErrorText' );
 				}
 				else if( absenceDescriptionError != '' ){
 					errorsExist = true
-					//setVetoNameError( signUp_nameErrorText );
 				}
 				form.validateFields();
 				return errorsExist
 			}
 			const formHasErrors = await checkFormErrors();
-
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
 				return
 			}
-
-			// check the form empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				
 				if( !dateDeNaissance ){
 					const error = getAContent( 'cmp_vetonest.com_Tn64Fb20Ks' );
 					setDateDeNaissanceError( error );
@@ -1507,18 +1353,13 @@ console.log( 'etsTransport_data', data )
 				}
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-
 			const sendData = {
 				timeSlotClosedDateId:	absence ? absence.id : '',
 				closedDate: 			dateDeNaissanceRaw,
@@ -1527,10 +1368,8 @@ console.log( 'etsTransport_data', data )
 				description:			absenceDescription,
 				enabled: 				true,
 			}
-			
-			const rep = await timeSlotClosedDateUpdate( sendData );	// save
-			
-			if( rep === false ){ //
+			const rep = await timeSlotClosedDateUpdate( sendData );
+			if( rep === false ){
 				message.error( 'Veto profile cannot be updated' );
 				return;
 			}
@@ -1546,59 +1385,27 @@ console.log( 'etsTransport_data', data )
 		
 		// Profile veto
 		if( fieldName == 'ProfileVeto' ){
-			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
-				if( phoneNumberError != '' ){
-					errorsExist = true
-					//setPhoneNumberError( 'phoneNumberErrorText' );
-				}
-				else if( vetoNameError != '' ){
-					errorsExist = true
-					//setVetoNameError( signUp_nameErrorText );
-				}
-				else if( vetoFirstNameError != '' ){
-					errorsExist = true
-					//setVetoFirstNameError( signUp_firstNameErrorText );
-				}
-				else if( vetoRppsError != '' ){
-					errorsExist = true;
-					//setVetoRppsError( 'profileVeto_rppsError' )
-				}
-				else if( vetoSiretError != '' ){
-					errorsExist = true;
-					//setVetoSiretError( 'profileVeto_siretError' )
-				}
-				else if( tarifMinError != '' ){
-					errorsExist = true;
-					//setVetoSiretError( 'profileVeto_siretError' )
-				}
-				else if( tarifMaxError != '' ){
-					errorsExist = true;
-					//setVetoSiretError( 'profileVeto_siretError' )
-				}
-				else if( tarifVideoMinError != '' ){
-					errorsExist = true;
-					//setVetoSiretError( 'profileVeto_siretError' )
-				}
-				else if( tarifVideoMaxError != '' ){
-					errorsExist = true;
-					//setVetoSiretError( 'profileVeto_siretError' )
-				}
+				if( phoneNumberError != '' ) errorsExist = true
+				else if( vetoNameError != '' ) errorsExist = true
+				else if( vetoFirstNameError != '' ) errorsExist = true
+				else if( vetoRppsError != '' ) errorsExist = true
+				else if( vetoSiretError != '' ) errorsExist = true
+				else if( tarifMinError != '' ) errorsExist = true
+				else if( tarifMaxError != '' ) errorsExist = true
+				else if( tarifVideoMinError != '' ) errorsExist = true
+				else if( tarifVideoMaxError != '' ) errorsExist = true
 				form.validateFields();
 				return errorsExist
 			}
 			const formHasErrors = await checkFormErrors();
-
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
 				return
 			}
-
-			// check form empty fields
 			var formHasEmpty = false;
 			const checkFormEmpty = () => {
-
 				if( !phoneNumber ){
 					const error = getAContent( 'cmp_vetonest.com_Fa92Ld10Xp' );
 					setPhoneNumberError( error );
@@ -1614,42 +1421,25 @@ console.log( 'etsTransport_data', data )
 					setVetoFirstNameError( error );
 					formHasEmpty = true
 				}
-				// if( !vetoRpps ){
-					// const error = getAContent( 'cmp_vetonest.com_Ds85Mv9Rlt' ); 
-					// setVetoRppsError( error ); 
-					// formHasEmpty = true;
-				// }
-				// if( !vetoSiret ){
-					// const error = getAContent( 'cmp_vetonest.com_Fr20Bh6Wqp' ); 
-					// setVetoSiretError( error ); 
-					// formHasEmpty = true;
-				// }
 				if( vetoSelectedSpecialities.length == 0 ){
 					const error = getAContent( 'cmp_vetonest.com_Mv72Qd98Pl' ); 
 					setVetoSpecialiteError( error );
 					formHasEmpty = true;
 				}  
-				
 				if( vetoType == null ){ 
 					const error = getAContent( 'cmp_vetonest.com_Kp48Qs91Lm' );
 					setVetoTypeError( error );
 					formHasEmpty = true
 				}
-				
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
 			await checkFormEmpty();
-			
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-
 			const sendData = {
 				userId:				userId,
 				nom: 				vetoName,
@@ -1663,14 +1453,27 @@ console.log( 'etsTransport_data', data )
 				tarifConsultation: tarifMin & tarifMax && tarifMin + '-' + tarifMax,
 				tarifConsultationVideo:  tarifVideoMin & tarifVideoMax && tarifVideoMin + '-' + tarifVideoMax,
 			}
-			
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-			
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
 				return;
 			}
 			else{
+				// Save location (Lieu) for the vet
+				if (vetCountryId && vetCityId) {
+					const lieuData = {
+						lieuId: vetLieuId || null,
+						adresse: vetAddress || null,
+						paysId: vetCountryId,
+						villeId: vetCityId,
+						profileVetoId: profileId,
+						enabled: true,
+					};
+					const lieuResp = await saveLieu(lieuData);
+					if (!lieuResp) {
+						message.warning(getAContent('cmp_vetonest.com_location_save_warning') || 'Location could not be saved.');
+					}
+				}
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
@@ -1684,10 +1487,8 @@ console.log( 'etsTransport_data', data )
 				consultationCountryId: 	lastSelectedCountry,
 				profileId: 				profileId,
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-			
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
@@ -1702,17 +1503,15 @@ console.log( 'etsTransport_data', data )
 
 		// Language
 		if( fieldName == 'Language' ){
-			
 			const languagePreferenceData = {
 				userId: 	userId,
 				languageId: lastSelectedLanguage
 			}
-			
 			const rep = await updateLanguagePreference( languagePreferenceData )
 			if( rep !== false ){
-				await setSelectedLanguageId( lastSelectedLanguage ); // update the listbox via context
-				await languageSetup( lastSelectedLanguage ); // Update flag and user locale
-				user.languageId = lastSelectedLanguage; // update user
+				await setSelectedLanguageId( lastSelectedLanguage );
+				await languageSetup( lastSelectedLanguage );
+				user.languageId = lastSelectedLanguage;
 				setUser( user );
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
@@ -1726,14 +1525,12 @@ console.log( 'etsTransport_data', data )
 		}
 		
 		if( fieldName == 'Animaux'){
-			// check the form errors
 			const checkFormErrors = async( ) => {
 				var errorsExist = false;
 				if( animalNameError != '' )
 					errorsExist = true
 				return errorsExist
 			}
-			
 			const formHasErrors = await checkFormErrors();
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
@@ -1741,69 +1538,47 @@ console.log( 'etsTransport_data', data )
 				setSendingDisabled( false );
 				return
 			}
-
-			// check empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
 				if( !animalName ){
-					// setFormError06( 'block' );
-					// const error = showAFormError( 'formError06' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Na82Lm51Qw' );
 					setAnimalNameError( error );
 					formHasEmpty = true
 				}
 				if( !animalSexe ){
-					// setFormError06( 'block' );
-					// const error = showAFormError( 'formError06' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Rp84Bt62Mn' );
 					setAnimalSexeError( error );
 					formHasEmpty = true
 				}
-
 				if( !animalDateNaissance ){
-					// setFormError07( 'block' );
-					// const error = showAFormError( 'formError07' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Zu38Qp10Fx' );
 					setAnimalDateNaissanceError( error );
 					formHasEmpty = true
 				}
 				if( !especeSelectedId ){
-					// setFormError08( 'block' );
-					// const error = showAFormError( 'formError08' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Wv62Ak55Lo' );
 					setAnimalEspeceError( error );
 					formHasEmpty = true
 				}
 				if( !raceSelectedId ){
-					// setFormError09( 'block' );
-					// const error = showAFormError( 'formError09' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Mf29Dz83Qr' );
 					setAnimalRaceError( error );
 					formHasEmpty = true
 				}	
 				if( animalInsurance == null ){
-					// setFormError10( 'block' );
-					// const error = showAFormError( 'formError10' ); // return error's tag inner text
 					const error = getAContent( 'cmp_vetonest.com_Ba82Hr60Qn' );
 					setAnimalInsuranceError( error );
 					formHasEmpty = true
 				}
-				
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			
-			// send data
 			const animalData = {
                 nomAnimal: animalName,
                 sexeId: animalSexe,
@@ -1815,58 +1590,44 @@ console.log( 'etsTransport_data', data )
                 active: 1,
 				...( selectedPetId && { carnetAnimalId: selectedPetId, } )
 			}
-			
 			const originFileObj = animalPhoto ? animalPhoto.originFileObj : null;
 			const resp = await editUserPets( animalData, originFileObj );
-			if( resp === false ){ //
+			if( resp === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Jm3eXy90Pa' ) );
 				return;
 			}
 			else{
-				//const random = generateRandomDigits(3);
-				//setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
 				setModalProfileIdentityOpen( false );
 				const random = generateRandomDigits(3);
-				// setFormUpdated( random );
 				setProfileFormUpdated( random );
 				return;
 			}
 		}
 
 		if( fieldName == 'PasswordReset' ){
-
-			// Password reset
-			// check the form errors
 			const checkFormErrors = async( ) => {
 				var errorsExist = false;
 				if( pwResetPasswordError != '' )
 					errorsExist = true
 				else if( pwResetPasswordRepeatError != '' )
 					errorsExist = true
-
 				return errorsExist
 			}
-
-			// check the form empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = '';
-
 				if( pwResetPassword == '' ){
 					setFormError01( 'block'  );
-					const error = showAFormError( 'formError01' ); // return error's tag inner text
+					const error = showAFormError( 'formError01' );
 					formHasEmpty = error
 				}
 				else if( pwResetPasswordRepeat == '' ){
 					setFormError02( 'block'  );
-					const error = showAFormError( 'formError02' ); // return error's tag inner text
+					const error = showAFormError( 'formError02' );
 					formHasEmpty = error
 				}
-
 				return formHasEmpty
 			}
-			
-			// check form erors
 			const formHasErrors = await checkFormErrors();
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
@@ -1874,17 +1635,13 @@ console.log( 'etsTransport_data', data )
 				setSendingDisabled( false );
 				return
 			}
-
-			// check form empty fields
 			const formHasEmpty = await checkFormEmpty();
-		
 			if( formHasEmpty ){
 				message.error( formHasEmpty );
 				setPwResetSpin( 'none' );
 				setSendingDisabled( false );
 				return
 			}
-
 			const pwResetData = {
 				userId: 	    userId,
 				password: 		pwResetPassword,
@@ -1892,14 +1649,12 @@ console.log( 'etsTransport_data', data )
 			const resp = await updatePassword( pwResetData );
 			setPwResetSpin( 'none' );
 			setSendingDisabled( false );
-			
 			if( !resp ){
 				setFormError05( 'block' );
 				message.error( showAFormError( formError05 ) )
 			}
-			else{									// check email account
+			else{
 				message.success( passwordForgot_updateSuccess );
-	// message.success( 'Votre mot de passe a été mis a jour.' );
 				setVerificationCode( '' );
 				setVerificationUserId( '' );
 			}
@@ -1907,49 +1662,35 @@ console.log( 'etsTransport_data', data )
 		
 		// Email
 		if( fieldName == 'Email' ){
-
 			clearFormErrors()
-			// check if email already exists
 			const checkEmailData = {
 				email: signUpEmail
 			}
-			// check the form errors
 			const checkFormErrors = async( ) => {
 				if( signUpEmailError != '' )
 					return true
 			}
-			// check form erors
 			const formHasErrors = await checkFormErrors();
-
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
-				// message.error( 'Please correct the errors before continuing.' );
 				setSignUpSpin( 'none' );
 				setSendingDisabled( false );
 				return
 			}
-			
 			const checkEmailExist = await checkEmail( checkEmailData );
 			if(checkEmailExist){
-				setFormError02( 'block' );	// display form error
-				message.error( showAFormError( 'formError02' ) );	// display ant error
+				setFormError02( 'block' );
+				message.error( showAFormError( 'formError02' ) );
 				setSendingDisabled( false );
-				setSignUpEmail( '' );	// reset
+				setSignUpEmail( '' );
 				setSignUpSpin( 'none' );
-				
 				return
 			}
-
-			// email verification
-			// setOpenModalEmailValidate( true );
-
 			const code = await generateRandomDigits( maxCodeLength );
 			setCode( code );
-
 			const domainName 	= signUpEmail.split( '@' )[1];
 			const subject 		= signUp_verifyEmailSubjet + siteName;
 			const userName 		= user.nom;
-			
 			const sendEmailData = {
 				to_email 		: signUpEmail,
 				to_domain		: domainName,
@@ -1962,33 +1703,26 @@ console.log( 'etsTransport_data', data )
 				code  			: insertSpaceAtPosition ( code, 3 ),
 				emailTemplate	: 'email_verification'
 			}
-
-			const rep = await sendEmail( sendEmailData );	// send the code by email
-			
-			if( rep === false ){ // email address not found
-				setFormError01( 'block' );	// display form error
-				message.error( showAFormError( 'formError01' ) );	// display ant error
+			const rep = await sendEmail( sendEmailData );
+			if( rep === false ){
+				setFormError01( 'block' );
+				message.error( showAFormError( 'formError01' ) );
 				setSignUpSpin( 'none' );
 				setSendingDisabled( false );
 				return;
 			}
-
 			setIsModalOpen(true);
-			
 			return
 		}
 	
 		// Biography
 		if( fieldName == 'Biography' ){
-
-			// check the form errors
 			const checkFormErrors = async( ) => {
 				var errorsExist = false;
 				if( biographyError != '' )
 					errorsExist = true
 				return errorsExist
 			}
-			
 			const formHasErrors = await checkFormErrors();
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
@@ -1996,39 +1730,29 @@ console.log( 'etsTransport_data', data )
 				setSendingDisabled( false );
 				return
 			}
-
-			// check the form empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				
-				if( !formHasEmpty ){
+				if( !biography ){
 					const error = getAContent( 'cmp_vetonest.com_Vm3fHt24Ls' );
 					setBiographyError( error );
 					formHasEmpty = true
 				}
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-
 			const profileData = {
 				userId: 	userId,
 				profileId: 	profileId,
 				biography: biography
 			}
-			
 			const rep = await profileUpdate( profileData )
 			if( rep !== false ){
-
 				const random = generateRandomDigits(3);
 				message.success( getAContent( 'cmp_vetonest.com_Va8rTk27Qf' ) );
 				return
@@ -2039,10 +1763,8 @@ console.log( 'etsTransport_data', data )
 			}
 		}
 
-		// Profile
+		// Profile (User)
 		if( fieldName == 'Profile' ){
-
-			// check the form errors
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( nameError != '' ){
@@ -2055,99 +1777,39 @@ console.log( 'etsTransport_data', data )
 					await setFirstNameError( firstNameError );
 					form.validateFields()
 				}
-				else if( addressError != '' ){
-					errorsExist = true
-					await setAddressError( addressError );
-					form.validateFields()
-				}
-				else if( codePostalError != '' ){
-					errorsExist = true
-					await setCodePostalError( codePostalError );
-					form.validateFields()
-				}
-
 				return errorsExist
 			}
-
-			// check the form empty fields
+			const formHasErrors = await checkFormErrors();
+			if( formHasErrors ){
+				message.error( signUp_correctErrors );
+				return
+			}
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				// name
 				if( !name ){
 					const errorMessage = signUp_nameEmpty;
 					await setNameError( errorMessage );
 					formHasEmpty = true
 				}
-				// first name
 				if( !firstName ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' );
 					await setFirstNameError( errorMessage );
 					formHasEmpty = true
 				}
-				// sexe
-				if( !sexe ){
-					const errorMessage = getAContent( 'cmp_vetonest.com_Mn2Xk8bPrV' );
-					await setSexeError( errorMessage );
-					formHasEmpty = true
-				}
-				// birthdate
 				if( !dateDeNaissance ){
 					const error = getAContent( 'cmp_vetonest.com_Bt82Lm50Hv' );
 					setDateDeNaissanceError( error );
 					formHasEmpty = true
 				}
-				// languages
-				if( !selectedLanguages.length ){
-					const error = getAContent( 'cmp_vetonest.com_D82ka01LsM' );
-					setLanguageError( error );
-					formHasEmpty = true
-				} 
-				// address
-				if( !address ){
-					const error = getAContent( 'cmp_vetonest.com_Mv84Px6Zrt' );
-					setAddressError( error );
-					formHasEmpty = true
-				} 
-				// code postal
-				if( !codePostal ){
-					const error = getAContent( 'cmp_vetonest.com_Jk51Pv7Mra' );
-					setCodePostalError( error );
-					formHasEmpty = true
-				}
-				// country
-				if( !countrySelected ){
-					const error = getAContent( 'cmp_vetonest.com_Td93Qa1Zpl' );
-					setCountryError( error );
-					formHasEmpty = true
-				} 
-				// state
-				if( !stateSelected ){
-					const error = getAContent( 'cmp_vetonest.com_Ms28Ht4Cvo' );
-					setStateError( error );
-					formHasEmpty = true
-				} 
-				// city
-				if( !citySelected ){
-					const error = getAContent( 'cmp_vetonest.com_Bq67Rn3Wks' );
-					setCityError( error );
-					formHasEmpty = true
-				} 
-
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-
-			// send data
 			const sendData = {
 				nom: 				name,
 				prenom:				firstName,
@@ -2155,20 +1817,25 @@ console.log( 'etsTransport_data', data )
 				profileId: 			profileId,
 				dateDeNaissance: 	dayjs( dateDeNaissanceRaw ).format("YYYY-MM-DD"),
 				langues: 			selectedLanguages.join( ',' ),
-				adresse:			address,
-				codePostal:			codePostal,
-				country:	countrySelected,
-				state:		stateSelected,
-				city:		citySelected,
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-			
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
 			else{
+				// Save location (Lieu) for the user
+				if (userCountryId && userCityId) {
+					const lieuData = {
+						lieuId: userLieuId || null,
+						adresse: userAddress || null,
+						paysId: userCountryId,
+						villeId: userCityId,
+						profileUserId: profileId,
+						enabled: true,
+					};
+					await saveLieu(lieuData);
+				}
 				user['userPrenom'] = firstName;
 				user['userNom'] = name;
 				logIn( user );
@@ -2190,22 +1857,13 @@ console.log( 'etsTransport_data', data )
 				}
 				return errorsExist
 			}
-
-			// check form erors
 			const formHasErrors = await checkFormErrors();
-
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
 				return
 			}
-
-			
-			// check the form empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				// first name
 				if( !firstName ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' );
 					await setFirstNameError( errorMessage );
@@ -2213,34 +1871,26 @@ console.log( 'etsTransport_data', data )
 				}
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			
 			const sendData = {
 				prenom:	firstName,
 				profileId: profileId,
 				userId: userId
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
 			else{
 				user[ 'userPrenom' ] = firstName;
 				logIn( user );
-				
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
@@ -2259,22 +1909,13 @@ console.log( 'etsTransport_data', data )
 				}
 				return errorsExist
 			}
-
-			// check form erors
 			const formHasErrors = await checkFormErrors();
-
 			if( formHasErrors ){
 				message.error( signUp_correctErrors );
-	// message.error( 'Please correct the errors before continuing.' );
-				// setSignUpSpin( 'none' );
-				// setSendingDisabled( false );
 				return
 			}
-
-			// check the form empty fields
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-				// name
 				if( !name ){
 					const errorMessage = signUp_nameEmpty;
 					await setNameError( errorMessage );
@@ -2282,34 +1923,26 @@ console.log( 'etsTransport_data', data )
 				}
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			
 			const sendData = {
 				nom:		name,
 				profileId: profileId,
 				userId: userId
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
 			else{
 				user[ 'userNom' ] = name;
 				logIn( user );
-				
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
@@ -2319,34 +1952,26 @@ console.log( 'etsTransport_data', data )
 		
 		// Sexes
 		if( fieldName == 'Sexes' ){
-			// check if empty field
 			const checkFormEmpty = async( ) => {
 				var formHasEmpty = false;
-			
 				if( !sexe ){
 					const errorMessage = getAContent( 'cmp_vetonest.com_Mn2Xk8bPrV' );
 					await setSexeError( errorMessage );
 					formHasEmpty = true
 				}
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			
 			const sendData = {
 				sexeId:	sexe ? sexe : userProfile.sexeId,
 				profileId: profileId,
 				userId: userId
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
@@ -2360,40 +1985,29 @@ console.log( 'etsTransport_data', data )
 		
 		// birth date Shortcut
 		if( fieldName == 'BirthDate' ){
-			
-			// check the form empty fields
 			const checkFormEmpty = async() => {
 				var formHasEmpty = false;
-				// birthdate
 				if( !dateDeNaissance ){
 					const error = getAContent( 'cmp_vetonest.com_Bt82Lm50Hv' );
 					setDateDeNaissanceError( error );
 					formHasEmpty = true
 				}
-
 				if( formHasEmpty )
 					form.validateFields(); 
-				
 				return formHasEmpty;
 			}
-			
-			// check if form has empty fields
 			const formHasEmpty = await checkFormEmpty();
 			if( formHasEmpty ){
 				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-
 				return
 			}
-			
 			const sendData = {
 				dateDeNaissance: 	dateDeNaissanceRaw,
 				profileId: profileId,
 				userId: userId
 			}
-
-			const rep = await profileUpdate( sendData, null, profileTypeId );	// save
-
-			if( rep === false ){ //
+			const rep = await profileUpdate( sendData, null, profileTypeId );
+			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
@@ -2430,40 +2044,27 @@ console.log( 'etsTransport_data', data )
 
 	// birth date
 	const [ datePickerDefaultValue, setDatePickerDefaultValue ] = useState( '' ); 
-	// const  modalActiveFieldName = params.params.fieldName;
 	const [ fieldName, setFieldName ] = useState( '' );
-	// const [ dateNaissance, setDateNaissance ] = useState( '' );
 	
 	// user language selector
 	const { Option } = Select;
 	const [ selectedLanguages, setSelectedLanguages ] = useState([]);
 
 	const [ languageError, setLanguageError ] = useState( '' );
-	const MAX_LANGUAGES = 3; // Define your maximum limit
+	const MAX_LANGUAGES = 3;
 	const handleChangeLanguage = (value) => {
 		if ( value.length > MAX_LANGUAGES ) {
-			// If the new selection exceeds the limit, take only the allowed number
 			setSelectedLanguages( value.slice(0, MAX_LANGUAGES) );
 			message.info( getAContent( 'cmp_vetonest.com_Wn84Bx2Kqt' ) );
 		} 
 		else {
 			setSelectedLanguages(value);
 		}
-		
 		setLanguageError('');
 		form.validateFields()
 	}
 
 	// countries
-	// const [ countryError, setCountryError ] = useState( '' );
-	// const [ countryDefault, setCountryDefault ] = useState( 'getAContent(  'cmp_vetonest.com_k3a92hFsP1'  ) ' );
-	// const [ countrySelected, setCountrySelected ] = useState( '' );
-	// const [ allCountries, setAllCountries ]  = useState( [] ); 
-	// const [ siteCountries, setSiteCountries ]  = useState( [] ); 
-	// const [ countryCode, setCountryCode ] = useState( '' );	
-	// const [ flagCode, setFlagCode ] = useState( '' );
-	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
-
 	const [ countryError, setCountryError ] = useState( '' );
 	const [ countryDefault, setCountryDefault ] = useState( getAContent(  'cmp_vetonest.com_k3a92hFsP1'  )  );
 	const [ countrySelected, setCountrySelected ] = useState( '' );
@@ -2481,28 +2082,19 @@ console.log( 'etsTransport_data', data )
 	const [ lieuCitySelected, setLieuCitySelected ] = useState( '' );
 	const [ lieuCities, setLieuCities ]  = useState( [] ); 
 
-	// const [ countryPhoneCode, setCountryPhoneCode ] = useState( '' );
 	const handleChangeFlag = ( countryIso ) => {
-// console.log( '>>>>>>>> countryIso', countryIso );
 		const country = countriesAllowed.filter( e => e.iso == countryIso )[0];
 		setSelectedFlag( country.iso );
 		setSelectedCountryCode( country.countryCodc );
 	}
 
 	const handleChangeCountrySelected = ( countryCode ) => {
-
 		setCountrySelected( countryCode );
 		const countryStates = State.getStatesOfCountry( countryCode );
 		setCountryCode( countryCode );
-		// const flagCode = countryPhoneCode.toLowerCase();
 		setFlagCode( flagCode );
 		setStates( countryStates );			
-		// const country = countries.filter( country => country.isoCode == countryCode );
-		// const countryPhoneCode = country[0].phonecode;
-	
 		setCountryError( '' );
-
-		// setCountryPhoneCode( countryPhoneCode );
 		setShowStatesCities( '' );
 		setStateSelected( '' );
 		setCitySelected( '' );
@@ -2510,12 +2102,8 @@ console.log( 'etsTransport_data', data )
 
 	const [ displayLieuCity, setDisplayLieuCity ] = useState( 'none' );
 	const handleChangeLieuCountrySelected = async ( countryId ) => {
-
 		setLieuCountrySelected( countryId );
-		// const countryStates = State.getStatesOfCountry( countryCode );
-		// setCountryCode( countryCode );
 		const lieuVilles = await getPaysVilles( countryId ); 
-		
 		if( lieuVilles.length ){
 			setDisplayLieuCity( 'block' );
 			setLieuCities( lieuVilles );
@@ -2526,9 +2114,7 @@ console.log( 'etsTransport_data', data )
 	}
 
 	const handleChangeLieuCitySelected = ( cityId ) => {
-
 		setLieuCitySelected( cityId );
-
 	}
 
 	// states
@@ -2540,11 +2126,8 @@ console.log( 'etsTransport_data', data )
 	const handleChangeStateSelected = ( stateCode ) => {
 		setStateSelected( stateCode );
 		const stateCities = City.getCitiesOfState( countryCode, stateCode );
-
 		setStateError( '' );
-
 		setCities( stateCities );
-		
 		setCitySelected( '' );
 	}
 
@@ -2566,19 +2149,16 @@ console.log( 'etsTransport_data', data )
 	const handleChangePhoneNumber = ( e ) => {
 		const data = e.target.value;
 		setPhoneNumber( data );
-// console.log( 'selectedCountryCode + data', selectedCountryCode + ' ' + data );
 		var phoneErrorText = '';
 		if( data.length == 0 )
 			phoneErrorText = '';
 		else if( data.length > 0 && data.length < 7 )
-			phoneErrorText = getAContent( 'cmp_vetonest.com_Ee4b7YsRf1' ); 	//'Your phone number seems incomplete';
+			phoneErrorText = getAContent( 'cmp_vetonest.com_Ee4b7YsRf1' );
 		else if( !isValidPhoneNumber( selectedCountryCode + data ) )
-			phoneErrorText = getAContent( 'cmp_vetonest.com_Uu5r3JdWg6' );  // 'Your phone number seems incorrect'
-			
+			phoneErrorText = getAContent( 'cmp_vetonest.com_Uu5r3JdWg6' );
 		setPhoneNumberError( phoneErrorText );
 	}
-	const isValidPhoneNumber = (value) => {	// Phone validation
-		// return (/^\d{7,}$/).test(value.replace(/[\s()+\-\.]|ext/gi, ''));
+	const isValidPhoneNumber = (value) => {
 		return (/^\+(?:[ 0-9] ?){6,14}[0-9]$/).test(value);
 	}
 
@@ -2598,10 +2178,8 @@ console.log( 'etsTransport_data', data )
 	const [ languageDefault, setLanguageDefault ] = useState( [] );
 	const [ languageSelected, setLanguageSelected ] = useState( [] );
 
-	const [ lastSelectedLanguage, setLastSelectedLanguage ] = useState( selectedLanguageId ); // initial
+	const [ lastSelectedLanguage, setLastSelectedLanguage ] = useState( selectedLanguageId );
 	const onLanguageOptionChange = async ( checkedValues ) => {
-		// setLanguageSelected(checkedValues);
-		
 		const valuesNew = checkedValues.filter((v) => v !== lastSelectedLanguage);
 		const value = valuesNew.length ? valuesNew[0] : '';
 		setLastSelectedLanguage(value);
@@ -2613,10 +2191,8 @@ console.log( 'etsTransport_data', data )
 	const [ countriesDefault, setCountriesDefault ] = useState( [] );
 	const [ countriesSelected, setCountriesSelected ] = useState( [] );
 
-	const [ lastSelectedCountry, setLastSelectedCountry ] = useState( userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 );  // initial
+	const [ lastSelectedCountry, setLastSelectedCountry ] = useState( userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 );
 	const onCountryOptionChange = async ( checkedValues ) => {
-		// setCountrySelected(checkedValues);
-		
 		const valuesNew = checkedValues.filter((v) => v !== lastSelectedCountry);
 		const value = valuesNew.length ? valuesNew[0] : '';
 		setLastSelectedCountry(value);
@@ -2626,16 +2202,13 @@ console.log( 'etsTransport_data', data )
 	// userSpecialities
 	const [ vetoSelectedSpecialities, setVetoSelectedSpecialities ] =  useState( [] );
 	const [ vetoSpecialiteError, setVetoSpecialiteError  ] =  useState( '' )
-	const MAX_SPECIALITIES = 1; // Define your maximum limit
+	const MAX_SPECIALITIES = 1;
 	const handleChangeVetoSpecialities = (value) => {
-// console.log( 'handleChangeVetoSpecialities', value );
 		if ( value.length > 0 ) {
 			setVetoSpecialiteError('');
 			form.validateFields()
 		}
 		if (value.length > MAX_SPECIALITIES) {
-		  // If the new selection exceeds the limit, take only the allowed number
-		  // setVetoSelectedSpecialities( value.slice(0, MAX_SPECIALITIES) );
 		  setVetoSelectedSpecialities( value.slice(0, MAX_SPECIALITIES) );
 		} 
 		else {
@@ -2646,7 +2219,7 @@ console.log( 'etsTransport_data', data )
 	// all etablissement types
 	const [ selectedEtablissementTypes, setSelectedEtablissementTypes ] =  useState( [] );
 	const [ etablissementTypeError, setEtablissementTypeError  ] =  useState( '' )
-	const MAX_ETSTYPES = 1; // Define your maximum limit
+	const MAX_ETSTYPES = 1;
 	const handleChangeEtablissementType = (value) => {
 		if ( value.length > 0 ) {
 			setEtablissementTypeError('');
@@ -2660,29 +2233,16 @@ console.log( 'etsTransport_data', data )
 		}
 	}
 	
-	// veto RPPS handleChangeVetoRpps
+	// veto RPPS
 	const [ vetoRpps, setVetoRpps ] =  useState( '' );
 	const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
-	const [ rppsEmptyTextDisplay, setRppsEmptyTextDisplay ] =  useState( 'none' );
-	const [ rppsErrorTextDisplay, setRppsErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeVetoRpps = async ( e ) => {
 		const data = e.target.value;
-
-// console.log( '>>>> data', data.length );
-
-		// if( data.length > 11 )
-		// 	return
-
 		setVetoRpps( data );
-
-// console.log( '>>>> vetoRpps', vetoRpps );
-		
 		var vetoRppsErrorText = '';
 		const test = await validateRppsNumber( data );
-// console.log( '>>>> test', test );
 		if( data != '' && test === false ){
-			vetoRppsErrorText = getAContent(  'cmp_vetonest.com_Di6c1XpMf4'  ) ; // profileAnimal_vetoRppsErrorText
-			// vetoRppsErrorText = 'block'
+			vetoRppsErrorText = getAContent(  'cmp_vetonest.com_Di6c1XpMf4'  ) ;
 		}
 		setVetoRppsError( vetoRppsErrorText );
 		form.validateFields();
@@ -2691,46 +2251,35 @@ console.log( 'etsTransport_data', data )
 	// veto SIRET 
 	const [ vetoSiret, setVetoSiret ] =  useState( '' );
 	const [ vetoSiretError, setVetoSiretError ] =  useState( '' );
-	const [ siretEmptyTextDisplay, setSiretEmptyTextDisplay ] =  useState( 'none' );
-	const [ siretErrorTextDisplay, setSiretErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeVetoSiret = ( e ) => {
 		const data = e.target.value;
-
 		setVetoSiret( data );
 		var vetoSiretErrorText = '';
 		const test = validateSiretNumber( data )
- 
 		if( data != '' && test === false ){
-			vetoSiretErrorText = getAContent( 'cmp_vetonest.com_Zz1k5BrTn8' ); // profileAnimal_vetoSiretErrorText
+			vetoSiretErrorText = getAContent( 'cmp_vetonest.com_Zz1k5BrTn8' );
 			setVetoSiretError( vetoSiretErrorText )
-			//vetoSiretErrorText = 'block'
 		}
 		setVetoSiretError( vetoSiretErrorText );
 		form.validateFields();
 	}
 
-	//
 	const [ tarif, setTarif ] =  useState( '' );
 	const [ tarifVideo, setTarifVideo ] =  useState( '' );
 	// Tarif Min
 	const [ tarifMin, setTarifMin ] =  useState( 0 );
 	const [ tarifMinError, setTarifMinError ] =  useState( '' );
-	const [ tarifMinEmptyTextDisplay, setTarifMinEmptyTextDisplay ] =  useState( 'none' );
-	const [ tarifMinErrorTextDisplay, setTarifMinErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeTarifMin = ( e ) => {
 		const data = e.target.value;
 		setTarifMin( data );
-console.log( tarifMin + ' llllllll ' + data );
-		
 		setTarifMinError( '' );
 		setTarifMaxError( '' );
-		
 		if( parseInt( data ) > parseInt( tarifMax )  ){
 			const tarifMinErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifMinError( tarifMinErrorText );
 		}
 		else if( !tarifMax ){
-			const tarifMinErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' ); // Enter your minimum price
+			const tarifMinErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' );
 			setTarifMaxError( tarifMinErrorText );
 		}
 		else if( !data && !tarifMin ){
@@ -2743,21 +2292,17 @@ console.log( tarifMin + ' llllllll ' + data );
 	// Tarif Max
 	const [ tarifMax, setTarifMax ] =  useState( 0 );
 	const [ tarifMaxError, setTarifMaxError ] =  useState( '' );
-	const [ tarifMaxEmptyTextDisplay, setTarifMaxEmptyTextDisplay ] =  useState( 'none' );
-	const [ tarifMaxErrorTextDisplay, setTarifMaxErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeTarifMax = ( e ) => {
 		const data = e.target.value;
 		setTarifMax( data );
-		
 		setTarifMinError( '' );
 		setTarifMaxError( '' );
-		
 		if( parseInt( data ) < parseInt( tarifMin )  ){
 			const tarifMaxErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifMaxError( tarifMaxErrorText );
 		}
 		else if( !tarifMin ){
-			const tarifMaxErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' ); // Enter your minimum price
+			const tarifMaxErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' );
 			setTarifMinError( tarifMaxErrorText );
 		}
 		else if( !tarifMin && !data ){
@@ -2767,25 +2312,20 @@ console.log( tarifMin + ' llllllll ' + data );
 		form.validateFields();
 	}
 
-
 	// TarifVideo video min
 	const [ tarifVideoMin, setTarifVideoMin ] =  useState( 0 );
 	const [ tarifVideoMinError, setTarifVideoMinError ] =  useState( '' );
-	const [ tarifVideoMinEmptyTextDisplay, setTarifVideoMinEmptyTextDisplay ] =  useState( 'none' );
-	const [ tarifVideoMinErrorTextDisplay, setTarifVideoMinErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeTarifVideoMin = ( e ) => {
 		const data = e.target.value;
 		setTarifVideoMin( data );
-		
 		setTarifVideoMinError( '' );
 		setTarifVideoMaxError( '' );
-		
 		if( parseInt( data ) > parseInt( tarifVideoMax )  ){
 			const tarifVideoMinErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifVideoMinError( tarifVideoMinErrorText );
 		}
 		else if( !tarifVideoMax ){
-			const tarifVideoMinErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' ); // Enter your minimum price
+			const tarifVideoMinErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' );
 			setTarifVideoMaxError( tarifVideoMinErrorText );
 		}
 		else if( !data && !tarifVideoMin ){
@@ -2798,21 +2338,17 @@ console.log( tarifMin + ' llllllll ' + data );
 	// TarifVideo video max
 	const [ tarifVideoMax, setTarifVideoMax ] =  useState( 0 );
 	const [ tarifVideoMaxError, setTarifVideoMaxError ] =  useState( '' );
-	const [ tarifVideoMaxEmptyTextDisplay, setTarifVideoMaxEmptyTextDisplay ] =  useState( 'none' );
-	const [ tarifVideoMaxErrorTextDisplay, setTarifVideoMaxErrorTextDisplay ] =  useState( 'none' );
 	const handleChangeTarifVideoMax = ( e ) => {
 		const data = e.target.value;
 		setTarifVideoMax( data );
-		
 		setTarifVideoMinError( '' );
 		setTarifVideoMaxError( '' );
-		
 		if( parseInt( data ) < parseInt( tarifVideoMin )  ){
 			const tarifVideoMaxErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifVideoMaxError( tarifVideoMaxErrorText );
 		}
 		else if( !tarifVideoMin ){
-			const tarifVideoMaxErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' ); // Enter your minimum price
+			const tarifVideoMaxErrorText = getAContent( 'cmp_vetonest.com_Kp72Lm84Qs' );
 			setTarifVideoMinError( tarifVideoMaxErrorText );
 		}
 		else if( !tarifVideoMin && !data ){
@@ -2832,7 +2368,6 @@ console.log( tarifMin + ' llllllll ' + data );
 	}
 
 	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
-
 	
 	// veto absence
 	const [ absence, setAbsence ]= useState( '' );
@@ -2852,109 +2387,79 @@ console.log( tarifMin + ' llllllll ' + data );
 
 	// form
 	const [form] = Form.useForm();
-	useEffect(() => {
-		// if (!isOpen) return; // do nothing when closed
-		const vetosToInvite = vetos.filter( e => e.id != profileId ); // move out the current veto
-		setVetosToInvite( vetosToInvite );
 
-		// reset the form
-		form.resetFields();
-		clearFormErrors();
-		// title
-		setTitle( visibleModalTitle );
+	// Effect 1: control modal open/close only — isolated so data-loading state
+	// changes don't retrigger the guard and immediately close the modal.
+	useEffect(() => {
 		const fieldName = params.params.fieldName;
 		setFieldName( fieldName );
-		const openModal = ( fieldName === visibleModalName ) && modalProfileIdentityOpen;
-		// display of the modal
-		if( hasModalBeenShown === false ){
-			if( openModal === true ){
-				setOpenModal( true );
-				setHasModalBeenShown( true );
-			}
-			if( openModal === false ){
-				setOpenModal( false );
-				setHasModalBeenShown( false );
-				return
-			}
-		}
-		else if( hasModalBeenShown === true ){
+		const shouldOpen = ( fieldName === visibleModalName ) && modalProfileIdentityOpen;
+		if ( shouldOpen ) {
+			setOpenModal( true );
+			setHasModalBeenShown( true );
+		} else {
 			setOpenModal( false );
-			return
-			// setHasModalBeenShown( false );
+			setHasModalBeenShown( false );
 		}
-// console.log( 'fieldName', fieldName );
-// console.log( 'visibleModalName', visibleModalName );
-// console.log( 'fieldName === visibleModalName', ( fieldName === visibleModalName ) && modalProfileIdentityOpen );
-// console.log( 'hasModalBeenShown', hasModalBeenShown );
-// console.log( 'openModal', openModal );
+	}, [ modalProfileIdentityOpen, visibleModalName, params.params ]);
 
-		// all countries
+	// Effect 2: load form data whenever the modal becomes open
+	useEffect(() => {
+		if ( !openModal ) return;
+
+		const vetosToInvite = vetos.filter( e => e.id != profileId );
+		setVetosToInvite( vetosToInvite );
+		form.resetFields();
+		clearFormErrors();
+		setTitle( visibleModalTitle );
+		const fieldName = params.params.fieldName;
+
 		const allCountries = Country.getAllCountries();
 		var countries = Array();
-		// Add an id property to the countries array for and Select to work
 		for( const country of allCountries ){ 
 			country.id = country.isoCode;
 			countries.push( country );
 		}
 		setCountries( countries );
-
-		// Site country 
 		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
-		setCountriesOptions( countriesOptions  );  // options
-		const countryDefault = [ userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 ]; // default
+		setCountriesOptions( countriesOptions  );
+		const countryDefault = [ userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 ];
 		setCountriesSelected( countryDefault );
-
-		// Site languages 
 		const languageOptions = languages.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
-		setLanguageOptions( languageOptions  );  // options
-		const languageDefault = [ selectedLanguageId ]; // default
+		setLanguageOptions( languageOptions  );
+		const languageDefault = [ selectedLanguageId ];
 		setLanguageSelected( languageDefault );
-
-		// Reset Animals data
 		setAnimalName( null );
-		setAnimalDateNaissance( null );	// Placeholder
+		setAnimalDateNaissance( null );
 		setAnimalSexes( null );
 		setShowBreeds( 'none' )
 		setEspeceSelectedId( null );
 		setRaceSelectedId( null );
 		setAnimalPhoto( '' )
 		setAnimalInsurance( null );
-		// get form data
 		const a = async () => {
 			// Etablissement
 			if( fieldName == "Etablissement" ){
-				// const vetoCliniqueInfo = await getVetoCliniqueInfo( profileId );
 				if( vetoCliniqueInfo ){
 					setEtablissementName( vetoCliniqueInfo.nom );
 					setEtablissementPresentation( vetoCliniqueInfo.presentation );
 					setSelectedEtablissementTypes( [ vetoCliniqueInfo.etablissementType.id ] );
-					
 					form.setFieldsValue( { EtablissementName: vetoCliniqueInfo.nom } );
 					form.setFieldsValue( { EtablissementPresentation: vetoCliniqueInfo.presentation } );
 					form.setFieldsValue( { EtablissementType: [ vetoCliniqueInfo.etablissementType.id ] } );
-					
 					setVetoCliniqueInfo( vetoCliniqueInfo );
 				}
-				
 			}
 			// Animals
 			if( fieldName == "Animaux" && selectedPetId ){
-
-				// get user's animals
-				// const userPets = await getUserPets( profileId );
-
 				const pets = userPets;
 				const pet = pets.filter( e => e.id == selectedPetId )[0];
-			
-				// animal name
 				const animalName = pet.nom;
 				setAnimalName( animalName );
 				form.setFieldsValue( {AnimalName: animalName} );
-				// animal specie
 				const especeId = pet.espece.id;
 				form.setFieldsValue( { Espece: especeId } );
 				setEspeceSelectedId( especeId );
-				// animal race
 				if( especeId ){
 					const breeds = await speciesBreedList( especeId );
 					setRaces( breeds );
@@ -2963,103 +2468,73 @@ console.log( tarifMin + ' llllllll ' + data );
 					setRaceSelectedId( raceId );
 					setShowBreeds( '' )
 				}
-				// animal birthDate
 				const dateStr = pet.dateNaissance.date;
 				setAnimalDateNaissanceRaw( dateStr );
 				setAnimalDateNaissance( await dateFormater( dateStr ) );
-				// animal have Insurance
 				const haveInsurance = pet.assurance;
 				form.setFieldsValue( { HaveInsurance: haveInsurance } );
 				setAnimalInsurance( haveInsurance ); 
-				// animal sex
 				const sexId = pet.sexe.id;
 				form.setFieldsValue( { AnimalSex: sexId } );
 				setAnimalSexe( sexId );				
-				// animal photo
 				const picture = pet.picture;
-				// form.setFieldsValue( { AnimalSex: sexId } );
 				setAnimalPhoto( picture );
 			}
 			// User profile
 			if( fieldName == "Profile" ){
-
-				// default name
 				const name = userProfile.nom;
 				setName( name );
 				form.setFieldsValue( {Name: name} );
-				// default first name
 				const firstName = userProfile.prenom;
 				setFirstName( firstName );
 				form.setFieldsValue( {FirstName: firstName} );
-				// birth date
 				const birthDate = userProfile.birthDateFormated ? userProfile.birthDateFormated : null;
-				// form.setFieldsValue({
-					// BirthdateUser: birthDate ? dayjs(birthDate) : null
-				// });
 				const dateNaissance = birthDate ? await dayjs( birthDate ) : '';
 				setDateDeNaissance( dateNaissance );
 				setDateDeNaissanceRaw( birthDate )
-				// languages 
 				const userLanguages = userProfile.langue ? userProfile.langue : [];
 				if( Array.isArray( userLanguages ) ){
 					const userLanguagesId = userLanguages.map( ( v, k ) => v.id );
 					setSelectedLanguages( userLanguagesId )
 				}
-				// address
-				const address = userProfile.adresse ? userProfile.adresse : '';
-				setAddress( address );
-				form.setFieldsValue( {Address: address} );
-				// code postalCode
-				const codePostal = userProfile.codePostal ? userProfile.codePostal : '';
-				setCodePostal( codePostal );
-				form.setFieldsValue( {CodePostal: codePostal} );
-				// Country
-				if( userProfile.country ){
-					const countryObj = await countries.filter( country => 
-						country.id == userProfile.country
-					)[0];
-					setCountrySelected( userProfile.country );
-					form.setFieldsValue( { Country: userProfile.country } );
-					// setCountryDefault( userProfile.country );
-					const countryStates = await State.getStatesOfCountry( countryObj.isoCode )
-					setStates( countryStates );
-					// Country States
-					if( countryObj ){ 
-						setShowStatesCities( '' );
-						setStateSelected( userProfile.state );
-						form.setFieldsValue( { State: userProfile.state } );
-						// setStateDefault( userProfile.state );
-						const stateCities = City.getCitiesOfState( countryObj.isoCode, userProfile.state );
-						// console.log( 'stateCities', stateCities );
-						setCities( stateCities );
-						
-					}
-					// State cities
-					if( countryObj ){ 
-						setCitySelected( userProfile.city );
-						form.setFieldsValue( { City: userProfile.city } );
-						// setCityDefault( userProfile.city );
-					}
-				}
-
-				// sex
 				const sex = userProfile.sexeId;
 				form.setFieldsValue( { Sexe: sex ? sex : '' } );
 				setSexe( sex ? sex : '' );
+				
+				// Load user's location from Lieu
+				if (profileTypeId == 1 && profileId) {
+					const userLieu = await getUserLieu(profileId);
+					if (userLieu) {
+						setUserLieuId(userLieu.id);
+						setUserAddress(userLieu.adresse || '');
+						setUserCountryId(userLieu.pays?.id || null);
+						setUserCityId(userLieu.ville?.id || null);
+						if (userLieu.pays?.id) {
+							const cities = await getPaysVilles(userLieu.pays.id);
+							if (cities.length) {
+								setUserCityOptions(cities);
+								setDisplayUserCity('block');
+							}
+						}
+						form.setFieldsValue({
+							UserAddress: userLieu.adresse || '',
+							UserCountry: userLieu.pays?.id || null,
+							UserCity: userLieu.ville?.id || null,
+						});
+					}
+				}
 			}
-			
-			//  Profile veto
+			// Profile veto
 			if( profileTypeId == 2 && userProfile.id ){
 				setVetoName( userProfile.nom );
 				form.setFieldsValue( { VetoName: userProfile.nom } );
 				setVetoFirstName( userProfile.prenom );
 				form.setFieldsValue( { VetoFirstName: userProfile.prenom } );
-				const countryCode = userProfile.phone ? userProfile.phone.split( ' ' )[0] : '+33' // toDo
-				const phone = userProfile.phone ? userProfile.phone.split( ' ' )[1] : '' // toDo
-				
+				const countryCode = userProfile.phone ? userProfile.phone.split( ' ' )[0] : '+33'
+				const phone = userProfile.phone ? userProfile.phone.split( ' ' )[1] : ''
 				const country = countriesAllowed.filter( e => e.countryCodc == countryCode )[0];
 				const countryIso = country ? country.iso : 'fr';
-				setSelectedCountryCode( countryCode ); // Todo
+				setSelectedCountryCode( countryCode );
 				setSelectedFlag( countryIso );
 				setPhoneNumber( phone );
 				form.setFieldsValue( { PhoneNumber: phone } );
@@ -3067,7 +2542,10 @@ console.log( tarifMin + ' llllllll ' + data );
 				form.setFieldsValue( { VetoSiret: userProfile.siret } );
 				setVetoRpps( !userProfile.rpps );
 				form.setFieldsValue( { VetoRpps: userProfile.rpps } );
-				setVetoSelectedSpecialities( userProfile.specialites ? [ userProfile.specialites.id ] : [] );
+				const specialiteId = userProfile.vetoSpecialite?.id ? Number(userProfile.vetoSpecialite.id) : null;
+				const specialiteIds = specialiteId ? [ specialiteId ] : [];
+				setVetoSelectedSpecialities( specialiteIds );
+				form.setFieldsValue( { VetoSpecialite: specialiteIds } );
 				const vetoType = userProfile.atHome != null ? ( userProfile.atHome == true ? 1 : 0 ) : null;
 				setVetoType( vetoType );
 				form.setFieldsValue( { VetoType: vetoType } );
@@ -3087,27 +2565,47 @@ console.log( tarifMin + ' llllllll ' + data );
 					form.setFieldsValue( { TarifVideoMin: tarifVideoMin } );
 					form.setFieldsValue( { TarifVideoMax: tarifVideoMax } );
 				}
+				// Load existing vet location (Lieu)
+				if (profileId) {
+					const lieux = await getAVetoLieux({ profileVetoId: profileId });
+					if (lieux && lieux.length) {
+						const firstLieu = lieux[0];
+						setVetLieuId(firstLieu.id);
+						setVetAddress(firstLieu.adresse || '');
+						setVetCountryId(firstLieu.pays?.id || null);
+						setVetCityId(firstLieu.ville?.id || null);
+						if (firstLieu.pays?.id) {
+							const cities = await getPaysVilles(firstLieu.pays.id);
+							if (cities && cities.length) {
+								setVetCityOptions(cities);
+								setDisplayVetCity('block');
+							}
+						}
+						form.setFieldsValue({
+							VetAddress: firstLieu.adresse || '',
+							VetCountry: firstLieu.pays?.id || null,
+							VetCity: firstLieu.ville?.id || null,
+						});
+					}
+				}
 			}
-			
 			// veto absence
-			if( fieldName == 'Absence' && selectedAbsenceId ){		// Edit an absence
+			if( fieldName == 'Absence' && selectedAbsenceId ){
 				const absence = absences.filter( e => e.id == selectedAbsenceId )[0];
 				setAbsence( absence );
 				setTitle( getAContent( 'cmp_vetonest.com_Tt9f2BmLo7' ) );
 				const closeDate = absence.closedDate ? dayjs( absence.closedDate.date ) : '';
-				// setDateAbsence( closeDate );
-				setDateDeNaissance( closeDate );  //reusing DateDeNaissanc date picker
+				setDateDeNaissance( closeDate );
 				const nomAbsence = absence.nom ? absence.nom : '';
 				setAbsenceName( nomAbsence );
 				const descriptionAbsence = absence.description ? absence.description : '';
 				setAbsenceDescription( descriptionAbsence );
 				form.setFieldsValue( { AbsenceName: nomAbsence, AbsenceDescription: descriptionAbsence } );
 			}
-			else if( fieldName == 'Absence' && ! selectedAbsenceId ){ // Add an absence
+			else if( fieldName == 'Absence' && ! selectedAbsenceId ){
 				setTitle( getAContent( 'cmp_vetonest.com_Oo3j6FwQy9' ) ); 
 				form.setFieldsValue( { AbsenceName: '', AbsenceDescription: '' } );
 			}
-
 			// veto timeSlot
 			if( fieldName == "Opened" || fieldName == "Closed" ){
 				if( fieldName == "Opened" ){
@@ -3120,42 +2618,31 @@ console.log( tarifMin + ' llllllll ' + data );
 				const dayId			= selectedTimeslotOpen.dayId;
 				const opened		= selectedTimeslotOpen.opened;
 				const timeSlotId	= selectedTimeslotOpen.timeSlotId;
-				
 				setDay( day );
 				setDayId( dayId );
 				setOpened( opened );
 				setTimeSlotId( timeSlotId );
 				setTitle( getAContent( 'cmp_vetonest.com_Jj8n4HdCp6' )  ); 
 			}
-			
 			// Etablissement_lieu
 			if( fieldName == "Etablissement_lieu" ){
-console.log( '>>>>>>>>>> selectedLieuId', selectedLieuId );
 				if( selectedLieuId ){
-					// get data
 					const lieu = await getALieu( selectedLieuId );
-					// set address
 					form.setFieldsValue( { LieuAddress: lieu.adresse } );
-					setEtablissementAddress( lieu.adresse ); // Todo: remove React setters, use only ant form setters
-					// set parking
+					setEtablissementAddress( lieu.adresse );
 					form.setFieldsValue( { Parking: lieu.parking } );
-					// set transports ( dynamic fields )
-					for ( const transport of lieu.transports ){	// dynamic fields ( transport )
+					for ( const transport of lieu.transports ){
 						const id = transport.transportId;
 						const fieldName = transports.filter( e => e.id == id )[0].fieldName;
 						const value = transport.description;
 						form.setFieldsValue( { [fieldName] : value } );
 					}
-					// set description ( info )
 					form.setFieldsValue( { Info: lieu.info } );
-					// pays, ville
 					if( lieu.pays ){
-console.log( '>>>>>>>>>>> lieu', lieu  );
 						const countryId = lieu.pays.id;
 						var cityId = '';
 						if( lieu.ville )
 							cityId = lieu.ville.id;
-
 						form.setFieldsValue( { LieuCountry: countryId } );
 						const lieuVilles = await getPaysVilles( countryId ); 
 						if( lieuVilles.length ){
@@ -3169,18 +2656,14 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 					}
 				}
 			}
-			
-			// Biography
 			// Biography
 			if( fieldName == "Biography" ){
 				form.setFieldsValue({ Biography: userProfile.biography });
 			}
-
 			// Email
 			if( fieldName == "Email" ){
 				form.setFieldsValue({ Email: user.email });
 			}
-
 			// Firstname shortcut
 			if( fieldName == "FirstName" ){
 				form.setFieldsValue( {FirstNameShortcut: userProfile.prenom} );
@@ -3189,31 +2672,23 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 			if( fieldName == "Name" ){
 				form.setFieldsValue( {NameShortcut: userProfile.nom} );
 			}
-
 			// Sex shortcut
 			if( fieldName == "Sexes" ){
-				// sex
 				const sex = userProfile.sexeId;
 				form.setFieldsValue( { SexShortcut: sex ? sex : '' } ); 
 				setSexe( sex ? sex : '' );
 			}
-			
 			// Birth shortcut
 			if( fieldName == "BirthShortcut" ){
-				// birth date
 				const birthDate = userProfile.birthDateFormated ? userProfile.birthDateFormated : null;
 				const dateNaissance = birthDate ? await dayjs( birthDate ) : '';
 				setDateDeNaissance( dateNaissance );
 				setDateDeNaissanceRaw( birthDate )
 				form.setFieldsValue( { BirthShortcut: dateNaissance } );
-				// const birthDate = userProfile.dateNaissance ? userProfile.dateNaissance.date : '';
-				// const dateNaissance = birthDate ? await dateFormater( birthDate ) : '';
-				// setDateNaissance( dateNaissance );
 			}
 		}
 		a()
-
-	}, [ userProfile, params.params, selectedTimeslotOpen, vetos, form ]) 
+	}, [ openModal, userProfile, selectedTimeslotOpen, vetos, form ]) 
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -3254,7 +2729,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 				forceRender={true}
 				footer={
 					<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-						{ /* delete a lieu */ }
 						{ selectedLieuId && (
 							<Popconfirm
 							  open={isLieuPopconfirmOpen}
@@ -3278,9 +2752,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 								{getAContent('cmp_vetonest.com_f92LmQw81P')}
 							  </Button>
 							</Popconfirm>
-
 						)}
-						{ /* delete an abscence */ }
 						{selectedAbsenceId && (
 							<Popconfirm
 								open={isAbsencePopconfirmOpen}
@@ -3303,8 +2775,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 								</Button>
 							</Popconfirm>
 						)}
-						
-						
 						<Button
 							key="submit"
 							type="success"
@@ -3319,8 +2789,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 				cancelText={getAContent('cmp_vetonest.com_Jd02LmP91w')}
 				styles={dynamicStyle}
 			>
-
-				
 				<Form 
 					className=""
 					form = {form}
@@ -3348,17 +2816,14 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 															<h5 className="card-title" key={'r4' + k}>
 																{v.nom} {v.prenom}
 															</h5>
-
 															<p className="card-text" key={'c' + k}>
 																{v.vetoSpecialiteTab.nom ? v.vetoSpecialiteTab.nom : getAContent('cmp_vetonest.com_Ga83Kd92Lm')}
 															</p>
-
 															<p className="card-text" key={'d' + k}>
 																<small className="text-muted" key={'e9' + k}>
 																	{getAContent('cmp_vetonest.com_Qp17za92Bw') + dayjs(v.dateCreated.date).format(getDateFormatLocale())}
 																</small>
 															</p>
-
 															<p style={{ textAlign: 'center' }} key={'e' + k}>
 																<Checkbox value={v.id} style={{ outline: 'none' }} key={'j8' + k} />
 															</p>
@@ -3372,15 +2837,12 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</Space>
 						</Checkbox.Group>
 					}
-
 					{ fieldName == "Etablissement_lieu" &&
 						<>
 							<div className="profilIdentityField">
-
 								<Form.Item
 									label={ getAContent( 'cmp_vetonest.com_Z19vb62Qpa' ) }
 									name="LieuAddress"
-									
 									rules={[
 										{
 											required:true,
@@ -3401,10 +2863,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										onChange={(e) => handleChangeEtablissementAddress(e)}
 									/>
 								</Form.Item>
-								
 								<Form.Item 
 									name="Parking" 
-									label= { getAContent( 'cmp_vetonest.com_Qs51Mb03Ye' ) }
+									label={ getAContent( 'cmp_vetonest.com_Qs51Mb03Ye' ) }
 									rules={[
 										{
 											message: etablissementParkingError,
@@ -3425,7 +2886,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										onChange={(e) => handleChangeEtablissementParking(e)}
 									/>
 								</Form.Item>
-								{/* Transport inputs redered dynamicaly */}
 								{transports.map((field) => (
 									<Form.Item
 										key={field.id}
@@ -3437,10 +2897,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										{renderField(field)}
 									</Form.Item>
 								))}
-
 								<Form.Item
 									name="Info"
-									label= { getAContent( 'cmp_vetonest.com_Mu63Bd27Nc' ) }
+									label={ getAContent( 'cmp_vetonest.com_Mu63Bd27Nc' ) }
 									rules={[
 										{
 											message: etablissementInfoError,
@@ -3461,7 +2920,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										onChange={(e) => handleChangeEtablissementInfo(e)}
 									/>
 								</Form.Item>
-
 								<div className="row">
 									<div className="col-sm-12 col-md-6">
 										<Form.Item
@@ -3469,7 +2927,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
 											rules={[
 												{
-													required: true, // This ensures the field is mandatory
+													required: true,
 													message: lieuCountryError,
 													validator: (rule, value) => {
 														if (lieuCountryError) return Promise.reject(lieuCountryError);
@@ -3477,7 +2935,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 													}
 												}
 											]}
-											/* initialValue={lieuCountrySelected ? lieuCountrySelected : getAContent( 'cmp_vetonest.com_k3a92hFsP1' )} */
 										>
 											<Select
 												variant="borderless"
@@ -3497,15 +2954,13 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											/>
 										</Form.Item>
 									</div>
-
-
 									<div className="col-sm-12 col-md-6">
 										<Form.Item
 											name="LieuCity"
 											label={ getAContent( 'cmp_vetonest.com_L20sx18Qmv' ) }
 											rules={[
 												{
-													required: true, // This ensures the field is mandatory
+													required: true,
 													message: lieuCityError,
 													validator: (value) => {
 														if (lieuCityError) return Promise.reject(lieuCityError);
@@ -3513,12 +2968,11 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 													}
 												}
 											]}
-											/*  initialValue={lieuCitySelected ? lieuCitySelected :  getAContent( 'cmp_vetonest.com_Pq8x2VmAz9' ) } */
 										>
 											<Select
 												variant="borderless"
 												className="custom-select-rounded"
-												style={{ width: '100%', /* display: displayLieuCity */ }}
+												style={{ width: '100%' }}
 												bordered={false}
 												value={citySelected}
 												onChange={(e) => handleChangeLieuCitySelected(e)}
@@ -3534,18 +2988,15 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										</Form.Item>
 									</div>
 								</div>
-
 							</div>
 						</>
 					}
-
 					{ fieldName == "Etablissement" &&
 						<>
 							<div className="profilIdentityField">
-
 								<Form.Item
 									name="EtablissementName"
-									label= { getAContent( 'cmp_vetonest.com_Pk38Vs90Lm' ) }
+									label={ getAContent( 'cmp_vetonest.com_Pk38Vs90Lm' ) }
 									rules={[
 										{
 											message: etablissementNameError,
@@ -3565,10 +3016,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										onChange={(e) => handleChangeEtablissementName(e)}
 									/>
 								</Form.Item>
-
 								<Form.Item
 									name="EtablissementPresentation"
-									label= { getAContent( 'cmp_vetonest.com_Te94Bm20Cx' ) }
+									label={ getAContent( 'cmp_vetonest.com_Te94Bm20Cx' ) }
 									rules={[
 										{
 											message: etablissementPresentationError,
@@ -3587,10 +3037,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										onChange={(e) => handleChangeEtablissementPresentation(e)}
 									/>
 								</Form.Item>
-
 								<Form.Item
 									name="EtablissementType"
-									label= { getAContent( 'cmp_vetonest.com_Az14Gr72Mn' ) }
+									label={ getAContent( 'cmp_vetonest.com_Az14Gr72Mn' ) }
 									rules={[
 										{
 											message: etablissementTypeError,
@@ -3625,7 +3074,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</div>
 						</>
 					}
-
 					{ (fieldName == "Opened" || fieldName == "Closed") &&
 						<>
 							<div className="row justify-content-center">
@@ -3658,7 +3106,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											/>
 										</Form.Item>
 									</div>
-
 									<div className="col-6">
 										<TimePicker
 											value={endTime}
@@ -3705,7 +3152,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</div>
 						</>
 					}
-
 					{ fieldName == "Absence" &&
 						<>
 							<div>	
@@ -3730,7 +3176,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										/>
 									</ConfigProvider>
 								</Form.Item>
-								
 							</div>
 							<div className="profilIdentityField">
 								<Form.Item
@@ -3757,7 +3202,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									/>
 								</Form.Item>
 							</div>
-
 							<div>
 								<Form.Item
 									label={getAContent('cmp_vetonest.com_Vb71Kx33Hp')}
@@ -3784,7 +3228,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</div>
 						</>
 					}
-
 					{ fieldName == "Country" &&
 						<>
 							<p>&nbsp;</p>
@@ -3798,7 +3241,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							<p>&nbsp;</p>
 						</>
 					}
-
 					{fieldName === "Language" && (
 						<>
 							<p>&nbsp;</p>
@@ -3812,8 +3254,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							<p>&nbsp;</p>
 						</>
 					)}
-
-
 					{ fieldName === "Profile" && (
 						<div className="container">
 							<div className="row">
@@ -3835,6 +3275,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											name="nameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
 											placeholder={getAContent( 'cmp_vetonest.com_Rf29Lm8Qcs' )}
+											prefix={<UserOutlined style={{ color: '#888' }} />}
 											type="text"
 											value={name}
 											onChange={(e) => handleChangeName(e)}
@@ -3860,6 +3301,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											name="firstNameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
 											placeholder={getAContent( 'cmp_vetonest.com_Kt73Nd1Wqp' )}
+											prefix={<UserOutlined style={{ color: '#888' }} />}
 											type="text"
 											value={firstName}
 											onChange={(e) => handleChangeFirstName(e)}
@@ -3867,7 +3309,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Form.Item>
 								</div>
 							</div>
-
 							<Form.Item
 								label={getAContent('cmp_vetonest.com_ZEuz13yjyi')}
 								name="Sexe"
@@ -3891,26 +3332,25 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
 										>
 											<Radio value={1} className="checkbox-like-radio">
-												{getAContent('cmp_vetonest.com_A91fd73KsP')}
+												<ManOutlined style={{ marginRight: 6, color: '#1677ff' }} />{getAContent('cmp_vetonest.com_A91fd73KsP')}
 											</Radio>
 										</div>
-
 										<div
 											className="backgroundYellow rounded10 height40"
 											style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
 										>
 											<Radio value={2} className="checkbox-like-radio">
-												{getAContent('cmp_vetonest.com_w31LdP9aQs')}
+												<WomanOutlined style={{ marginRight: 6, color: '#eb2f96' }} />{getAContent('cmp_vetonest.com_w31LdP9aQs')}
 											</Radio>
 										</div>
 									</div>
 								</Radio.Group>
 							</Form.Item>
-
 							<div>
 								<Form.Item 
 									name="BirthdateUser"
-									label={getAContent('cmp_vetonest.com_f82Ns91Qaz')}
+									label={<span><CalendarOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_f82Ns91Qaz')}</span>}
+									required={true}
 									rules={[{
 										message: dateDeNaissanceError,
 										validator: (value) => {
@@ -3929,8 +3369,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</ConfigProvider>
 								</Form.Item>
 							</div>
-
-							<div>
+							<div style={{ display: 'none' }}>
 								<Form.Item
 									label={getAContent('cmp_vetonest.com_Pq71Lm92Xe')}
 									name="Languages"
@@ -3964,168 +3403,83 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</ConfigProvider>
 								</Form.Item>
 							</div>
-
-							<div>
-								<Form.Item
-									label={getAContent('cmp_vetonest.com_Z19vb62Qpa')}
-									name="Address"
-									className="width100per100"
-									rules={[
-										{
-											message: addressError,
-											validator: (value) => {
-												if (addressError) return Promise.reject(addressError);
-												return Promise.resolve();
-											},
-										},
-									]}
-									initialValue={address}
-								>
-									<Input
-										name="addressInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40"
-										placeholder={ getAContent( 'cmp_vetonest.com_Mv84Px6Zrt' ) }
-										type="text"
-										value={address}
-										onChange={(e) => handleChangeAddress(e)}
-									/>
-								</Form.Item>
+							{/* ===== LOCATION SECTION ===== */}
+							<div className="row" style={{ marginTop: '20px' }}>
+								<div className="col-12">
+									<label className="ant-form-item-label">
+										<EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_consultation_location') || 'Lieu de consultation'}
+									</label>
+								</div>
 							</div>
-
-							<div className="row marginTop2percent">
-								<div className="col-6">
+							<div className="row">
+								<div className="col-12 col-md-6">
 									<Form.Item
-										label={getAContent('cmp_vetonest.com_Qp51Zv83Wc')}
-										name="CodePostal"
-										rules={[
-											{
-												message: codePostalError,
-												validator: (value) => {
-													if (codePostalError) return Promise.reject(codePostalError);
-													return Promise.resolve();
-												},
-											},
-										]}
+										name="UserCountry"
+										label={<span><GlobalOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_n17Fd02Cka') || 'Pays'}</span>}
+										rules={[{ required: true, message: userCountryError || 'Please select a country' }]}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											placeholder="Sélectionner un pays"
+											value={userCountryId}
+											onChange={handleUserCountryChange}
+											showSearch
+											optionFilterProp="label"
+											options={BuildLieuCountriesOptions()}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-12 col-md-6">
+									<Form.Item
+										name="UserCity"
+										label={<span><EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_L20sx18Qmv') || 'Ville'}</span>}
+										rules={[{ required: true, message: userCityError || 'Please select a city' }]}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											placeholder="Sélectionner une ville"
+											value={userCityId}
+											onChange={handleUserCityChange}
+											showSearch
+											optionFilterProp="label"
+											options={userCityOptions.map(city => ({ value: city.id, label: city.nom }))}
+											notFoundContent="Aucune ville disponible"
+											style={{ display: displayUserCity }}
+											disabled={!userCountryId}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
+								</div>
+							</div>
+							<div className="row">
+								<div className="col-12">
+									<Form.Item
+										name="UserAddress"
+										label={<span><HomeOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_Z19vb62Qpa') || 'Adresse'}</span>}
+										rules={[{ message: userAddressError }]}
 									>
 										<Input
-											name="codePostalInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={getAContent( 'cmp_vetonest.com_Jk51Pv7Mra' )}
-											type="text"
-											value={codePostal}
-											onChange={(e) => handleChangeCodePostal(e)}
-										/>
-									</Form.Item>
-								</div>
-
-								<div className="col-6">
-									<Form.Item
-										label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
-										name="Country"
-										rules={[
-											{
-												message: countryError,
-												validator: (value) => {
-													if (countryError) return Promise.reject(countryError);
-													return Promise.resolve();
-												},
-											},
-										]}
-									>
-										<Select 
-											variant="borderless"
-											className="customAntselect custom-select-rounded"
-											style={{ width: "100%" }}
-											bordered={false}
-											value={countrySelected}
-											onChange={handleChangeCountrySelected}
-											showSearch
-											optionFilterProp="label"
-											filterSort={(a, b) =>
-												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
-											}
-											options={BuildCountriesOptions()}
-											notFoundContent={countryDefault}
-											placeholder = { getAContent( 'cmp_vetonest.com_Td93Qa1Zpl' ) }
+											placeholder={getAContent('cmp_vetonest.com_address_placeholder') || 'Rue, bâtiment, etc.'}
+											prefix={<HomeOutlined style={{ color: '#888' }} />}
+											value={userAddress}
+											onChange={handleUserAddressChange}
+											autoComplete="off"
 										/>
 									</Form.Item>
 								</div>
 							</div>
-
-							<div style={{ display: showStatesCities }} className="row marginTop2percent">
-								<div className="col-6">
-									<Form.Item
-										label={getAContent('cmp_vetonest.com_Fm41Za90Pr')}
-										name="State"
-										rules={[
-											{
-												message: stateError,
-												validator: (value) => {
-													if (stateError) return Promise.reject(stateError);
-													return Promise.resolve();
-												},
-											},
-										]}
-									>
-										<Select
-											variant="borderless"
-											className="customAntselect custom-select-rounded"
-											style={{ width: "100%" }}
-											value={stateSelected}
-											onChange={handleChangeStateSelected}
-											showSearch
-											optionFilterProp="label"
-											filterSort={(a, b) =>
-												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
-											}
-											options={BuildStatesOptions()}
-											notFoundContent={stateNotFound}
-											placeholder = { getAContent( 'cmp_vetonest.com_Ms28Ht4Cvo' ) }
-										/>
-									</Form.Item>
-								</div>
-
-								<div className="col-6">
-									<Form.Item
-										label={getAContent('cmp_vetonest.com_L20sx18Qmv')}
-										name="City"
-										rules={[
-											{
-												message: cityError,
-												validator: (value) => {
-													if (cityError) return Promise.reject(cityError);
-													return Promise.resolve();
-												},
-											},
-										]}
-									>
-										<Select
-											variant="borderless"
-											className="customAntselect custom-select-rounded"
-											size="middle"
-											value={citySelected}
-											onChange={handleChangeCitySelected}
-											showSearch
-											optionFilterProp="label"
-											filterSort={(a, b) =>
-												(a?.label ?? "").toLowerCase().localeCompare((b?.label ?? "").toLowerCase())
-											}
-											options={BuildCitiesOptions()}
-											notFoundContent={cityNotFound}
-											placeholder = { getAContent( 'cmp_vetonest.com_Bq67Rn3Wks' ) }
-										/>
-									</Form.Item>
-								</div>
-							</div>
+							{/* ===== END OF LOCATION SECTION ===== */}
 						</div>
 					)}
-
 					{
 						fieldName == "ProfileVeto" &&
 						<div className="container">
-							{/* Phone number */}
 							<Form.Item
-								label= { getAContent('cmp_vetonest.com_Zp83Na41Lt') }
+								label={ getAContent('cmp_vetonest.com_Zp83Na41Lt') }
 								className="phoneFormItem"
 								name="PhoneNumber"
 								style={{ marginBottom: '0px', float: 'rigth' }}
@@ -4141,8 +3495,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 								]}
 								initialValue={phoneNumber}
 							>
-									<div className="phoneRow">
-
+								<div className="phoneRow">
 									<Select
 									  variant="borderless"
 									  className="phoneFlagSelect"
@@ -4150,7 +3503,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									  onChange={handleChangeFlag}
 									  getPopupContainer={(n) => n.parentElement}
 									>
-
 										{countriesAllowed.map((v) => (
 										  <Option key={v.iso} value={v.iso}>
 											<img
@@ -4160,11 +3512,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										  </Option>
 										))}
 									  </Select>
-
 									  <div className="phoneCode">
 										{selectedCountryCode}
 									  </div>
-
 									  <Input
 										type="text"
 										className="phoneInput backgroundYellow rounded10 borderNone height40"
@@ -4172,15 +3522,12 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										value={phoneNumber}
 										onChange={handleChangePhoneNumber}
 									  />
-
 									</div>
-
 							</Form.Item>
-							{/* Veto name */}
 							<div className="row gy-2" >
 								<div className="col-6">
 									<Form.Item
-										label= {signUp_namePlaceholder}
+										label={signUp_namePlaceholder}
 										name="VetoName"
 										rules={[
 											{
@@ -4204,10 +3551,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										/>
 									</Form.Item>
 								</div>
-								{/* Veto firstname */}
 								<div className="col-6">
 									<Form.Item
-										label= { signUp_firstNamePlaceholder }
+										label={ signUp_firstNamePlaceholder }
 										name="VetoFirstName"
 										rules={[
 											{
@@ -4232,35 +3578,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Form.Item>
 								</div>
 							</div>
-							{/* Veto name */}
-							<div className="row gy-2 displayNone" >
-								<div className="col-6">
-									<Form.Item
-										label= {signUp_namePlaceholder}
-										name="VetoName"
-										rules={[
-											{
-												message: vetoNameError,
-												validator: (value) => {
-													if (vetoNameError) return Promise.reject(vetoNameError);
-													return Promise.resolve();
-												}
-											}
-										]}
-										initialValue={name}
-									>
-										<Input
-											name="vetoNameInput"
-											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={ getAContent( 'cmp_vetonest.com_Lk58Pw7Qms' )}
-											type="text"
-											value={vetoName}
-											onChange={(e) => handleChangeVetoName(e)}
-										/>
-									</Form.Item>
-								</div>
-							</div>	
-							{/* Veto specialite */}
 							<div>
 								<Form.Item
 								  label={getAContent('cmp_vetonest.com_Sp44Ma27Kw')}
@@ -4289,8 +3606,8 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 													suffixIcon={null}
 												>
 													{allSpecialities.map((v, k) => (
-														<Option key={v.id} value={v.id}>
-															<Checkbox checked={vetoSelectedSpecialities.includes(v.id)}>
+														<Option key={v.id} value={Number(v.id)}>
+															<Checkbox checked={vetoSelectedSpecialities.includes(Number(v.id))}>
 																{v.name}
 															</Checkbox>
 														</Option>
@@ -4298,15 +3615,11 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Select>
 								  </div>
 								</Form.Item>
-
 							</div>
-
-							{/* Veto Rpps & SIRET*/}
 							<div className="row gy-2">
-								{/* Veto Rpps */}
 								<div className="col-6">
 									<Form.Item
-										label= {getAContent('cmp_vetonest.com_Dc44Xw21Om')}
+										label={getAContent('cmp_vetonest.com_Dc44Xw21Om')}
 										name="VetoRpps"
 										rules={[
 											{
@@ -4326,10 +3639,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										/>
 									</Form.Item>
 								</div>
-								{/* Veto Siret */}
 								<div className="col-6">
 									<Form.Item
-										label= {getAContent('cmp_vetonest.com_Jf39Lp77Qs')}
+										label={getAContent('cmp_vetonest.com_Jf39Lp77Qs')}
 										name="VetoSiret"
 										rules={[
 											{
@@ -4351,10 +3663,8 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Form.Item>
 								</div>
 							</div>
-							{/* Veto type */}
 							<div className="">
 								<Form.Item
-									
 									label={getAContent('cmp_vetonest.com_Hr74Xk63Be')}
 									name="VetoType"
 									value={vetoType}
@@ -4379,205 +3689,252 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											  {getAContent('cmp_vetonest.com_Hy63Rk84Vm')}
 											</Radio>
 										  </div>
-
 										  <div className="vetoTypeOption">
 											<Radio value={0} className="checkbox-like-radio">
 											  {getAContent('cmp_vetonest.com_Au27Wd56Cq')}
 											</Radio>
 										  </div>
 										</div>
-
 									</Radio.Group>
 								</Form.Item>
 							</div>
 							<div className="row" style={{ height: '84px' }}>
-							{/* Tarif consultation (min / max) */}
-							<div className="col-6">
-								<Form.Item label={getAContent('cmp_vetonest.com_Qr84Lm20Ps')}>
-									<Space.Compact
-										style={{
-											display: 'flex',
-											alignItems: 'center'
-										}}
-									>
-										{/* Min tarif */}
-										<Form.Item
-											name="TarifMin"
-											noStyle
-											rules={[
-												{
-													message: tarifMinError,
-													validator: () => {
-														if (tarifMinError) {
-															return Promise.reject(tarifMinError);
-														}
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Input
-												type="number"
-												min={0}
-												placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
-												className="backgroundYellow height40 borderNone rounded10"
-												onChange={handleChangeTarifMin}
-											/>
-										</Form.Item>
-
-										{/* Dash separator */}
-										<span
+								<div className="col-6">
+									<Form.Item label={getAContent('cmp_vetonest.com_Qr84Lm20Ps')}>
+										<Space.Compact
 											style={{
-												margin: '0 6px',
-												color: '#666',
-												fontWeight: 500,
-												userSelect: 'none',
-												lineHeight: '40px'
-											}}
-										>
-											–
-										</span>
-
-										{/* Max tarif */}
-										<Form.Item
-											name="TarifMax"
-											noStyle
-											dependencies={['TarifMin']}
-											rules={[
-												{
-													message: tarifMaxError,
-													validator: () => {
-														if (tarifMaxError) {
-															return Promise.reject(tarifMaxError);
-														}
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Input
-												type="number"
-												min={0}
-												placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
-												className="backgroundYellow height40 borderNone rounded10"
-												onChange={handleChangeTarifMax}
-											/>
-										</Form.Item>
-
-										{/* Currency */}
-										<div
-											style={{
-												height: '40px',
 												display: 'flex',
-												alignItems: 'center',
-												marginLeft: '6px'
+												alignItems: 'center'
 											}}
 										>
-											€
-										</div>
-									</Space.Compact>
-								</Form.Item>
-							</div>
-
-							{/* Tarif consultation vidéo (min / max) */}
-							<div className="col-6">
-								<Form.Item 
-									label={getAContent('cmp_vetonest.com_Mn92Ks41Wa')}
-									className="tarifFormItem"
-								>
-									<Space.Compact
-										style={{
-											display: 'flex',
-											alignItems: 'center'
-										}}
+											<Form.Item
+												name="TarifMin"
+												noStyle
+												rules={[
+													{
+														message: tarifMinError,
+														validator: () => {
+															if (tarifMinError) {
+																return Promise.reject(tarifMinError);
+															}
+															return Promise.resolve();
+														}
+													}
+												]}
+											>
+												<Input
+													type="number"
+													min={0}
+													placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
+													className="backgroundYellow height40 borderNone rounded10"
+													onChange={handleChangeTarifMin}
+												/>
+											</Form.Item>
+											<span
+												style={{
+													margin: '0 6px',
+													color: '#666',
+													fontWeight: 500,
+													userSelect: 'none',
+													lineHeight: '40px'
+												}}
+											>
+												–
+											</span>
+											<Form.Item
+												name="TarifMax"
+												noStyle
+												dependencies={['TarifMin']}
+												rules={[
+													{
+														message: tarifMaxError,
+														validator: () => {
+															if (tarifMaxError) {
+																return Promise.reject(tarifMaxError);
+															}
+															return Promise.resolve();
+														}
+													}
+												]}
+											>
+												<Input
+													type="number"
+													min={0}
+													placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
+													className="backgroundYellow height40 borderNone rounded10"
+													onChange={handleChangeTarifMax}
+												/>
+											</Form.Item>
+											<div
+												style={{
+													height: '40px',
+													display: 'flex',
+													alignItems: 'center',
+													marginLeft: '6px'
+												}}
+											>
+												€
+											</div>
+										</Space.Compact>
+									</Form.Item>
+								</div>
+								<div className="col-6">
+									<Form.Item 
+										label={getAContent('cmp_vetonest.com_Mn92Ks41Wa')}
+										className="tarifFormItem"
 									>
-										{/* Min price */}
-										<Form.Item
-											name="TarifVideoMin"
-											noStyle
-											rules={[
-												{
-													message: tarifVideoMinError,
-													validator: () => {
-														if (tarifVideoMinError) {
-															return Promise.reject(tarifVideoMinError);
-														}
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Input
-												type="number"
-												min={0}
-												placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
-												className="backgroundYellow height40 borderNone rounded10"
-												onChange={handleChangeTarifVideoMin}
-											/>
-										</Form.Item>
-
-										{/* Dash separator */}
-										<span
+										<Space.Compact
 											style={{
-												margin: '0 6px',
-												color: '#666',
-												fontWeight: 500,
-												userSelect: 'none',
-												lineHeight: '40px'
-											}}
-										>
-											–
-										</span>
-
-										{/* Max price */}
-										<Form.Item
-											name="TarifVideoMax"
-											noStyle
-											dependencies={['TarifVideoMin']}
-											rules={[
-												{
-													message: tarifVideoMaxError,
-													validator: () => {
-														if (tarifVideoMaxError) {
-															return Promise.reject(tarifVideoMaxError);
-														}
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Input
-												type="number"
-												min={0}
-												placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
-												className="backgroundYellow height40 borderNone rounded10"
-												onChange={handleChangeTarifVideoMax}
-											/>
-										</Form.Item>
-
-										{/* Currency */}
-										<div
-											style={{
-												height: '40px',
 												display: 'flex',
-												alignItems: 'center',
-												marginLeft: '6px'
+												alignItems: 'center'
 											}}
 										>
-											€
-										</div>
-									</Space.Compact>
-								</Form.Item>
+											<Form.Item
+												name="TarifVideoMin"
+												noStyle
+												rules={[
+													{
+														message: tarifVideoMinError,
+														validator: () => {
+															if (tarifVideoMinError) {
+																return Promise.reject(tarifVideoMinError);
+															}
+															return Promise.resolve();
+														}
+													}
+												]}
+											>
+												<Input
+													type="number"
+													min={0}
+													placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
+													className="backgroundYellow height40 borderNone rounded10"
+													onChange={handleChangeTarifVideoMin}
+												/>
+											</Form.Item>
+											<span
+												style={{
+													margin: '0 6px',
+													color: '#666',
+													fontWeight: 500,
+													userSelect: 'none',
+													lineHeight: '40px'
+												}}
+											>
+												–
+											</span>
+											<Form.Item
+												name="TarifVideoMax"
+												noStyle
+												dependencies={['TarifVideoMin']}
+												rules={[
+													{
+														message: tarifVideoMaxError,
+														validator: () => {
+															if (tarifVideoMaxError) {
+																return Promise.reject(tarifVideoMaxError);
+															}
+															return Promise.resolve();
+														}
+													}
+												]}
+											>
+												<Input
+													type="number"
+													min={0}
+													placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
+													className="backgroundYellow height40 borderNone rounded10"
+													onChange={handleChangeTarifVideoMax}
+												/>
+											</Form.Item>
+											<div
+												style={{
+													height: '40px',
+													display: 'flex',
+													alignItems: 'center',
+													marginLeft: '6px'
+												}}
+											>
+												€
+											</div>
+										</Space.Compact>
+									</Form.Item>
+								</div>
 							</div>
-						</div>
-
+							{/* ===== VET LOCATION SECTION ===== */}
+							<div className="row" style={{ marginTop: '20px' }}>
+								<div className="col-12">
+									<label className="ant-form-item-label">
+										{getAContent('cmp_vetonest.com_consultation_location') || 'Consultation location'}
+									</label>
+								</div>
+							</div>
+							<div className="row">
+								<div className="col-12 col-md-6">
+									<Form.Item
+										name="VetCountry"
+										label={<span><GlobalOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_n17Fd02Cka') || 'Pays'}</span>}
+										rules={[{ required: true, message: vetCountryError || 'Please select a country' }]}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											placeholder="Sélectionner un pays"
+											value={vetCountryId}
+											onChange={handleVetCountryChange}
+											showSearch
+											optionFilterProp="label"
+											options={BuildLieuCountriesOptions()}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-12 col-md-6">
+									<Form.Item
+										name="VetCity"
+										label={<span><EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_L20sx18Qmv') || 'Ville'}</span>}
+										rules={[{ required: true, message: vetCityError || 'Please select a city' }]}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											placeholder="Sélectionner une ville"
+											value={vetCityId}
+											onChange={handleVetCityChange}
+											showSearch
+											optionFilterProp="label"
+											options={vetCityOptions.map(city => ({ value: city.id, label: city.nom }))}
+											notFoundContent="Aucune ville disponible"
+											style={{ display: displayVetCity }}
+											disabled={!vetCountryId}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
+								</div>
+							</div>
+							<div className="row">
+								<div className="col-12">
+									<Form.Item
+										name="VetAddress"
+										label={<span><HomeOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_Z19vb62Qpa') || 'Adresse'}</span>}
+										rules={[{ message: vetAddressError }]}
+									>
+										<Input
+											className="backgroundYellow rounded10 width100per100 borderNone height40"
+											placeholder={getAContent('cmp_vetonest.com_address_placeholder') || 'Street, building, etc.'}
+											value={vetAddress}
+											onChange={handleVetAddressChange}
+											autoComplete="off"
+										/>
+									</Form.Item>
+								</div>
+							</div>
+							{/* ===== END OF VET LOCATION SECTION ===== */}
 						</div>
 					}
-
 					{
 						fieldName == "Animaux" &&
 						<>
-							{/* Animal Name */}
 							<Form.Item
 								label={getAContent('cmp_vetonest.com_Na82Lm51Qw')} 
 								name="AnimalName"
@@ -4600,8 +3957,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									onChange={(e) => handleChangeAnimalName(e)}
 								/>
 							</Form.Item>
-
-							{/* Sexe */}
 							<div className="">
 								<Form.Item
 									label={getAContent('cmp_vetonest.com_Rp84Bt62Mn')}
@@ -4630,7 +3985,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 													{getAContent('cmp_vetonest.com_Ml72Ks84Np')}
 												</Radio>
 											</div>
-
 											<div
 												className="backgroundYellow rounded10 height40"
 												style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
@@ -4643,8 +3997,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Radio.Group>
 								</Form.Item>
 							</div>
-
-							{/* Pet birthdate */}
 							<Form.Item
 								name="AnimalBirthdate"
 								label={getAContent('cmp_vetonest.com_Kd41Ws97Pl')}
@@ -4655,11 +4007,8 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										return Promise.resolve();
 									}
 								}]}
-								
 							>
 								<div className="row backgroundYellow rounded10 height40 width100per100 birthdateField dateSelector">
-
-									{/* Left: DatePicker */}
 									<div className="col-6 justify-content-end dateField">
 										<ConfigProvider
 											locale={getDatePickerlocale()}
@@ -4671,16 +4020,11 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 											/>
 										</ConfigProvider>
 									</div>
-									{/* Right: current birthdate value */}
 									<div className="col-6">
 										<span>{animalDateNaissance}</span>
 									</div>
-									
 								</div>
 							</Form.Item>
-
-							{/* Espece */}
-
 							<Form.Item
 								label = {getAContent('cmp_vetonest.com_Sp94Te63Kz')}
 								name="Espece"
@@ -4710,9 +4054,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									))}
 								</Select>
 							</Form.Item>
-
-
-							{/* Race */}
 							{breedSpinner && (
 								<div className="row justify-content-center" style={{ marginBottom: 10 }}>
 									<Spin size="small" />
@@ -4749,8 +4090,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</Select>
 								</Form.Item>
 							</div>
-
-							{/* Insurance */}
 							<Form.Item
 								label={getAContent('cmp_vetonest.com_In73Dz45Hw')}
 								name="HaveInsurance"
@@ -4777,7 +4116,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 												{getAContent('cmp_vetonest.com_Hi20Qw67Ps')}
 											</Radio>
 										</div>
-											<div
+										<div
 											className="backgroundYellow rounded10 height40"
 											style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
 										>
@@ -4788,10 +4127,9 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									</div>
 								</Radio.Group>
 							</Form.Item>
-							
 							<Form.Item
 								name="AnimalPhoto"
-								label= { getAContent('cmp_vetonest.com_An87Lp40Zc') }
+								label={ getAContent('cmp_vetonest.com_An87Lp40Zc') }
 								rules={[{
 									message: animalPhotoError,
 									validator: (value) => {
@@ -4807,7 +4145,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										</Dragger>
 									</div>
 									{ animalPhoto &&
-												
 									<div className="align-items-center">
 										<img 
 											id="animalPhotoId"
@@ -4821,8 +4158,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</Form.Item>
 						</>
 					}
-
-
 					{
 						fieldName == "Email" &&
 						<Form.Item
@@ -4836,7 +4171,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									}
 								}
 							]}
-							// initialValue={''}
 						>
 							<Input
 								name="emailInput"
@@ -4848,7 +4182,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							/>
 						</Form.Item>
 					}
-
 					{
 						fieldName == "PasswordReset" &&
 						<>
@@ -4874,7 +4207,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									onChange={(e) => handleChangePwResetPassword(e)}
 								/>
 							</Form.Item>
-
 							<Form.Item
 								name="passwordRepeat"
 								rules={[
@@ -4898,19 +4230,16 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									onChange={(e) => handleChangePwResetPasswordRepeat(e)}
 								/>
 							</Form.Item>
-
 							<div style={{ display: formError01 }} className="row formError formError02">
 								<span id="cmp_vetonest.com_4LbLKwutmz">
 									{getAContent('cmp_vetonest.com_Fr28Ks90Lp')}
 								</span>
 							</div>
-
 							<div style={{ display: formError02 }} className="row formError formError04">
 								<span id="cmp_vetonest.com_4LbLKwutmz">
 									{getAContent('cmp_vetonest.com_Zx71Nb44Qe')}
 								</span>
 							</div>
-
 							<div style={{ display: formError03 }} className="row formError formError05">
 								<span id="cmp_vetonest.com_4LbLKwutmz">
 									{getAContent('cmp_vetonest.com_Md52Qr88Vp')}
@@ -4918,7 +4247,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</div>
 						</>
 					}
-
 					{ 
 						fieldName == "FirstName" &&
 						<>
@@ -4933,7 +4261,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										}
 									}
 								]}
-								/* initialValue={userProfile.prenom} */
 							>
 								<Input
 									name="firstNameInput"
@@ -4960,7 +4287,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 										}
 									}
 								]}
-								/* initialValue={userProfile.nom} */
 							>
 								<Input
 									name="nameInput"
@@ -4974,49 +4300,46 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 						</>
 					}
 					{ fieldName == "Sexes" &&
-						
 						<div className="">
-								<Form.Item
-									label={getAContent('cmp_vetonest.com_ZEuz13yjyi')}
-									name="SexShortcut"
-									rules={[
-										{
-											message: sexeError,
-											validator: (value) => {
-												if (sexeError) return Promise.reject(sexeError);
-												return Promise.resolve();
-											},
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_ZEuz13yjyi')}
+								name="SexShortcut"
+								rules={[
+									{
+										message: sexeError,
+										validator: (value) => {
+											if (sexeError) return Promise.reject(sexeError);
+											return Promise.resolve();
 										},
-									]}
+									},
+								]}
+							>
+								<Radio.Group
+									style={{ width: "100%" }}
+									onChange={(e) => handleChangeProfileSex(e)}
 								>
-									<Radio.Group
-										style={{ width: "100%" }}
-										onChange={(e) => handleChangeProfileSex(e)}
-									>
-										<div className="row">
-											<div
-												className="backgroundYellow rounded10 height40"
-												style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
-											>
-												<Radio value={1} className="checkbox-like-radio">
-													{getAContent('cmp_vetonest.com_A91fd73KsP')}
-												</Radio>
-											</div>
-
-											<div
-												className="backgroundYellow rounded10 height40"
-												style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
-											>
-												<Radio value={2} className="checkbox-like-radio">
-													{getAContent('cmp_vetonest.com_w31LdP9aQs')}
-												</Radio>
-											</div>
+									<div className="row">
+										<div
+											className="backgroundYellow rounded10 height40"
+											style={{ marginLeft: "3%", width: "44%", paddingTop: "2%", paddingLeft: "4%" }}
+										>
+											<Radio value={1} className="checkbox-like-radio">
+												<ManOutlined style={{ marginRight: 6, color: '#1677ff' }} />{getAContent('cmp_vetonest.com_A91fd73KsP')}
+											</Radio>
 										</div>
-									</Radio.Group>
-								</Form.Item>
+										<div
+											className="backgroundYellow rounded10 height40"
+											style={{ width: "44%", paddingTop: "2%", paddingLeft: "5%", marginLeft: "6%" }}
+										>
+											<Radio value={2} className="checkbox-like-radio">
+												<WomanOutlined style={{ marginRight: 6, color: '#eb2f96' }} />{getAContent('cmp_vetonest.com_w31LdP9aQs')}
+											</Radio>
+										</div>
+									</div>
+								</Radio.Group>
+							</Form.Item>
 						</div>
 					}
-
 					{ fieldName == "BirthDate" &&
 						<div>
 							<Form.Item 
@@ -5028,7 +4351,7 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 									}
 								}]}
 								name = "BirthShortcut"
-								label={getAContent('cmp_vetonest.com_f82Ns91Qaz')}
+								label={<span><CalendarOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_f82Ns91Qaz')}</span>}
 							>
 								<ConfigProvider locale={getDatePickerlocale()}>
 									<DatePicker 
@@ -5041,7 +4364,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							</Form.Item>
 						</div>
 					}
-
 					{ fieldName == "Biography" &&
 						<Form.Item
 							name="Biography"
@@ -5067,7 +4389,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 							/>
 						</Form.Item>
 					}
-
 				</Form>
 				<div style={{ display: formError01 }} className="row formError formError01">
 					<span id="cmp_vetonest.com_4LbLKwutmz">
@@ -5080,7 +4401,6 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 					<span id="cmp_vetonest.com_0lM8zJBsDN">
 						Please try another one.
 					</span>
-											
 				</div>				
 				<div style= {{ display: formError02 }}  className="row formError formError02">
 					<span className="cmp_vetonest.com_4LbLKwutmz">
@@ -5092,246 +4412,93 @@ console.log( '>>>>>>>>>>> lieu', lieu  );
 					<span className="cmp_vetonest.com_0lM8zJBsDN">
 						Please try another one.
 					</span>
-			</div>
+				</div>
 			</Modal>
 
-
-
 			<Modal
-							title={
-							  <p>
-								<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
-								<span>{ profileTypeId == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
-							  </p>
-							}
-							closable	= {{ 'aria-label': 'Custom Close Button' }}
-							open		= { isModalOptionTypeOpen }
-							onOk		= { modalOptionTypeHandleOk }
-							onCancel	= { () => modalOptionTypeHandleCancel( false ) }
-							afterClose	= { modalOptionTypeClosed }
-							okText		= { signUp_popConfirmYes }
-							cancelText	= { signUp_popConfirmDeleteBtn }
-						>
-							<>
-							{ user && user.profileTypeId == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
-							}
-							</>
-						</Modal>
-						
-						<Modal
-							title			= { <p>{signUp_codeTitle}</p> }
-							closable		= {{ 'aria-label': 'Custom Close Button' }}
-							open			= { isModalOpen }
-							onCancel		= { handleCancel }
-							afterClose		= { modalClosed }
-							footer			= { null }
-							maskClosable	= { false } // This prevents closing on mask click
-						>
-							<ExclamationCircleOutlined />
-							<div className="App">
-								<span>{ signUp_codeIntro } </span>&nbsp;
-								<span>{ signUpEmail }</span>
-							  <InputCode
-								length={6}
-								label={ signUp_codeLabel }
-								// label="Type your code"
-								loading={loading}
-								onComplete={code => {
-								  setLoading(true);
-								  setTimeout(() => setLoading(false), 10000);
-								  handleCompletedCode( code )
-								}}
-							  />
-							<div className = "row" >
-								<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
-								<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
-								<span className='text text-info' >{ signUp_codeResend }</span>
-							</div>
-							</div>		
-											<br/><br/>
-						</Modal>
-		
+				title={
+				  <p>
+					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
+					<span>{ profileTypeId == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
+				  </p>
+				}
+				closable	= {{ 'aria-label': 'Custom Close Button' }}
+				open		= { isModalOptionTypeOpen }
+				onOk		= { modalOptionTypeHandleOk }
+				onCancel	= { () => modalOptionTypeHandleCancel( false ) }
+				afterClose	= { modalOptionTypeClosed }
+				okText		= { signUp_popConfirmYes }
+				cancelText	= { signUp_popConfirmDeleteBtn }
+			>
+				<>
+					{ user && user.profileTypeId == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription }
+				</>
+			</Modal>
+			
+			<Modal
+				title			= { <p>{signUp_codeTitle}</p> }
+				closable		= {{ 'aria-label': 'Custom Close Button' }}
+				open			= { isModalOpen }
+				onCancel		= { handleCancel }
+				afterClose		= { modalClosed }
+				footer			= { null }
+				maskClosable	= { false }
+			>
+				<ExclamationCircleOutlined />
+				<div className="App">
+					<span>{ signUp_codeIntro } </span>&nbsp;
+					<span>{ signUpEmail }</span>
+					<InputCode
+						length={6}
+						label={ signUp_codeLabel }
+						loading={loading}
+						onComplete={code => {
+						  setLoading(true);
+						  setTimeout(() => setLoading(false), 10000);
+						  handleCompletedCode( code )
+						}}
+					/>
+					<div className = "row" >
+						<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
+						<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
+						<span className='text text-info' >{ signUp_codeResend }</span>
+					</div>
+				</div>		
+				<br/><br/>
+			</Modal>
 
 			<div className="displayNone" >
-
-					<span 
-						id = "cmp_vetonest.com_03jgEtJiVa"
-						className ="signUp_firstNamePlaceholder" 
-					>
-						First name
-					</span>
-					
-					<span 
-						className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
-					>
-						Email
-					</span>
-			
-											<span 
-												id = "cmp_vetonest.com_2Mtv5nj9JA"
-												className ="signUp_nameErrorText" 
-											>
-												Your name seems incorect
-											</span>
-											<span 
-												id = "cmp_vetonest.com_P5crAMBBiW"
-												className ="signUp_firstNameErrorText" 
-											>
-												Your first name seems incorect
-											</span>
-											<span 
-												className ="cmp_vetonest.com_GomedYOvSx displayNone contactEmailError signUp_emailErrorText" 
-											>
-												Your email is not correct
-											</span>
-											<span 
-												id = "cmp_vetonest.com_UcvWQuFUwO"
-												className ="signUp_passwordErrorText" 
-											>
-												Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
-											</span>
-											<span 
-												id = "cmp_vetonest.com_BmYPSRuRRY"
-												className ="signUp_passwordRepeatErrorText" 
-											>
-												Password are different.
-											</span>
-											
-											<span 
-												id = "cmp_vetonest.com_rkqxGE9X35"
-												className ="signUp_nameEmpty" 
-											>
-												Name is empty.
-											</span>
-											<span 
-												id = "cmp_vetonest.com_7cAD5u6fyj"
-												className ="signUp_passwordEmpty" 
-											>
-												Password is empty.
-											</span>
-											<span 
-												id = "cmp_vetonest.com_kc3hRmQL1X"
-												className ="signUp_passwordRepeatEmpty" 
-											>
-												Password repeat is empty.
-											</span>
-											<span 
-												className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors" 
-											>
-												Please correct the errors before continuing.
-											</span>
-											<span 
-												className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
-											>
-												Email
-											</span>
-											<span 
-												id = "cmp_vetonest.com_LXBYsFPl1b"
-												className ="signUp_passwordPlaceholder" 
-											>
-												Password
-											</span>
-											<span 
-												id = "cmp_vetonest.com_c6WAL3fo3k"
-												className ="signUp_passwordRepeatPlaceholder" 
-											>
-												Password repeat
-											</span>
-											<span 
-												id = "cmp_vetonest.com_wc4hVvXB3N"
-												className ="signUp_namePlaceholder" 
-											>
-												Name
-											</span>
-											<span 
-												id = "cmp_vetonest.com_EjMb0Ci9C6"
-												className ="signUp_emailEmpty" 
-											>
-												L'email est vide.
-											</span>
-											<span 
-												id = "cmp_vetonest.com_WCfOc17hne"
-												className ="signUp_codeTitle" 
-											>
-												Email verification
-											</span>
-											<span 
-												id = "cmp_vetonest.com_MnveaCfq6X"
-												className ="signUp_codeCorrect" 
-											>
-												Your code is correct.
-											</span>
-											<span 
-												id = "cmp_vetonest.com_2NbkrLN1Nt"
-												className ="signUp_codeIncorrect" 
-											>
-												Your code is not correct. Try again.
-											</span>
-											<span
-												id = "cmp_vetonest.com_Xzm3u4t1uE"
-												className ="signUp_codeIntro" 
-											>
-												We sent a verification code to
-											</span>
-											<span
-												id = "cmp_vetonest.com_PlOAvkzjQx"
-												className ="signUp_codeResend" 
-											>
-												Resend the code
-											</span>
-
-											
-											
-											<span 
-								id = "cmp_vetonest.com_UcvWQuFUwO"
-								className ="signUp_passwordErrorText" 
-							>
-								Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
-							</span>
-							<span 
-								id = "cmp_vetonest.com_BmYPSRuRRY"
-								className ="signUp_passwordRepeatErrorText" 
-							>
-								Password are different.
-							</span>
-							<span 
-								className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors"
-							>
-								Please correct the errors before continuing.
-							</span>
-							<span 
-								id = "cmp_vetonest.com_cFjGEBvej6"
-								className ="passwordForgot_updateSuccess"
-							>
-								Votre mot de passe a été mis a jour.
-							</span>
-							<span 
-								id = "cmp_vetonest.com_LXBYsFPl1b"
-								className ="signUp_passwordPlaceholder" 
-							>
-								Password
-							</span>
-							<span 
-								id = "cmp_vetonest.com_c6WAL3fo3k"
-								className ="signUp_passwordRepeatPlaceholder" 
-							>
-								Password repeat
-							</span>
-							<span 
-								id = "cmp_vetonest.com_JwgqTDF9g7"
-								className ="passwordForgotReset_title" 
-							>
-								Reset your password
-							</span>
-							<span
-								id = "cmp_vetonest"
-								className ="profileAnimal_animalNamePlaceHolder" 
-							>
-								Nom de l'animal
-							</span>
-							profileAnimal_animalNamePlaceHolder
-					</div>
-					
+				<span id = "cmp_vetonest.com_03jgEtJiVa" className ="signUp_firstNamePlaceholder">First name</span>
+				<span className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder">Email</span>
+				<span id = "cmp_vetonest.com_2Mtv5nj9JA" className ="signUp_nameErrorText">Your name seems incorect</span>
+				<span id = "cmp_vetonest.com_P5crAMBBiW" className ="signUp_firstNameErrorText">Your first name seems incorect</span>
+				<span className ="cmp_vetonest.com_GomedYOvSx displayNone contactEmailError signUp_emailErrorText">Your email is not correct</span>
+				<span id = "cmp_vetonest.com_UcvWQuFUwO" className ="signUp_passwordErrorText">Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.</span>
+				<span id = "cmp_vetonest.com_BmYPSRuRRY" className ="signUp_passwordRepeatErrorText">Password are different.</span>
+				<span id = "cmp_vetonest.com_rkqxGE9X35" className ="signUp_nameEmpty">Name is empty.</span>
+				<span id = "cmp_vetonest.com_7cAD5u6fyj" className ="signUp_passwordEmpty">Password is empty.</span>
+				<span id = "cmp_vetonest.com_kc3hRmQL1X" className ="signUp_passwordRepeatEmpty">Password repeat is empty.</span>
+				<span className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors">Please correct the errors before continuing.</span>
+				<span className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder">Email</span>
+				<span id = "cmp_vetonest.com_LXBYsFPl1b" className ="signUp_passwordPlaceholder">Password</span>
+				<span id = "cmp_vetonest.com_c6WAL3fo3k" className ="signUp_passwordRepeatPlaceholder">Password repeat</span>
+				<span id = "cmp_vetonest.com_wc4hVvXB3N" className ="signUp_namePlaceholder">Name</span>
+				<span id = "cmp_vetonest.com_EjMb0Ci9C6" className ="signUp_emailEmpty">L'email est vide.</span>
+				<span id = "cmp_vetonest.com_WCfOc17hne" className ="signUp_codeTitle">Email verification</span>
+				<span id = "cmp_vetonest.com_MnveaCfq6X" className ="signUp_codeCorrect">Your code is correct.</span>
+				<span id = "cmp_vetonest.com_2NbkrLN1Nt" className ="signUp_codeIncorrect">Your code is not correct. Try again.</span>
+				<span id = "cmp_vetonest.com_Xzm3u4t1uE" className ="signUp_codeIntro">We sent a verification code to</span>
+				<span id = "cmp_vetonest.com_PlOAvkzjQx" className ="signUp_codeResend">Resend the code</span>
+				<span id = "cmp_vetonest.com_UcvWQuFUwO" className ="signUp_passwordErrorText">Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.</span>
+				<span id = "cmp_vetonest.com_BmYPSRuRRY" className ="signUp_passwordRepeatErrorText">Password are different.</span>
+				<span className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors">Please correct the errors before continuing.</span>
+				<span id = "cmp_vetonest.com_cFjGEBvej6" className ="passwordForgot_updateSuccess">Votre mot de passe a été mis a jour.</span>
+				<span id = "cmp_vetonest.com_LXBYsFPl1b" className ="signUp_passwordPlaceholder">Password</span>
+				<span id = "cmp_vetonest.com_c6WAL3fo3k" className ="signUp_passwordRepeatPlaceholder">Password repeat</span>
+				<span id = "cmp_vetonest.com_JwgqTDF9g7" className ="passwordForgotReset_title">Reset your password</span>
+				<span id = "cmp_vetonest" className ="profileAnimal_animalNamePlaceHolder">Nom de l'animal</span>
+				profileAnimal_animalNamePlaceHolder
+			</div>
 		</>
 	);
 };

@@ -18,6 +18,7 @@ import Usage from './pages/Usage';
 import Consultation from './pages/Consultation';
 import ConsultationListPetOwner from './pages/ConsultationListPetOwner';
 import ConsultationListVet from './pages/ConsultationListVet';
+import MyPets from './pages/MyPets';
 
 const AllRoutes = {
 
@@ -101,6 +102,10 @@ const AllRoutes = {
 		{	// consultation / list
 			element:  <ConsultationListVet />,
 			path: '/consultation/vet/list',
+		},
+		{	// my pets
+			element:  <MyPets />,
+			path: '/my-pets',
 		},
 		{	// Not found page
 			element: <NotFound 

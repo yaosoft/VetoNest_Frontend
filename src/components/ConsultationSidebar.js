@@ -33,7 +33,7 @@ const ConsultationSidebar = () => {
       label: getAContent( 'cmp_vetonest.com_MyConsultations_Txt' ),
     },
     {
-      key:   "/profile",
+      key:   "/my-pets",
       icon:  <PlusCircleOutlined />,
       label: getAContent( 'cmp_vetonest.com_AddPet_Btn' ) || '+ Add a pet',
     },
