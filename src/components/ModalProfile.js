@@ -758,17 +758,21 @@ const ModalProfile = ( params ) => {
 		if( !date ){
 			setDateDeNaissance( null );
 			setDateDeNaissanceRaw( null );
+			setDateDeNaissanceError( '' );
+			form.validateFields();
 			return
 		}
 		const dateStr = date.format('YYYY-MM-DD');
-		if( fieldName == 'Profile'  && dateStr < "2020-01-01" ){
-			message.error( getAContent('cmp_vetonest.com_Ru6sKa87Xp') )
+		if( fieldName == 'Profile' ){
+			const minBirthDate = dayjs().subtract( 10, 'year' );
+			if( dayjs( dateStr ).isAfter( minBirthDate ) ){
+				message.error( getAContent('cmp_vetonest.com_Ru6sKa87Xp') );
+				return;
+			}
 		}
-		else{
-			const dateNaissance = dayjs( dateStr );
-			setDateDeNaissance( dateNaissance );
-			setDateDeNaissanceRaw( dateStr );
-		}
+		const dateNaissance = dayjs( dateStr );
+		setDateDeNaissance( dateNaissance );
+		setDateDeNaissanceRaw( dateStr );
 		setDateDeNaissanceError( '' );
 		form.validateFields();
 	}
@@ -3261,6 +3265,7 @@ const ModalProfile = ( params ) => {
 									<Form.Item
 										label={signUp_namePlaceholder}
 										name="Name"
+										required={true}
 										rules={[
 											{
 												message: nameError,
@@ -3286,6 +3291,7 @@ const ModalProfile = ( params ) => {
 									<Form.Item
 										label={signUp_firstNamePlaceholder}
 										name="FirstName"
+										required={true}
 										rules={[
 											{
 												message: firstNameError,
@@ -3350,7 +3356,6 @@ const ModalProfile = ( params ) => {
 								<Form.Item 
 									name="BirthdateUser"
 									label={<span><CalendarOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_f82Ns91Qaz')}</span>}
-									required={true}
 									rules={[{
 										message: dateDeNaissanceError,
 										validator: (value) => {
@@ -3365,6 +3370,8 @@ const ModalProfile = ( params ) => {
 											className="backgroundYellow birthdateField width100per100 height40"
 											format={getDateFormatLocale()}
 											value={dateDeNaissance}
+											disabledDate={(current) => current && current.isAfter( dayjs().subtract(10, 'year') )}
+											maxDate={dayjs().subtract(10, 'year')}
 										/>
 									</ConfigProvider>
 								</Form.Item>

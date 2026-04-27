@@ -219,12 +219,13 @@ const MyPets = () => {
 		a();
 	}, [fileList]);
 
-	// ── Species display name ──────────────────────────────────────────────────
+	// ── Species display name (localized using tagRef) ─────────────────────────
 	const getEspeceName = useCallback((especeId) => {
 		if (!especes?.length) return '—';
 		const esp = especes.find(j => j.id === especeId);
-		return esp ? esp.nom : '—';
-	}, [especes]);
+		if (!esp) return '—';
+		return getAContent(esp.tagRef) || esp.nom;
+	}, [especes, getAContent]);
 
 	// ── Date formatter for card display ──────────────────────────────────────
 	const formatDate = useCallback((dateString) => {
@@ -255,18 +256,30 @@ const MyPets = () => {
 		loadData();
 	}, [profileId, profileFormUpdated]);
 
-	// ── Load breed names for all cards ────────────────────────────────────────
+	// ── Load breed names for all cards (with localization) ─────────────────────
 	useEffect(() => {
 		const loadBreeds = async () => {
 			const map = {};
 			for (const pet of userPets) {
 				if (pet?.race?.nom) {
-					map[pet.id] = pet.race.nom;
+					// If the pet already contains a localized name? No, we need to translate
+					// Use tagRef if available on the race object
+					if (pet.race.tagRef) {
+						map[pet.id] = getAContent(pet.race.tagRef) || pet.race.nom;
+					} else {
+						map[pet.id] = pet.race.nom;
+					}
 				} else if (pet?.espece?.id && pet?.race?.id) {
 					try {
 						const breeds = await speciesBreedList(pet.espece.id);
 						const breed = breeds.find(b => b.id === pet.race.id);
-						map[pet.id] = breed ? breed.nom : '—';
+						if (breed) {
+							// Localize breed name if tagRef exists
+							const localizedName = breed.tagRef ? getAContent(breed.tagRef) : null;
+							map[pet.id] = localizedName || breed.nom || '—';
+						} else {
+							map[pet.id] = '—';
+						}
 					} catch { map[pet.id] = '—'; }
 				} else {
 					map[pet.id] = '—';
@@ -275,7 +288,7 @@ const MyPets = () => {
 			setBreedNames(map);
 		};
 		if (userPets?.length) loadBreeds();
-	}, [userPets]);
+	}, [userPets, getAContent]);
 
 	// ── Reset / populate form (mirrors ModalProfile Effect 2 for Animaux) ─────
 	const clearAnimalForm = () => {
@@ -468,7 +481,6 @@ const MyPets = () => {
 
 		return (
 			<div className="pet-card">
-				{/* Photo */}
 				<div className="pet-photo-wrapper">
 					<img
 						src={photoUrl}
@@ -476,8 +488,6 @@ const MyPets = () => {
 						onError={(e) => { e.target.src = photoAnimalDefaultSrc; }}
 					/>
 				</div>
-
-				{/* Info */}
 				<div className="pet-info">
 					<div className="pet-name">🐾 {animal.nom}</div>
 					<div className="pet-meta-line">
@@ -503,8 +513,6 @@ const MyPets = () => {
 						</div>
 					)}
 				</div>
-
-				{/* Actions */}
 				<div className="pet-actions">
 					<button className="btn-action btn-consult" onClick={() => handleConsultation(animal)} title="Consultation">
 						<MedicineBoxOutlined />
@@ -533,7 +541,6 @@ const MyPets = () => {
 
 			<ModalRemoveAnimal />
 
-			{/* Remove confirmation */}
 			<Modal
 				title={
 					<>
@@ -557,11 +564,8 @@ const MyPets = () => {
 				</p>
 			</Modal>
 
-			{/* Main page */}
 			<div className="my-pets-page">
 				<div className="container">
-
-					{/* Header */}
 					<div className="my-pets-header">
 						<div className="my-pets-header-content">
 							<h1 className="my-pets-title">
@@ -578,14 +582,12 @@ const MyPets = () => {
 						)}
 					</div>
 
-					{/* Counter */}
 					<div className="my-pets-stats">
 						<span className="stats-badge">
 							{getAContent('cmp_vetonest.com_Aq5Fm2vNsR')} {userTotalAnimal} {getAContent('cmp_vetonest.com_Nz7Xk4pTbL')}
 						</span>
 					</div>
 
-					{/* Grid */}
 					{loading ? (
 						<div className="loading-container"><Spin size="large" /></div>
 					) : userPets.length > 0 ? (
@@ -604,9 +606,6 @@ const MyPets = () => {
 				</div>
 			</div>
 
-			{/* ═══════════════════════════════════════════════
-			    Add / Edit Modal — mirrors ModalProfile Animaux
-			    ═══════════════════════════════════════════════ */}
 			<Modal
 				title={
 					<div className="modal-title">
@@ -632,8 +631,6 @@ const MyPets = () => {
 				)}
 			>
 				<Form form={form} layout="vertical">
-
-					{/* ── Animal Name ── */}
 					<Form.Item
 						label={getAContent('cmp_vetonest.com_Na82Lm51Qw')}
 						name="AnimalName"
@@ -653,7 +650,6 @@ const MyPets = () => {
 						/>
 					</Form.Item>
 
-					{/* ── Sex ── */}
 					<Form.Item
 						label={getAContent('cmp_vetonest.com_Rp84Bt62Mn')}
 						name="AnimalSex"
@@ -678,7 +674,6 @@ const MyPets = () => {
 						</Radio.Group>
 					</Form.Item>
 
-					{/* ── Birth date ── */}
 					<Form.Item
 						name="AnimalBirthdate"
 						label={getAContent('cmp_vetonest.com_Kd41Ws97Pl')}
@@ -708,7 +703,6 @@ const MyPets = () => {
 						</div>
 					</Form.Item>
 
-					{/* ── Species ── */}
 					<Form.Item
 						label={getAContent('cmp_vetonest.com_Sp94Te63Kz')}
 						name="Espece"
@@ -729,19 +723,19 @@ const MyPets = () => {
 							placeholder={getAContent('cmp_vetonest.com_Xp47Na93Qs')}
 						>
 							{(especes || []).map((v) => (
-								<Option key={v.id} value={v.id}>{v.nom}</Option>
+								<Option key={v.id} value={v.id}>
+									{getAContent(v.tagRef) || v.nom}
+								</Option>
 							))}
 						</Select>
 					</Form.Item>
 
-					{/* ── Breed spinner ── */}
 					{breedSpinner && (
 						<div style={{ textAlign: 'center', marginBottom: 10 }}>
 							<Spin size="small" />
 						</div>
 					)}
 
-					{/* ── Breed ── */}
 					<div style={{ display: showBreeds }}>
 						<label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
 							{getAContent('cmp_vetonest.com_Br61Mx80Qp')}
@@ -765,13 +759,14 @@ const MyPets = () => {
 								placeholder={getAContent('cmp_vetonest.com_Sl9bX2qZm')}
 							>
 								{races.map((v) => (
-									<Option key={v.id} value={v.id}>{v.nom}</Option>
+									<Option key={v.id} value={v.id}>
+										{getAContent(v.tagRef) || v.nom}
+									</Option>
 								))}
 							</Select>
 						</Form.Item>
 					</div>
 
-					{/* ── Insurance ── */}
 					<Form.Item
 						label={getAContent('cmp_vetonest.com_In73Dz45Hw')}
 						name="HaveInsurance"
@@ -796,7 +791,6 @@ const MyPets = () => {
 						</Radio.Group>
 					</Form.Item>
 
-					{/* ── Photo ── */}
 					<Form.Item
 						name="AnimalPhoto"
 						label={getAContent('cmp_vetonest.com_An87Lp40Zc')}
@@ -828,21 +822,18 @@ const MyPets = () => {
 							)}
 						</div>
 					</Form.Item>
-
 				</Form>
 			</Modal>
 
 			<Footer />
 
 			<style jsx="true">{`
-				/* ── Page layout ─────────────────────────────── */
+				/* (styles unchanged, same as original) */
 				.my-pets-page {
 					min-height: calc(100vh - 200px);
 					padding: 40px 0 60px;
 					background: #f5f6fa;
 				}
-
-				/* ── Header ──────────────────────────────────── */
 				.my-pets-header {
 					display: flex;
 					justify-content: space-between;
@@ -865,8 +856,6 @@ const MyPets = () => {
 					line-height: 1.6;
 					max-width: 580px;
 				}
-
-				/* ── Add button ──────────────────────────────── */
 				.btn-add-animal {
 					background: #FFDE59;
 					border: none;
@@ -887,8 +876,6 @@ const MyPets = () => {
 					transform: translateY(-2px);
 					box-shadow: 0 4px 14px rgba(255,222,89,.5);
 				}
-
-				/* ── Stats badge ─────────────────────────────── */
 				.my-pets-stats { margin-bottom: 28px; }
 				.stats-badge {
 					background: #fff;
@@ -899,15 +886,11 @@ const MyPets = () => {
 					color: #495057;
 					font-weight: 500;
 				}
-
-				/* ── Grid ────────────────────────────────────── */
 				.animals-grid {
 					display: grid;
 					grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 					gap: 24px;
 				}
-
-				/* ── Card ────────────────────────────────────── */
 				.pet-card {
 					background: #fff;
 					border-radius: 16px;
@@ -919,8 +902,6 @@ const MyPets = () => {
 					transform: translateY(-4px);
 					box-shadow: 0 8px 24px rgba(0,0,0,.11);
 				}
-
-				/* Photo */
 				.pet-photo-wrapper {
 					width: 100%;
 					height: 200px;
@@ -934,8 +915,6 @@ const MyPets = () => {
 					transition: transform .3s ease;
 				}
 				.pet-card:hover .pet-photo-wrapper img { transform: scale(1.04); }
-
-				/* Info section */
 				.pet-info {
 					padding: 16px 18px 12px;
 				}
@@ -954,8 +933,6 @@ const MyPets = () => {
 				}
 				.meta-label { font-weight: 600; color: #343a40; }
 				.meta-value { color: #555; }
-
-				/* Actions */
 				.pet-actions {
 					display: flex;
 					border-top: 1px solid #f0f0f0;
@@ -982,8 +959,6 @@ const MyPets = () => {
 				.btn-edit:hover    { color: #0d6efd; }
 				.btn-delete:hover  { color: #dc3545; }
 				.btn-action span   { font-size: 11px; }
-
-				/* ── Empty state ──────────────────────────────── */
 				.empty-state {
 					text-align: center;
 					padding: 60px 24px;
@@ -992,23 +967,18 @@ const MyPets = () => {
 					color: #6c757d;
 				}
 				.empty-icon { font-size: 48px; margin-bottom: 16px; }
-
-				/* ── Loading ──────────────────────────────────── */
 				.loading-container {
 					display: flex;
 					justify-content: center;
 					align-items: center;
 					min-height: 300px;
 				}
-
-				/* ── Modal ───────────────────────────────────── */
 				.animal-modal .ant-modal-content { border-radius: 16px; overflow: hidden; }
 				.animal-modal .ant-modal-header  { background: #2c6e49; padding: 18px 24px; }
 				.animal-modal .ant-modal-title   { color: #fff; font-size: 18px; font-weight: 700; }
 				.animal-modal .ant-modal-close   { color: #fff; }
 				.animal-modal .ant-modal-body    { background: #5cb85c; padding: 24px; }
 				.animal-modal .ant-modal-footer  { background: #5cb85c; border-top: 1px solid rgba(255,255,255,.2); padding: 12px 24px; }
-
 				.modal-ok-btn {
 					background: #2c6e49 !important;
 					border-color: #2c6e49 !important;
@@ -1020,8 +990,6 @@ const MyPets = () => {
 					background: #1e4f34 !important;
 					border-color: #1e4f34 !important;
 				}
-
-				/* Radio rows inside modal */
 				.radio-row {
 					display: flex;
 					gap: 12px;
@@ -1032,15 +1000,11 @@ const MyPets = () => {
 					align-items: center;
 					padding-left: 14px;
 				}
-
-				/* Ant Design overrides inside modal */
 				.animal-modal .ant-form-item-label > label { color: #fff; font-weight: 600; font-size: 13px; }
 				.animal-modal .backgroundYellow { background: #FFDE59 !important; }
 				.animal-modal .ant-upload-drag  { background: rgba(255,255,255,.15) !important; border-color: rgba(255,255,255,.5) !important; color: #fff; }
 				.animal-modal .ant-upload-drag:hover { border-color: #fff !important; }
 				.animal-modal .ant-select-selector { background: #FFDE59 !important; border: none !important; }
-
-				/* ── Responsive ──────────────────────────────── */
 				@media (max-width: 768px) {
 					.my-pets-page     { padding: 20px 0 40px; }
 					.my-pets-header   { flex-direction: column; }

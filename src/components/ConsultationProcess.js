@@ -360,6 +360,7 @@ console.log('ConsultationProcess rendered', {
                     className="consultation-form-control"
                     placeholder={getAContent('cmp_vetonest.com_ClickSelectDate_Txt')}
                     disabledDate={disabledDate}
+                    minDate={dayjs().startOf('day')}
                     style={{ width: "100%" }}
                   />
                 </div>
