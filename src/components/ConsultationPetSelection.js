@@ -10,6 +10,7 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
     especes,
     getAContent,
     speciesBreedList,
+    photoAnimalDefaultSrc,
   } = useContext(SiteContext);
   
   const { fetchWithCache } = useCachedData();
@@ -17,7 +18,7 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
   const [breedNames, setBreedNames] = useState({});
   const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
   const loadedSpeciesRef = useRef(new Set());
-  const photoDefaultSrc = '/img/user/1.jpg';
+  const photoDefaultSrc = photoAnimalDefaultSrc;
 
   // Memoize the species name mapping
   const getEspeceName = useCallback((especeId) => {
@@ -69,13 +70,13 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
         
         // If breed name already exists in pet object, use it directly
         if (pet.race?.nom) {
-          breedMap[breedId] = pet.race.nom;
+          breedMap[breedId] = { nom: pet.race.nom, tagRef: pet.race.tagRef || null };
         }
       }
 
-      // If all breeds are already in the pet objects, no need to fetch
+      // Fetch if any breed is missing its nom OR its tagRef (needed for localisation)
       const needsFetching = speciesToLoad.length > 0 && 
-        animals.some(pet => pet.race?.id && !pet.race?.nom);
+        animals.some(pet => pet.race?.id && (!pet.race?.nom || !pet.race?.tagRef));
       
       if (!needsFetching && Object.keys(breedMap).length === 0) {
         // No fetching needed
@@ -98,7 +99,7 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
               if (breeds && Array.isArray(breeds)) {
                 breeds.forEach(breed => {
                   if (breed.id && breed.nom) {
-                    breedMap[breed.id] = breed.nom;
+                    breedMap[breed.id] = { nom: breed.nom, tagRef: breed.tagRef || null };
                   }
                 });
               }
@@ -148,7 +149,10 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
       <div className="consultation-pet-cards-container"> 
         {memoizedAnimals.map((pet) => {
           // Get breed name from pet object or from fetched breeds
-          const breedName = pet.race?.nom || breedNames[pet.race?.id] || "Unknown";
+          const _breedEntry = pet.race?.id ? breedNames[pet.race.id] : null;
+          const breedName = _breedEntry
+            ? (_breedEntry.tagRef ? getAContent(_breedEntry.tagRef) : (_breedEntry.nom || '—'))
+            : (pet.race?.nom || '—');
           
           return (
             <div

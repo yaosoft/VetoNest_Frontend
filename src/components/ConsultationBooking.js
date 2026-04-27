@@ -164,6 +164,7 @@ const ConsultationBooking = ({ params }) => {
     siteDomainName,
     siteEmail,
     getVetos,
+    photoAnimalDefaultSrc,
   } = useContext(SiteContext);
 
   // ✅ Moved inside the component - this is correct!
@@ -836,7 +837,7 @@ const ConsultationBooking = ({ params }) => {
                 <div style={{ margin: "12px 0" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "4px 0" }}>
                     <img
-                      src={selectedPet?.picture ? `${base_url}uploads/files/pets/${selectedPet.picture}` : "/img/user/1.jpg"}
+                      src={selectedPet?.picture ? `${base_url}uploads/files/pets/${selectedPet.picture}` : photoAnimalDefaultSrc}
                       alt={selectedPet?.nom}
                       style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                     />

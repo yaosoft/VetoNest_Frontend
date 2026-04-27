@@ -85,7 +85,7 @@ const formatDate = (dateTimeData, siteLocale, atLabel) => {
 };
 
 const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions }) => {
-  const { base_url, siteLocale, getAContent, truncateString } = useContext(SiteContext);
+  const { base_url, siteLocale, getAContent, truncateString, photoAnimalDefaultSrc } = useContext(SiteContext);
   
   const Row = ({ label, value }) => value ? (
     <div style={{ marginBottom: "10px", fontSize: "14px" }}>
@@ -257,8 +257,7 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
         {carnetAnimal && (
           <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1 }}>
             <Avatar
-              src={petPictureUrl}
-              icon={!petPictureUrl && <UserOutlined />}
+              src={petPictureUrl || photoAnimalDefaultSrc}
               size={48}
               style={{ flexShrink: 0 }}
             />

@@ -35,8 +35,14 @@ const ConsultationSymptoms = (params) => {
 
   const calculateAge = (birthdate) => moment().diff(moment(birthdate), 'years');
 
+  // Special IDs used when species/breed is unknown or not provided
+  const FALLBACK_ESPECE_IDS = [998, 999];
+  const FALLBACK_RACE_IDS   = [9998, 9999];
+
+
   const getEspeceName = (especeId) => {
     if (!especes.length) return '.';
+    if (FALLBACK_ESPECE_IDS.includes(Number(especeId))) return '';
     const found = especes.find((j) => j.id == especeId);
     return found ? getAContent(found.tagRef) : '—';
   };
@@ -55,8 +61,8 @@ const ConsultationSymptoms = (params) => {
 	const symptomData = {
 	  complaint: primaryComplaint,
 	  animalId:  animal.id,
-	  specie:    animal.espece ? getEspeceName(animal.espece.id) : 'Unknown',
-	  breed:     animal.race   ? breedNames[animal.race.id]      : 'Unknown',
+	  specie:    animal.espece && !FALLBACK_ESPECE_IDS.includes(Number(animal.espece.id)) ? getEspeceName(animal.espece.id) : 'Unknown',
+	  breed:     animal.race   && !FALLBACK_RACE_IDS.includes(Number(animal.race.id))   ? (breedNames[animal.race.id]?.nom || 'Unknown') : 'Unknown',
       siteLocale:	 siteLocale.split( '-' )[0],	// fr, en, ...
 	  // Format: "ID--Name*ID--Name"
 	  vetSpecialities: allSpecialities
@@ -191,7 +197,9 @@ console.log( '>>>>>>>>>>>> ddddddddd data', data );
         if (pet?.espece?.id && pet?.race?.id) {
           const breeds = await speciesBreedList(pet.espece.id);
           const breed  = breeds.find((b) => b.id === pet.race.id);
-          map[pet.race.id] = breed ? breed.nom : '—';
+          map[pet.race.id] = breed
+            ? { nom: breed.nom, tagRef: breed.tagRef }
+            : { nom: '—', tagRef: null };
         }
       }
       setBreedNames(map);
@@ -226,8 +234,10 @@ console.log( '>>>>>>>>>>>> ddddddddd data', data );
           <div>
 			  <h4 style={{ margin: "0 0 2px 0" }}>{animal.nom}</h4>
 			  <p style={{ margin: 0, fontSize: "13px", color: "#888" }}>
-				{animal.espece ? getEspeceName(animal.espece.id) : 'Unknown'}
-				{animal.race ? ` · ${breedNames[animal.race.id] || ''}` : ''}
+				{animal.espece && !FALLBACK_ESPECE_IDS.includes(Number(animal.espece.id)) ? getEspeceName(animal.espece.id) : ''}
+				{animal.race && !FALLBACK_RACE_IDS.includes(Number(animal.race.id))
+					? ` · ${ breedNames[animal.race.id]?.tagRef ? getAContent(breedNames[animal.race.id].tagRef) : (breedNames[animal.race.id]?.nom || '') }`
+					: ''}
 				{` · ${calculateAge(animal.dateNaissance?.date ?? '')} ${getAContent('cmp_vetonest.com_Years_Abbreviation')}`}
 				{animal.sexe ? ` · ${animal.sexe.id ? getAContent('cmp_vetonest.com_Male_Gender') : getAContent('cmp_vetonest.com_w31LdP9aQs')}` : ''}
 			  </p>
