@@ -334,15 +334,17 @@ const Contact = () => {
 								]}
 								/* initialValue  = { fullname ? fullname : fullnameDefault } */
 							>
-							   <Input 
-									className="contactus" 
-									placeholder={ placeholderFullname } 
-									type="type" 
-									name="Fullname" 
-									value={ fullname }
-									onChange = { e => handleChangeFullname(e) }
-							   /> 
-							   <span className="placeholderFullname displayNone" id="cmp_vetonest.com_InGStIvYcM" >Nom complet</span>
+								<>
+								   <Input 
+										className="contactus" 
+										placeholder={ placeholderFullname } 
+										type="type" 
+										name="Fullname" 
+										value={ fullname }
+										onChange = { e => handleChangeFullname(e) }
+								   /> 
+								   <span className="placeholderFullname displayNone" id="cmp_vetonest.com_InGStIvYcM" >Nom complet</span>
+								</>
 							</Form.Item>
                         </div>
                         <div className="col-md-12">
@@ -364,15 +366,17 @@ const Contact = () => {
 								]}
 								/* initialValue  = { fullname ? fullname : fullnameDefault } */
 							>
-							   <Input 
-									className="contactus" 
-									placeholder={ placeholderEmail }
-									type="type" 
-									name="Email"
-									value={ email } 
-									onChange = { e => handleChangeEmail(e)}
-								/>
-								<span className="placeholderEmail displayNone" id="cmp_vetonest.com_Xep3PSNstf" >Email</span>
+								<>
+								   <Input 
+										className="contactus" 
+										placeholder={ placeholderEmail }
+										type="type" 
+										name="Email"
+										value={ email } 
+										onChange = { e => handleChangeEmail(e)}
+									/>
+									<span className="placeholderEmail displayNone" id="cmp_vetonest.com_Xep3PSNstf" >Email</span>
+								</>
 							</Form.Item>
                         </div>
                         <div className="col-md-12">
@@ -394,15 +398,17 @@ const Contact = () => {
 									}
 								]}
 							>
-								<Input 
-									className="contactus" 
-									placeholder={ placeholderPhone }
-									type="type" 
-									name="Phone Number" 
-									value={ phoneNumber }
-									onChange = { e => handleChangePhoneNumber(e)}
-								/>
-								<span className="placeholderPhone displayNone" id="cmp_vetonest.com_EeTPYxP4vF" >Numéro de téléphone</span>
+								<>
+									<Input 
+										className="contactus" 
+										placeholder={ placeholderPhone }
+										type="type" 
+										name="Phone Number" 
+										value={ phoneNumber }
+										onChange = { e => handleChangePhoneNumber(e)}
+									/>
+									<span className="placeholderPhone displayNone" id="cmp_vetonest.com_EeTPYxP4vF" >Numéro de téléphone</span>
+								</>
 							</Form.Item>							
                         </div>
                         <div className="col-md-12">
@@ -423,14 +429,16 @@ const Contact = () => {
 									}
 								]}
 							>
-							   <Input.TextArea 
-									className="textarea" 
-									placeholder={ placeholderMessage } 
-									type="type" 
-									value={ siteMessage }
-									onChange = { e => handleChangeSiteMessage(e) }
-								/>
-								<span className="placeholderMessage displayNone" id="cmp_vetonest.com_t6zZkOnoRQ" >Votre message</span>
+								<>
+								   <Input.TextArea 
+										className="textarea" 
+										placeholder={ placeholderMessage } 
+										type="type" 
+										value={ siteMessage }
+										onChange = { e => handleChangeSiteMessage(e) }
+									/>
+									<span className="placeholderMessage displayNone" id="cmp_vetonest.com_t6zZkOnoRQ" >Votre message</span>
+								</>
 							</Form.Item>	
                         </div>
 						
@@ -547,7 +555,7 @@ const Contact = () => {
                <div className="col-md-6">
                   <div className="map_main">
                      <div className="map-responsive">
-						<iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA0s1a7phLN0iaD6-UE7m4qP-z21pH0eSc&amp;q=13371 229 Rue Saint Honoré+75001+Paris+France" width="100%" height="400" frameborder="0" style={{ border:0, width: '100%;'}}  allowfullscreen=""></iframe>
+						<iframe src="https://www.google.com/maps/embed/v1/place?key=AIzaSyA0s1a7phLN0iaD6-UE7m4qP-z21pH0eSc&amp;q=13371 229 Rue Saint Honoré+75001+Paris+France" width="100%" height="400" frameBorder="0" style={{ border:0, width: '100%'}}  allowFullScreen=""></iframe>
 229 RUE SAINT-HONORE 75001 PARIS
                      </div>
                   </div>

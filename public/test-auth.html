@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test</title>
+</head>
+<body>
+    <h1>Auth Test</h1>
+    
+    <div>
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Email" value="vet@example.com">
+        <input type="password" id="password" placeholder="Password" value="your_password">
+        <button onclick="login()">Login</button>
+        <pre id="login-result"></pre>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h2>Test Auth</h2>
+        <button onclick="testAuth()">Test Auth</button>
+        <pre id="auth-result"></pre>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h2>Cookies</h2>
+        <button onclick="showCookies()">Show Cookies</button>
+        <pre id="cookies-result"></pre>
+    </div>
+
+    <script>
+        // ─── Use the correct backend URL ──────────────────────────────────
+        const API_BASE = 'http://localhost/VetoNest/public/index.php';
+        
+        // ─── The login URL from your routes.yaml ───────────────────────────
+        const LOGIN_URL = API_BASE + '/api/user/login';
+        const AUTH_TEST_URL = API_BASE + '/api/test/auth';
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(LOGIN_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                document.getElementById('login-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('login-result').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testAuth() {
+            try {
+                const response = await fetch(AUTH_TEST_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+                
+                const data = await response.json();
+                document.getElementById('auth-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('auth-result').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        function showCookies() {
+            document.getElementById('cookies-result').textContent = document.cookie;
+        }
+    </script>
+</body>
+</html>

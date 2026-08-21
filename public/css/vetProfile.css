@@ -1,0 +1,117 @@
+/* VetProfile.css */
+
+.vet-profile-page {
+  padding: 20px;
+}
+
+.vet-profile-header {
+  margin-bottom: 20px;
+}
+
+.vet-profile-img .profile-img {
+  width: 250px !important;
+  height: 250px !important;
+  border-radius: 10% !important;
+  object-fit: contain !important; /* Change this from cover to contain */
+  margin-left: 5%;
+}
+
+.vet-profile-card {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.vet-availability-card {
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  padding: 20px;
+}
+
+.vet-availability-card .singleFieldManager {
+	margin-top: 0px !important
+}
+
+.vet-availability-card .singleFieldManager .buttonDiv{
+	padding-right: 1% !important;
+	padding-left: 5px !important;
+}
+
+.vet-availability-card .singleFieldManagerArrow{
+	width: 150px !important;
+}
+
+.vet-profile-card h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.vet-profile-card h3 {
+  font-size: 18px;
+  color: #7d7d7d;
+}
+
+.profileBtn {
+    padding-top: 5px !important;
+    padding-left: 12px !important;
+	margin-top: 10px;
+}
+
+.vet-profile-card p {
+  font-size: 14px;
+  color: #7d7d7d;
+}
+
+/* Adjust the profile cards on large screens */
+.vet-card {
+  max-width: 350px; /* Limit card width to avoid overcrowding */
+  margin-bottom: 20px;
+}
+
+
+/* Ensure the image fits within a circular container */
+.vet-card img {
+  width: 150px !important; /* Fixed width */
+  height: 150px  !important; /* Fixed height */
+  object-fit: cover  !important; /* Ensure image maintains aspect ratio and covers the area */
+  border-radius: 50%  !important; /* Circular shape */
+  display: block;
+  margin: 0 auto;  /* Center the image */
+}
+
+
+@media (max-width: 768px) {
+  .vet-profile-img .profile-img {
+    height: 150px;
+  }
+}
+
+@media (max-width: 400px) {
+	.vet-availability-card .singleFieldManagerArrow {
+		width: 90px !important;
+	}
+	
+	.singleFieldManager {
+		width: 110%;
+	}
+}
+
+
+/* Ensure the image has a consistent size on all screen sizes */
+@media (max-width: 768px) {
+  .vet-card img {
+    height: 150px; /* Smaller height for mobile devices */
+  }
+}
+
+/* ListingPage.css */
+
+
+/* Adjust for larger screens (desktop view) */
+@media (min-width: 768px) {
+  .vet-card img {
+    width: 150px;  /* Fixed size for larger screens */
+    height: 150px; /* Keep consistent size */
+  }
+}
+

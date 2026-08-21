@@ -13,21 +13,26 @@ const SecuredPagesAuth = () => {
 	// Admin's user list
 	const adminList = [ 
 		'jane@diamta.com',
-		'info@237usa.com'
 	];
 	
 	// secured pages list
 	const securedPagesPath 	= [
-		'/profile'
+		'/profile',
+		'/clinic',
+		'/consultation',
+		'/consultation/creation',
+		'/consultation/list',
+		'/consultation/vet/list',
+		'/my-pets',
 	]
 	
 	// pages to not referrer
 	const notToReferPages = [
-		'/accueil',
 		'/inscription',
 		'/connexion',
 		'/mot-de-passe-oublie',
 		'/mot-de-passe-oublie/reset',
+		'/etablissement'
 	]
 	
 	// register current page
@@ -44,9 +49,8 @@ const SecuredPagesAuth = () => {
 	useEffect(() => {
 // console.log( 'isAuthenticated', isAuthenticated() );
 			const security = async () => {
-				if( securedPagesPath.includes( currentPage ) && !authenticate ){
-					if( currentPage != '/connexion'  )
-						await navigate( '/connexion' )
+				if( securedPagesPath.includes( currentPage ) && isAuthenticated() === false ){
+					await navigate( '/connexion' )
 				}
 				else if( currentPage.includes( 'dashboard/' ) && !adminList.includes( getUser().email ) ) {
 
