@@ -111,21 +111,21 @@ const Notifications = () => {
 	  // Type 4: Appointment request received
 	  else if (notification.notificationTypeId === 4) {
 		notificationText = getAContent("cmp_vetonest.com_Notif_AppointReceived_Txt") || "📅 You received an appointment request";
-		linkTo = "/consultation/list";
+		linkTo = "/consultation/vet/list";
 		icon = "📅";
 	  }
 
 	  // Type 5: Appointment declined
 	  else if (notification.notificationTypeId === 5) {
 		notificationText = getAContent("cmp_vetonest.com_Notif_AppointDeclined_Txt") || "❌ Your appointment request was declined";
-		linkTo = "/consultation/list";
+		linkTo = "/consultation//vet/list";
 		icon = "❌";
 	  }
 
 	  // Type 6: Appointment accepted
 	  else if (notification.notificationTypeId === 6) {
 		notificationText = getAContent("cmp_vetonest.com_Notif_AppointAccepted_Txt") || "✅ Your appointment request was accepted";
-		linkTo = "/consultation/list";
+		linkTo = "/consultation//vet/list";
 		icon = "✅";
 	  }
 

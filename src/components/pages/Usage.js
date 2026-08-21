@@ -20,7 +20,7 @@ const Usage = () => {
       </div>
 <br/>
       <div className="usage-content" style={{ marginLeft: '70px', marginRight: '20px' }}>
-        <h2>{getAContent("cmp_vetonest.com_VetUserRules_Txt")}</h2>
+        <h2>{getAContent("cmp_vetonest.com_TermsOfUse_Txt")}</h2>
         <br/>
         <div className="usage-rules">
           <h3>1. Vérification de l’identité professionnelle (obligatoire)</h3>

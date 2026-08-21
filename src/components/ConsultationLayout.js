@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef, useState, useLayoutEffect } from "react";
 import { Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -27,10 +27,29 @@ const ConsultationLayout = ({ title, children, hideBookButton = false }) => {
   const navigate = useNavigate();
   const { getAContent } = useContext(SiteContext);
 
+  // Measure the real height of the sticky Header+Title stack instead of
+  // hardcoding "230px" in every child that needs to stick below it.
+  // This stays correct even when the title wraps to two lines in a
+  // longer-translation locale, or the header's own height changes.
+  const stickyStackRef = useRef(null);
+  const [stickyOffset, setStickyOffset] = useState(230);
+
+  useLayoutEffect(() => {
+    const el = stickyStackRef.current;
+    if (!el) return;
+
+    const measure = () => setStickyOffset(el.getBoundingClientRect().height);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <>
+    <div style={{ "--sticky-offset": `${stickyOffset}px` }}>
       {/* ── Sticky top stack ── */}
-      <div className="sticky-stack">
+      <div className="sticky-stack" ref={stickyStackRef}>
         <Header />
         {title && <Title title={title} />}
       </div>
@@ -58,7 +77,7 @@ const ConsultationLayout = ({ title, children, hideBookButton = false }) => {
       </div>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

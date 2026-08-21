@@ -4,16 +4,17 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
-import { Space, Modal, Spin, Button, notification, message, Popconfirm, Radio  } from 'antd';
+import { Space, Modal, Spin, Button, notification, message, Popconfirm, Radio, Alert  } from 'antd';
 import {
 	RadiusBottomleftOutlined,
 	RadiusBottomrightOutlined,
 	RadiusUpleftOutlined,
 	RadiusUprightOutlined,
-	LoadingOutlined
+	LoadingOutlined,
+	ExclamationCircleOutlined,
+	MailOutlined,
+	ArrowLeftOutlined
 } from '@ant-design/icons';
-
-import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import InputCode from "../InputCode";
 
@@ -111,6 +112,11 @@ const SignUp = ( params ) => {
 
 	const [ready, setReady] = useState(false);
 
+// Rate limiting state for resend code
+const [resendCount, setResendCount] = useState(0);
+const [resendCooldown, setResendCooldown] = useState(0);
+const MAX_RESEND_ATTEMPTS = 3;
+const COOLDOWN_SECONDS = 60;
 
 	// firstname
 	const [ signUpFirstName, setSignUpFirstName ] = useState( '' );
@@ -276,6 +282,70 @@ const SignUp = ( params ) => {
 		return formHasEmpty
 	}
 	
+	// Resend verification code with rate limiting
+	const handleResendCode = async () => {
+		if (!signUpEmail) return;
+
+		// Check if user has exceeded max resend attempts
+		if (resendCount >= MAX_RESEND_ATTEMPTS) {
+			message.error("You have reached the maximum number of code requests. Please try again later.");
+			return;
+		}
+
+		// Check cooldown
+		if (resendCooldown > 0) {
+			message.error(`Please wait ${resendCooldown} seconds before requesting another code.`);
+			return;
+		}
+
+		setDisplayCodeIncorrect('none');
+		setDisplayCodeCorrect('none');
+		
+		// Increment resend count
+		setResendCount(prev => prev + 1);
+		
+		// Start cooldown
+		setResendCooldown(COOLDOWN_SECONDS);
+		const interval = setInterval(() => {
+			setResendCooldown(prev => {
+				if (prev <= 1) {
+					clearInterval(interval);
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+		
+		// Generate new code
+		const genCode = await generateRandomDigits(maxCodeLength);
+		setCode(genCode);
+
+		// Send new verification email
+		const domainName = signUpEmail.split('@')[1];
+		const subject = signUp_verifyEmailSubjet + siteName;
+		
+		const sendEmailData = {
+			to_email: signUpEmail,
+			to_domain: domainName,
+			subject: subject,
+			userName: signUpName,
+			siteName: siteName,
+			siteDomain: siteDomain,
+			siteEmail: siteEmail,
+			siteUrl: siteUrl,
+			code: insertSpaceAtPosition(genCode, 3),
+			emailTemplate: 'email_verification'
+		};
+
+		const emailSent = await sendEmail(sendEmailData);
+		
+		if (emailSent) {
+			message.success("Verification code resent!");
+		} else {
+			message.error("Failed to resend code. Please try again.");
+		}
+	};
+	
 	// sign up
 	const [ code, setCode ] = useState( '' );
 	const [ formError01, setFormError01 ] = useState( 'none' );
@@ -333,13 +403,26 @@ console.log( 'signUpType: ' + signUpType );
 		}
 
 		const check = await checkEmail( checkEmailData );
-		if( check ){
-			setFormError02( 'block' );	// display form error
-			message.error( showAFormError( 'formError02' ) );	// display ant error
-			document.getElementById( 'signUpEmailInput' ).focus();
-			setSignUpSpin( 'none' );
-			setSendingDisabled( false );
-			return
+		// Check the actual response structure
+		if (check && check.available === true) {
+			// This means email is available - NO ERROR
+			console.log('Email is available');
+		} else if (check && check.exists === true) {
+			// This means email exists - SHOW ERROR
+			setFormError02('block');
+			message.error(showAFormError('formError02'));
+			document.getElementById('signUpEmailInput').focus();
+			setSignUpSpin('none');
+			setSendingDisabled(false);
+			return;
+		} else if (check === true) {
+			// Old logic - email exists
+			setFormError02('block');
+			message.error(showAFormError('formError02'));
+			document.getElementById('signUpEmailInput').focus();
+			setSignUpSpin('none');
+			setSendingDisabled(false);
+			return;
 		}
 
 		// email verification
@@ -410,26 +493,26 @@ console.log( 'Check email', rep );
 
 
 	const navigate = useNavigate();
+	
 	const modalClosed = async () => {
 		if( emailVerificationResult === false ){
 			setSendingDisabled( false );
 			return
 		}
-//setSignUpFirstNameError( "signUpFirstNameErrorText" );
 
-		
 		const rep = await signUp( signUpData );
 
-// console.log( 'signUp rep: ' + rep );
 		setSignUpSpin( 'none' );
 		setSendingDisabled( false );
+		
 		if( rep === false ){
-			message.error( signUp_accountCreationFails )
+			message.error( signUp_accountCreationFails );
 		}
 		else{
 			message.success( signUp_accountCreationSuccess );
 			
-			navigate( '/connexion' )
+			// Redirect to login page after successful account creation
+			navigate( '/connexion' );
 		}
 	}
 
@@ -469,21 +552,35 @@ console.log( 'Check email', rep );
 		
 	}
 
-	const handleCompletedCode = ( typedCode ) => {
+	const handleCompletedCode = async ( typedCode ) => {
 		
 		if( code != typedCode ){
-				// message.error( { signUp_codeIncorrect } );
-// message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
+			setDisplayCodeIncorrect( 'block' );
+			setEmailVerificationResult( false );
 		}
 		else{
 			message.success( signUp_codeCorrect );
-// message.success( 'Your code is correct' );
 			setDisplayCodeIncorrect( 'none' );
 			setEmailVerificationResult( true );
 			setDisplayCodeCorrect( 'block' );
-			setTimeout( setIsModalOpen, 2000, false );
+			
+			// Create the account after successful verification
+			setSignUpSpin('block');
+			const rep = await signUp(signUpData);
+			setSignUpSpin('none');
+			
+			if( rep === false ){
+				message.error( signUp_accountCreationFails );
+			}
+			else{
+				message.success( signUp_accountCreationSuccess );
+				
+				// Close modal and redirect to login page
+				setTimeout(() => {
+					setIsModalOpen(false);
+					navigate('/connexion');
+				}, 1500);
+			}
 		}
 	}
 	
@@ -585,58 +682,124 @@ console.log( 'Check email', rep );
 			</Modal>
 			
 			{ /* Modal signup code verification */ }
+			{/* Modal signup code verification - UPDATED STYLE */}
 			<Modal
-				title={
-					<p style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
-						<span
+				open={isModalOpen}
+				onCancel={() => setIsModalOpen(false)}
+				footer={null}
+				width={450}
+				maskClosable={false}
+				closable={true}
+				centered
+				styles={{
+					body: {
+						padding: '24px',
+						background: 'transparent'
+					},
+					content: {
+						background: '#fff',
+						borderRadius: '16px',
+						boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+					}
+				}}
+			>
+				<div style={{ textAlign: 'center' }}>
+					<div style={{
+						width: 56,
+						height: 56,
+						borderRadius: '50%',
+						backgroundColor: '#FFDE59',
+						display: 'inline-flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: 16
+					}}>
+						<MailOutlined style={{ fontSize: 28, color: '#000' }} />
+					</div>
+					
+					<h3 style={{ margin: '0 0 8px 0', fontSize: 20, fontWeight: 600 }}>
+						{signUp_codeTitle || "Email Verification"}
+					</h3>
+					
+					<p style={{ margin: '0 0 24px 0', color: '#666', fontSize: 14 }}>
+						{signUp_codeIntro || "We've sent a verification code to"}
+						<br />
+						<strong style={{ color: '#000', fontSize: 15 }}>{signUpEmail}</strong>
+					</p>
+
+					<InputCode
+						length={6}
+						label={signUp_codeLabel || "Enter verification code"}
+						loading={loading}
+						onComplete={handleCompletedCode}
+						autoFocus
+					/>
+
+					{displayCodeCorrect === 'block' && (
+						<Alert
+							message={signUp_codeCorrect || "Code verified successfully!"}
+							type="success"
+							showIcon
+							style={{ marginTop: 16, textAlign: 'left' }}
+						/>
+					)}
+					
+					{displayCodeIncorrect === 'block' && (
+						<Alert
+							message={signUp_codeIncorrect || "Invalid verification code"}
+							description="Please check your code and try again."
+							type="error"
+							showIcon
+							style={{ marginTop: 16, textAlign: 'left' }}
+						/>
+					)}
+					
+					<div style={{ marginTop: 24 }}>
+						<span style={{ color: '#666', marginRight: 8 }}>
+							{signUp_codeResend || "Didn't receive the code?"}
+						</span>
+						 <Button
+							type="default"
+							htmlType="submit"
+							block
+							className="login-form__btn rounded10"
+							onClick={handleClickRegistration}
+							disabled={sendingDisabled}
 							style={{
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								width: 22,
-								height: 22,
-								borderRadius: '50%',
-								backgroundColor: '#FFDE59',
-								marginRight: 8,
+								height: '45px',
+								backgroundColor: '#000000',
+								borderColor: '#000000',
+								color: '#ffffff'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = '#333333';
+								e.currentTarget.style.borderColor = '#333333';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = '#000000';
+								e.currentTarget.style.borderColor = '#000000';
 							}}
 						>
-						<ExclamationCircleOutlined />
-						</span>
-						<span>
-							{ signUp_codeTitle }
-						</span>
-					</p>
-				}
-				closable		= {{ 'aria-label': 'Custom Close Button' }}
-				open			= { isModalOpen }
-				onCancel		= { handleCancel }
-				afterClose		= { modalClosed }
-				footer			= { null }
-				maskClosable	= { false } // This prevents closing on mask click
-			>
-	
-				<div className="App">
-					<span>{ signUp_codeIntro } </span>&nbsp;
-					<span>{ signUpEmail }</span>
-				  <InputCode
-					length={6}
-					label={ signUp_codeLabel }
-					// label="Type your code"
-					loading={loading}
-					onComplete={code => {
-					  setLoading(true);
-					  setTimeout(() => setLoading(false), 10000);
-					  handleCompletedCode( code )
-					}}
-				  />
-				<div className = "row" >
-					<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
-					<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
-					<span className='text text-info' >{ signUp_codeResend }</span>
+							<Space>
+								{signUpSpin === 'block' && (
+									<Spin
+										indicator={
+											<LoadingOutlined
+												style={{
+													fontSize: 20,
+													color: '#ffffff',
+												}}
+												spin
+											/>
+										}
+									/>
+								)}
+								{signUp_btnSubmit}
+							</Space>
+						</Button>
+					</div>
 				</div>
-				</div>		
-					
-		</Modal>
+			</Modal>
 		
 		  <div className="sticky-stack">
 			<Header />
@@ -881,10 +1044,24 @@ console.log( 'Check email', rep );
 													type="primary"
 													htmlType="submit"
 													block
-													className="login-form__btn rounded10 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
+													size="large"
+													className="login-form__btn rounded10"
 													onClick={handleClickRegistration}
 													disabled={sendingDisabled}
-													style={{ height: '45px' }}
+													style={{
+														height: '45px',
+														backgroundColor: '#000000',
+														borderColor: '#000000',
+														color: '#ffffff'
+													}}
+													onMouseEnter={(e) => {
+														e.currentTarget.style.backgroundColor = '#333333';
+														e.currentTarget.style.borderColor = '#333333';
+													}}
+													onMouseLeave={(e) => {
+														e.currentTarget.style.backgroundColor = '#000000';
+														e.currentTarget.style.borderColor = '#000000';
+													}}
 												>
 													<Space>
 														{signUpSpin === 'block' && (
@@ -893,7 +1070,7 @@ console.log( 'Check email', rep );
 																	<LoadingOutlined
 																		style={{
 																			fontSize: 20,
-																			color: 'wheat',
+																			color: '#ffffff',
 																		}}
 																		spin
 																	/>

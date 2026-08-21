@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
 import { SiteContext } from '../context/site';
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Upload } from 'antd';
@@ -15,6 +15,7 @@ import {
 import { Form, Input, Select } from 'antd';
 
 import Content from './Content.js';
+import CookieConsent from './CookieConsent';  // Import the existing CookieConsent component
 
 const Footer = () => {
 	
@@ -110,12 +111,6 @@ const Footer = () => {
 			return;
 		}
 
-		// check the recaptcha 
-		// if( !recaptchaValue ){ // recaptcha
-			// message.error( 'Please check the recaptcha verification' )
-			// return;
-		// }
-
 		// send data
 		setLoginSpin( 'block' ); // spin
 		const html = 'Hello, <br><br>You have received a newsletter subscription request on cecilia-group.com,<br><br> Sender email: '  + email + '<br/><br/><br/><br/>Regards';
@@ -123,10 +118,8 @@ const Footer = () => {
 			html: 		html,
 			subject: 	'New message on cecilia-group.com',
 		}
-// console.log( data )
 
 		const rep = await sendMessage( data );
-// console.log( rep );
 		if( !rep ){
 			message.error( 'An error occured' )
 		}
@@ -153,13 +146,9 @@ const Footer = () => {
 	useEffect( () => {
 		// menu active button
 		const path = window.location.pathname.replace( '/', '' );
-// console.log( 'path', path );
-// console.log( 'active', active );
 		const newActiveArr = active.map( e =>  e.path != path ? ({ path : e.path, actif : '' }) : ({ path : e.path, actif : 'active' } ) ); // 
-// console.log( 'newActiveArr', newActiveArr );
 		setActive( newActiveArr );	
 		
-
 	}, [] );
 	
 	const [form] = Form.useForm();
@@ -170,16 +159,18 @@ const Footer = () => {
          <div className="footer">
             <div className="container">
                <div className="row">
-                  <div className=" col-md-4">
+                  {/* Column 1: Contact us */}
+                  <div className="col-md-3">
                      <h3 className="cmp_vetonest.com_SOJVt74LSV">Contact us</h3>
                      <ul className="conta">
                         <li><i className="fa fa-map-marker" aria-hidden="true"></i> 229 Rue Saint-Honore,<br/>75001 Paris<br/>France</li>
                         <li><i className="fa fa-mobile" aria-hidden="true"></i> +33 602 455 0680</li>
                         <li> <i className="fa fa-envelope" aria-hidden="true"></i><a href="#"> info@vetonest.com</a></li>
                      </ul>
-					 
                   </div>
-                  <div className="col-md-4">
+                  
+                  {/* Column 2: Menu Link */}
+                  <div className="col-md-3">
                      <h3 id="cmp_vetonest.com_iXxQuX5SHG">Menu Link</h3>
                      <ul className="link_menu">
                         <li className={active[0].actif} >
@@ -213,14 +204,42 @@ const Footer = () => {
 						</li>
                      </ul>
                   </div>
-                  <div className="col-md-4">
+                  
+                  {/* Column 3: Réseaux */}
+                  <div className="col-md-3">
                      <h3 id="cmp_vetonest.com_jkquJ9NP2S">Réseaux</h3>
-					 
                      <ul className="social_icon">
                         <li><a href="#"><i className="fa fa-facebook" aria-hidden="true"></i></a></li>
                         <li><a href="#"><i className="fa fa-twitter" aria-hidden="true"></i></a></li>
                         <li><a href="#"><i className="fa fa-linkedin" aria-hidden="true"></i></a></li>
                         <li><a href="#"><i className="fa fa-youtube-play" aria-hidden="true"></i></a></li>
+                     </ul>
+                  </div>
+                  
+                  {/* NEW Column 4: Legal */}
+                  <div className="col-md-3">
+                     <h3>Légal</h3>
+                     <ul className="link_menu" style={{ listStyle: "none", paddingLeft: 0 }}>
+                        <li>
+                           <a style={{ cursor: 'pointer' }} onClick={() => handleClickGoto('mentions-legales')}>
+                              Mentions légales
+                           </a>
+                        </li>
+                        <li>
+                           <a style={{ cursor: 'pointer' }} onClick={() => handleClickGoto('disclaimer')}>
+                              Disclaimer médical
+                           </a>
+                        </li>
+                        <li>
+                           <a style={{ cursor: 'pointer' }} onClick={() => handleClickGoto('conditions-utilisation')}>
+                              Conditions générales d'utilisation
+                           </a>
+                        </li>
+                        <li>
+                           <a style={{ cursor: 'pointer' }} onClick={() => handleClickGoto('cookies')}>
+                              Politique des cookies
+                           </a>
+                        </li>
                      </ul>
                   </div>
                </div>
@@ -237,6 +256,8 @@ const Footer = () => {
          </div>
 		 <Content />
       </footer>
+      {/* Cookie Consent Banner */}
+      <CookieConsent />
 		</>
 	);
 };

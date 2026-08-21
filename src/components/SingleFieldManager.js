@@ -152,7 +152,9 @@ const SingleFieldManager = ( params ) => {
 			// Lieu transport
 			if( fieldName == "Etablissement_lieu" && params.params.lieuId ){
 				const lieuId = params.params.lieuId;
+				const etablissement_id = params.params.cliniqueId;
 				setSelectedLieuId( lieuId );
+				setSelectedVetoClinique( etablissement_id );
 			}
 			else{
 				setSelectedLieuId( null );
@@ -221,30 +223,23 @@ const SingleFieldManager = ( params ) => {
 	}
 	
 	return (
-	<>
-		{
-			<>
-				<div key={'timeslot_' + title} className="row singleFieldManager height40">
-					<div className={ 'dataDiv textAlignLeft ' + backgroundColor }>
-						<span>
-							{ value ? value : placeholder }
-							&nbsp;
-							{ description && BuildTooltip(description) }
-						</span>
-					</div> 
-					<div
-						className={`arrowWidth borderRadius18 ${!type ? backgroundColor : 'backgroundYellow'}`}
-						role="button"
-						tabIndex={0}
-						onClick={() => handleClickField(fieldName)}
-					>
-						<span>{ BuildArrowContent(type) }</span>
-					</div>
-				</div>
-
-			</>
-		}
-	</>
+		<div key={'timeslot_' + title} className="row singleFieldManager">
+			<div className={ 'dataDiv textAlignLeft ' + backgroundColor }>
+				<span>
+					{ value ? value : placeholder }
+					&nbsp;
+					{ description && BuildTooltip(description) }
+				</span>
+			</div>
+			<div
+				className={`arrowWidth borderRadius18 ${!type ? backgroundColor : 'backgroundYellow'}`}
+				role="button"
+				tabIndex={0}
+				onClick={() => handleClickField(fieldName)}
+			>
+				<span>{ BuildArrowContent(type) }</span>
+			</div>
+		</div>
 	);
 };
 

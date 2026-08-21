@@ -4,11 +4,35 @@ import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
 
 import { Country, State, City }  from 'country-state-city';
-import { Form, Input, Select, Checkbox, List, TimePicker, Radio  } from 'antd';
+import { 
+    ExclamationCircleOutlined,
+    DeleteOutlined, 
+    LockOutlined, 
+    UnlockOutlined, 
+    UserOutlined, 
+    CalendarOutlined, 
+    ManOutlined, 
+    WomanOutlined, 
+    GlobalOutlined, 
+    EnvironmentOutlined, 
+    HomeOutlined, 
+    MailOutlined, 
+    PhoneOutlined, 
+    EditOutlined, 
+    InfoCircleOutlined, 
+    LinkOutlined,
+    EuroCircleOutlined,
+    SafetyOutlined,
+    MedicineBoxOutlined,
+    CarOutlined,
+    CompassOutlined,
+} from '@ant-design/icons';
 
-import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload } from 'antd';
+import { ConfigProvider, Form, Input, Select, Divider, Radio, Checkbox } from 'antd';
+
+import { Space,  DatePicker, Modal, Spin, Button, notification, message, Popconfirm, Upload, TimePicker } from 'antd';
 import dayjs from 'dayjs';
-import { ConfigProvider } from 'antd';
+
 
 import locale_fr from 'antd/locale/fr_FR';
 import locale_en from 'antd/locale/en_US';
@@ -20,8 +44,8 @@ import 'dayjs/locale/en';
 import 'dayjs/locale/es';
 import 'dayjs/locale/de';
 import 'dayjs/locale/it';
+import VetName from './VetName';
 
-import { ExclamationCircleOutlined, DeleteOutlined, LockOutlined, UnlockOutlined, UserOutlined, CalendarOutlined, ManOutlined, WomanOutlined, GlobalOutlined, EnvironmentOutlined, HomeOutlined, MailOutlined, PhoneOutlined, EditOutlined } from '@ant-design/icons';
 import InputCode from "./InputCode";
 
 const ModalProfile = ( params ) => {
@@ -91,6 +115,11 @@ const ModalProfile = ( params ) => {
 		country_belgium,
 		country_spain,
 		country_germain,
+		country_estonia,  // add this
+		country_usa,      // add this
+		country_uk,       // add this
+		country_canada,   // add this	
+		country_australia,		
 		profileIdentity_addressPlaceholder,
 		profileIdentity_addressErrorText,
 		profileIdentity_codePostalErrorText,
@@ -144,8 +173,8 @@ const ModalProfile = ( params ) => {
 		profileVeto_nameErrorText,
 		allSpecialities,
 		allEtablissementTypes,
-		validateRppsNumber,
-		validateSiretNumber,
+		// validateRppsNumber,
+		// validateSiretNumber,
 		phoneNumberErrorText,
 		phoneNumberErrorText02,
 		absences,
@@ -169,7 +198,6 @@ const ModalProfile = ( params ) => {
 		lieuTransportUpdate,
 		vetos,
 		setCliniqueVetos,
-		countryList,
 		getPaysVilles,
 		getAContent,
 		getUserPets,
@@ -179,10 +207,58 @@ const ModalProfile = ( params ) => {
 		lieuDelete,
 		getAVetoLieux,
 		getUserLieu,                // NEW: to load user's location
+		professionalIdList,
+		professionalIdByCountry,
+		getTranslatedMessage,  // Add this
+		professionalIdValidator,
+		updateEtablissementPhoto,
+		getVetTitles,
+		getAVetoProfile,
+		listVetoMode,
 	} = useContext( SiteContext )
 	
 	// Dynamic fields error
 	const [errors, setErrors] = useState({});
+	
+	// Clinic photo
+	const [etablissementPhoto, setEtablissementPhoto] = useState('');
+	const [etablissementPhotoFile, setEtablissementPhotoFile] = useState(null);
+	const [etablissementPhotoFileList, setEtablissementPhotoFileList] = useState([]);
+	const [etablissementPhotoError, setEtablissementPhotoError] = useState('');
+	const [isEtablissementPhotoModalOpen, setIsEtablissementPhotoModalOpen] = useState(false);
+	
+	const handleEtablissementPhotoChange = (info) => {
+		const file = info.file;
+		if (file) {
+			setEtablissementPhotoFile(file);
+			setEtablissementPhotoFileList([file]);
+			
+			// Preview the image
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				setEtablissementPhoto(e.target.result);
+			};
+			reader.readAsDataURL(file.originFileObj);
+		}
+	};
+
+	const etablissementPhotoProps = {
+		accept: '.png,.jpg,.jpeg',
+		listType: 'picture',
+		fileList: etablissementPhotoFileList,
+		multiple: false,
+		maxCount: 1,
+		showUploadList: false,
+		className: 'avatar-uploader',
+		onChange: handleEtablissementPhotoChange,
+		onDrop(e) {
+			console.log('Dropped files', e.dataTransfer.files);
+		},
+	};
+	
+	// Add these state variables
+	const [individualExample, setIndividualExample] = useState('');
+	const [businessExample, setBusinessExample] = useState('');
 	
 	// Dynamic fields onchange
 	const handleFieldChange = (field, value) => {
@@ -277,7 +353,27 @@ const ModalProfile = ( params ) => {
 		a();
 	}, [fileList]);
 
+	// Add with your other state variables (around line 300-400)
+	const [vetTitles, setVetTitles] = useState([]);
+	const [selectedVetTitleId, setSelectedVetTitleId] = useState(null);
+
+	// Add handler for title change
+	const handleVetTitleChange = (titleId) => {
+		setSelectedVetTitleId(titleId);
+		form.setFieldsValue({ VetTitleId: titleId });
+	};
 	
+	// Fetch vet titles when component mounts
+	useEffect(() => {
+		const f = async() => {
+			const vetTitle = await getVetTitles( );
+// console.log( "vvvvvvvvvvvvv vetTitle", vetTitle );
+			setVetTitles(vetTitle);
+		}
+		f();
+	}, []);
+
+
 	const modalPhotoCancel = () => {
 		setIsModalPhotoOpen( false );
 	}
@@ -314,6 +410,19 @@ const ModalProfile = ( params ) => {
 
 		setNameError( nameErrorText );
 	}
+
+	// profesional IDs
+	const [individualProfessionalId, setIndividualProfessionalId] = useState('');
+	const [individualProfessionalIdError, setIndividualProfessionalIdError] = useState('');
+	const [businessProfessionalId, setBusinessProfessionalId] = useState('');
+	const [businessProfessionalIdError, setBusinessProfessionalIdError] = useState('');
+	const [professionalIdMapping, setProfessionalIdMapping] = useState(null);
+	const [individualLabel, setIndividualLabel] = useState('RPPS');
+	const [businessLabel, setBusinessLabel] = useState('SIRET');
+	const [individualRegex, setIndividualRegex] = useState(null);
+	const [businessRegex, setBusinessRegex] = useState(null);
+	const [verificationUrl, setVerificationUrl] = useState(null);
+	const [isSaving, setIsSaving] = useState(false);
 
 	// veto to invite
 	const [ vetosToInvite, setVetosToInvite ] = useState( [] );
@@ -470,7 +579,8 @@ const ModalProfile = ( params ) => {
 	
 	// parking name validator
 	const addressNameValidator = (name) => {
-		const rep = /^[\p{L}0-9\s&'\-’,.](?:[\p{L}0-9\s&'\-’,.€$()\/\\]*[\p{L}0-9\s&'\-’,.)])?$/u.test(name);
+		// Added ':' to both character classes and '\s*$' at the end to handle trailing tabs/spaces safely
+		const rep = /^[\p{L}0-9\s&'\-’,.:](?:[\p{L}0-9\s&'\-’,.€$()\/\\]*[\p{L}0-9\s&'\-’,.):])?\s*$/u.test(name);
 		return rep;
 	}
 	
@@ -844,10 +954,14 @@ const ModalProfile = ( params ) => {
 		setVetCityOptions([]);
 		setDisplayVetCity('none');
 		setVetCountryError('');
+		setVetCityError('');
+		form.setFieldsValue({ VetCity: null });
+		form.resetFields(['VetCity']);
 		if (countryId) {
 			const cities = await getPaysVilles(countryId);
 			if (cities && cities.length) {
-				setVetCityOptions(cities);
+				const localizedCities = await getLocalizedCities( cities );
+				setVetCityOptions(localizedCities);
 				setDisplayVetCity('block');
 			} else {
 				setDisplayVetCity('none');
@@ -869,6 +983,14 @@ const ModalProfile = ( params ) => {
 		form.validateFields(['VetAddress']);
 	};
 
+	const getLocalizedCities = async( cities ) => {
+		for ( const city of cities ){
+			const localCity = await getAContent( city.tagRef )
+			city.nom = localCity;
+		}
+		return cities;
+	}
+
 	// ========== USER LOCATION (Lieu) STATE & HANDLERS ==========
 	const [userLieuId, setUserLieuId] = useState(null);
 	const [userAddress, setUserAddress] = useState('');
@@ -889,7 +1011,8 @@ const ModalProfile = ( params ) => {
 		if (countryId) {
 			const cities = await getPaysVilles(countryId);
 			if (cities && cities.length) {
-				setUserCityOptions(cities);
+				const localizedCities = await getLocalizedCities( cities );
+				setUserCityOptions(localizedCities);
 				setDisplayUserCity('block');
 			} else {
 				setDisplayUserCity('none');
@@ -955,7 +1078,7 @@ const ModalProfile = ( params ) => {
 			countriesAllowed.map( ( country, index ) => 
 				({
 					value: country.id,
-					label: country.nom,
+					label: getAContent( country.tagRef ),
 				})
 			)
 		)
@@ -1091,82 +1214,180 @@ const ModalProfile = ( params ) => {
 
 	// save
 	const handleClickSave = async ( e ) => {
-		// Etablissement_veto
-		if( fieldName == 'Etablissement_veto' ){
-			const data = {
-				vetoEtablissementStatusId: '',
-				etablissementId: vetoCliniqueInfo.id,
-				profileVetoIdStr: checkedVetoList.join( '*' ),
-				status: 1,
-				enabled: 1,
-			}
-			const rep = await setCliniqueVetos( data );
-			if( rep === false ){
-				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
-			}
-			else{
-				const random = await generateRandomDigits(3);
-				setProfileFormUpdated( random );
-				message.success( getAContent( 'cmp_vetonest.com_Js81Qm49Tf' )  );
-				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
-				setModalProfileIdentityOpen( false );
-			}			
+		if (isSaving) return;
+		setIsSaving(true);
+		try {
+		return await _handleClickSaveInner(e);
+		} finally {
+			setIsSaving(false);
 		}
-		// Etablissement_lieu
-		if( fieldName == 'Etablissement_lieu' ){
-			const formHasErrors = form.getFieldsError().some(f => f.errors.length > 0);
-			if( formHasErrors ){
-				message.error( signUp_correctErrors );
-				return
-			}
-			var formHasEmpty = '';
-			const checkFormEmpty = async( ) => {
-				if( !etablissementAddress ){
-					formHasEmpty = getAContent( 'cmp_vetonest.com_Lz52Qm14Br' );
-					setEtablissementAddressError( formHasEmpty );
+	}
+
+	const _handleClickSaveInner = async ( e ) => {
+		// Etablissement_veto
+	if( fieldName == 'Etablissement_veto' ){
+
+		// Resolve the clinic ID — try both common shapes of the object
+		const etablissementIdValue = vetoCliniqueInfo.etablissementId || vetoCliniqueInfo.id;
+		if( !etablissementIdValue ){
+			console.error( '❌ Cannot send invitations: vetoCliniqueInfo has no id', vetoCliniqueInfo );
+			message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
+			return;
+		}
+
+		const rep = await setCliniqueVetos({
+			vetoEtablissementStatusId: '',
+			etablissementId: etablissementIdValue,
+			profileVetoIdStr: checkedVetoList.join( '*' ),
+			status: 1,
+			enabled: 1,
+		});
+
+		if( rep === false ){
+			message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
+			return;
+		}
+
+		const random = await generateRandomDigits( 3 );
+
+		// ── Shared clinic data (computed once) ──────────────────────────────
+		const clinicName    = vetoCliniqueInfo.name || vetoCliniqueInfo.nom || '';
+		const clinicPageUrl = `${window.location.origin}/etablissement?etablissementId=${etablissementIdValue}`;
+
+		let clinicTypeName = '';
+		if( vetoCliniqueInfo.type ){
+			clinicTypeName = typeof vetoCliniqueInfo.type === 'object'
+				? ( vetoCliniqueInfo.type.nom || '' )
+				: vetoCliniqueInfo.type;
+		}
+
+		const firstLocation = vetoCliniqueInfo.lieux?.length > 0
+			? vetoCliniqueInfo.lieux[0]
+			: null;
+
+		// ── Localized subject (driven by siteLocale) ─────────────────────────
+		const langKey = ( siteLocale || 'en' ).split( '-' )[0].toLowerCase();
+		const subjectMap = {
+			fr: `Invitation à rejoindre ${clinicName} sur ${siteName}`,
+			es: `Invitación para unirse a ${clinicName} en ${siteName}`,
+			de: `Einladung, ${clinicName} auf ${siteName} beizutreten`,
+			it: `Invito a unirsi a ${clinicName} su ${siteName}`,
+			en: `Invitation to join ${clinicName} on ${siteName}`,
+		};
+		const emailSubject = subjectMap[ langKey ] || subjectMap.en;
+
+		// ── Loop through invited vets ────────────────────────────────────────
+		const invitedVets = vetosToInvite.filter( v => checkedVetoList.includes( v.id ) );
+
+		for( const vet of invitedVets ){
+
+			// Resolve email — three fallback strategies
+			let vetEmail =
+				vet.email ||
+				vet.user?.email ||
+				null;
+
+			if( !vetEmail ){
+				try{
+					const vetProfile = await getAVetoProfile( vet.id );
+					vetEmail = vetProfile?.user?.email || null;
+				} catch( profileError ){
+					console.error( 'Error fetching vet profile:', profileError );
 				}
-				if( !form.getFieldValue('LieuCountry') ){
-					formHasEmpty = getAContent( 'cmp_vetonest.com_SelectCountry_Txt' );
-					setLieuCountryError( formHasEmpty );
-				}
-				if( !form.getFieldValue('LieuCity') ){
-					formHasEmpty = getAContent( 'cmp_vetonest.com_SelectCity_Txt' );
-					setLieuCityError( formHasEmpty );
-				}
-				form.validateFields();
-			}
-			await checkFormEmpty();
-			if( formHasEmpty ){
-				message.error( formHasEmpty );
-				return
 			}
 
+			if( !vetEmail ){
+				console.warn( `⚠️ No email for vet ${vet.id} — ${vet.prenom} ${vet.nom}` );
+				message.warning( `Adresse email non trouvée pour ${vet.prenom} ${vet.nom}` );
+				continue;
+			}
+
+			const vetName    = `${vet.prenom || ''} ${vet.nom || ''}`.trim();
+			const domainName = vetEmail.split( '@' )[1];
+
+			const sendEmailData = {
+				// ── Transport ────────────────────────────────────────────────
+				to_email:      vetEmail,
+				to_domain:     domainName,
+				subject:       emailSubject,
+				emailTemplate: 'vet_invitation',
+				// ── Site (match PHP $request->getPayload()->get('...') keys) ─
+				siteLocale:    siteLocale,
+				userName:      vetName || 'Cher collègue',
+				siteName:      siteName,
+				siteDomain:    siteDomain,
+				siteEmail:     siteEmail,
+				siteURL:       window.location.origin,
+				// ── Clinic invitation (new fields added to PHP controller) ────
+				clinicName:    clinicName,
+				clinicType:    clinicTypeName,
+				clinicAddress: firstLocation?.adresse || '',
+				clinicCity:    firstLocation?.ville   || '',
+				invitationUrl: clinicPageUrl,
+			};
+
+			try{
+				const emailResult = await sendEmail( sendEmailData );
+				if( emailResult?.success === true ){
+					message.success( getAContent( 'cmp_vetonest.com_Js81Qm49Tf' ) + ' ' + vetName );
+				} else {
+					console.error( `❌ Email failed for ${vetName}:`, emailResult );
+					message.warning( `Email non envoyé à ${vetName}` );
+				}
+			} catch( emailError ){
+				console.error( 'Exception while sending email:', emailError );
+				message.error( `Erreur lors de l'envoi de l'email à ${vetName}` );
+			}
+		}
+
+		setProfileFormUpdated( random );
+		message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' ) );
+		setModalProfileIdentityOpen( false );
+	}
+		
+
+		// Etablissement_lieu
+		// Etablissement_lieu
+		if( fieldName == 'Etablissement_lieu' ){
+			
+			// Let Ant Design handle validation — shows inline errors under each field
+			let allValues;
+			try {
+				allValues = await form.validateFields();
+			} catch( validationError ) {
+				// form.validateFields() rejects and shows inline errors automatically
+				return;
+			}
+			
+			// Get form values
 			const etablissementLieuData = {
-				...( selectedLieuId  && { lieuId: selectedLieuId } ),
-                adresse: form.getFieldValue('LieuAddress'),
-                info: form.getFieldValue('Info'),
+				...( selectedLieuId && { lieuId: selectedLieuId } ),
+				adresse: form.getFieldValue('LieuAddress'),
+				info: form.getFieldValue('Info'),
 				parking: form.getFieldValue('Parking'),
 				paysId: form.getFieldValue('LieuCountry'),
 				villeId: form.getFieldValue('LieuCity'),
-				...( userProfile.atHome  && { profileVetoId: userProfile.id } ),
-				...( !userProfile.atHome  && { etablissementId: vetoCliniqueInfo.id } ),
-                enabled: true,
+				...( userProfile.atHome && { profileVetoId: userProfile.id } ),
+				...( !userProfile.atHome && { etablissementId: vetoCliniqueInfo.etablissementId } ),
+				enabled: true,
 			}
-
+			
+			// Get dynamic transport values
 			const dynamicFieldNames = transports.map( field => field.fieldName );
-			const allValues = await form.validateFields();
 			const dynamicValues = Object.fromEntries(
 				Object.entries(allValues).filter(([key]) =>
 					dynamicFieldNames.includes(key)
 				)
 			);
 			
+			// Save the lieu
 			const lieuId = await saveLieu( etablissementLieuData );
 			if( lieuId === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
 				return;
 			}
 			else{
+				// Save transports
 				const etsTransport = transports.map( ( v, k ) => { 
 					const description = dynamicValues[ v.fieldName ];
 					const transportId = v.id;
@@ -1180,9 +1401,12 @@ const ModalProfile = ( params ) => {
 				})
 				for ( const transport of etsTransport ){
 					const rep = await lieuTransportUpdate( transport );
+					if (!rep) {
+						console.warn('Failed to save transport:', transport);
+					}
 				}
 			}
-			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
+			message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' ) );
 			setModalProfileIdentityOpen( false );
 			const random = generateRandomDigits(3);
 			setProfileFormUpdated( random );
@@ -1235,23 +1459,24 @@ const ModalProfile = ( params ) => {
 				return
 			}
 			const etablissementData = {
-				...(vetoCliniqueInfo && { etablissementId: vetoCliniqueInfo.id }),
+				...(vetoCliniqueInfo && { etablissementId: vetoCliniqueInfo.etablissementId }),
                 nom: etablissementName,
                 presentation: etablissementPresentation,
 				etablissementTypeId: selectedEtablissementTypes[0],
 				creatorProfileId: profileId,
                 enabled: true,
 			}
-			const resp = await etablissementUpdate( etablissementData );
-			if( resp === false ){
-				message.error( getAContent( 'cmp_vetonest.com_Ep4wZq81Fs' ) );
+			// Use updateEtablissementPhoto with photo file
+			const resp = await updateEtablissementPhoto(etablissementData, etablissementPhotoFile?.originFileObj);
+			
+			if (resp === false) {
+				message.error(getAContent('cmp_vetonest.com_Ep4wZq81Fs'));
 				return;
-			}
-			else{
-				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
-				setModalProfileIdentityOpen( false );
+			} else {
+				message.success(getAContent('cmp_vetonest.com_Fg6kVs22Qe'));
+				setModalProfileIdentityOpen(false);
 				const random = generateRandomDigits(3);
-				setProfileFormUpdated( random );
+				setProfileFormUpdated(random);
 				return;
 			}
 		}
@@ -1386,21 +1611,25 @@ const ModalProfile = ( params ) => {
 				setModalProfileIdentityOpen( false );
 			}
 		}
-		
+
 		// Profile veto
-		if( fieldName == 'ProfileVeto' ){
+		if( fieldName == 'ProfileVeto' ){ 
 			const checkFormErrors = async( ) => { 
 				var errorsExist = false;
 				if( phoneNumberError != '' ) errorsExist = true
 				else if( vetoNameError != '' ) errorsExist = true
 				else if( vetoFirstNameError != '' ) errorsExist = true
-				else if( vetoRppsError != '' ) errorsExist = true
-				else if( vetoSiretError != '' ) errorsExist = true
 				else if( tarifMinError != '' ) errorsExist = true
 				else if( tarifMaxError != '' ) errorsExist = true
 				else if( tarifVideoMinError != '' ) errorsExist = true
 				else if( tarifVideoMaxError != '' ) errorsExist = true
-				form.validateFields();
+				else if( videoAllowedError != '' ) errorsExist = true
+				try {
+					await form.validateFields();
+				} catch( validationError ) {
+					// Catches field-rule failures (empty/invalid INAMI, BCE, city, country…)
+					errorsExist = true;
+				}
 				return errorsExist
 			}
 			const formHasErrors = await checkFormErrors();
@@ -1409,6 +1638,8 @@ const ModalProfile = ( params ) => {
 				return
 			}
 			var formHasEmpty = false;
+			const isOnlineMode = allVetoModes.find( m => m.id === vetoModeId )?.name === 'online';
+			const effectiveVideoAllowed = isOnlineMode ? 1 : videoAllowed;
 			const checkFormEmpty = () => {
 				if( !phoneNumber ){
 					const error = getAContent( 'cmp_vetonest.com_Fa92Ld10Xp' );
@@ -1430,13 +1661,34 @@ const ModalProfile = ( params ) => {
 					setVetoSpecialiteError( error );
 					formHasEmpty = true;
 				}  
-				if( vetoType == null ){ 
+				if( vetoModeId == null ){ 
 					const error = getAContent( 'cmp_vetonest.com_Kp48Qs91Lm' );
 					setVetoTypeError( error );
 					formHasEmpty = true
 				}
+				// Online-only vets: videoAllowed is forced = 1, so skip its
+				// null-check (it can't be null in that mode).
+				const isOnlineMode = allVetoModes.find( m => m.id === vetoModeId )?.name === 'online';
+				if( !isOnlineMode && videoAllowed == null ){
+					const error = getAContent( 'cmp_vetonest.com_video_allowed_required' ) || 'Please indicate if video consultation is allowed';
+					setVideoAllowedError( error );
+					formHasEmpty = true
+				}
+				const isInvalidTarif = ( v ) => !v || Number( v ) <= 0;
+				if( isInvalidTarif( tarifMin ) || isInvalidTarif( tarifMax ) ){
+					const error = getAContent( 'cmp_vetonest.com_tarif_required' ) || 'Consultation price is required and must be greater than 0';
+					setTarifMinError( error );
+					setTarifMaxError( error );
+					formHasEmpty = true
+				}
+				if( (effectiveVideoAllowed === 1) && ( isInvalidTarif( tarifVideoMin ) || isInvalidTarif( tarifVideoMax ) ) ){
+					const error = getAContent( 'cmp_vetonest.com_tarif_video_required' ) || 'Video consultation price is required and must be greater than 0';
+					setTarifVideoMinError( error );
+					setTarifVideoMaxError( error );
+					formHasEmpty = true
+				}
 				if( formHasEmpty )
-					form.validateFields(); 
+					form.validateFields().catch(() => {}); // visual errors only; blocking done above
 				return formHasEmpty;
 			}
 			await checkFormEmpty();
@@ -1445,18 +1697,23 @@ const ModalProfile = ( params ) => {
 				return
 			}
 			const sendData = {
-				userId:				userId,
-				nom: 				vetoName,
-				prenom:				vetoFirstName,
-				phone:				selectedCountryCode + ' ' + phoneNumber.replaceAll( "", "" ),
-				siret:				vetoSiret,
-				rpps: 				vetoRpps,
-				specialiteId: 		vetoSelectedSpecialities[0],
-				atHome: 			vetoType,
-				profileId:			profileId,
-				tarifConsultation: tarifMin & tarifMax && tarifMin + '-' + tarifMax,
-				tarifConsultationVideo:  tarifVideoMin & tarifVideoMax && tarifVideoMin + '-' + tarifVideoMax,
-			}
+				userId: userId,
+				nom: vetoName,
+				prenom: vetoFirstName,
+				phone: selectedCountryCode + ' ' + phoneNumber.replaceAll(" ", ""),
+				vetTitleId: selectedVetTitleId || null, 
+				individualProfessionalId: individualProfessionalId,
+				businessProfessionalId: businessProfessionalId,
+				professionalIdMappingId: professionalIdMapping?.id || null,
+				specialiteId: vetoSelectedSpecialities[0],
+				vetoModeId: vetoModeId,                  // canonical — new field
+				atHome: vetoType,                        // backward-compat legacy bool
+				profileId: profileId,
+				tarifConsultation: tarifMin && tarifMax ? tarifMin + '-' + tarifMax : '',
+				videoAllowed: effectiveVideoAllowed,
+				tarifConsultationVideo: effectiveVideoAllowed === 1 && tarifVideoMin && tarifVideoMax ? tarifVideoMin + '-' + tarifVideoMax : '',
+				biography: biography,
+			};
 			const rep = await profileUpdate( sendData, null, profileTypeId );
 			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Hr1mPx54Tb' ) );
@@ -1508,7 +1765,7 @@ const ModalProfile = ( params ) => {
 		// Language
 		if( fieldName == 'Language' ){
 			const languagePreferenceData = {
-				userId: 	userId,
+				userId:     userId,
 				languageId: lastSelectedLanguage
 			}
 			const rep = await updateLanguagePreference( languagePreferenceData )
@@ -1520,11 +1777,15 @@ const ModalProfile = ( params ) => {
 				const random = generateRandomDigits(3);
 				setProfileFormUpdated( random );
 				message.success( getAContent( 'cmp_vetonest.com_Qb7tHr52Nv' ) );
-				return
+				// Add these lines to close the modal
+				setModalProfileIdentityOpen( false );
+				setHasModalBeenShown( false );
+				form.resetFields();
+				return; // Add return to stop execution
 			}
 			else{
 				message.error( getAContent( 'cmp_vetonest.com_Wk1cPv64Ts' ) );
-				return
+				return;
 			}
 		}
 		
@@ -1718,54 +1979,6 @@ const ModalProfile = ( params ) => {
 			setIsModalOpen(true);
 			return
 		}
-	
-		// Biography
-		if( fieldName == 'Biography' ){
-			const checkFormErrors = async( ) => {
-				var errorsExist = false;
-				if( biographyError != '' )
-					errorsExist = true
-				return errorsExist
-			}
-			const formHasErrors = await checkFormErrors();
-			if( formHasErrors ){
-				message.error( signUp_correctErrors );
-				setPwResetSpin( 'none' );
-				setSendingDisabled( false );
-				return
-			}
-			const checkFormEmpty = async( ) => {
-				var formHasEmpty = false;
-				if( !biography ){
-					const error = getAContent( 'cmp_vetonest.com_Vm3fHt24Ls' );
-					setBiographyError( error );
-					formHasEmpty = true
-				}
-				if( formHasEmpty )
-					form.validateFields(); 
-				return formHasEmpty;
-			}
-			const formHasEmpty = await checkFormEmpty();
-			if( formHasEmpty ){
-				message.error( getAContent( 'cmp_vetonest.com_Af92YTwI3c' ) );
-				return
-			}
-			const profileData = {
-				userId: 	userId,
-				profileId: 	profileId,
-				biography: biography
-			}
-			const rep = await profileUpdate( profileData )
-			if( rep !== false ){
-				const random = generateRandomDigits(3);
-				message.success( getAContent( 'cmp_vetonest.com_Va8rTk27Qf' ) );
-				return
-			}
-			else{
-				message.error( getAContent( 'cmp_vetonest.com_Wk1cPv64Ts' ) ); 
-				return
-			}
-		}
 
 		// Profile (User)
 		if( fieldName == 'Profile' ){
@@ -1815,38 +2028,45 @@ const ModalProfile = ( params ) => {
 				return
 			}
 			const sendData = {
-				nom: 				name,
-				prenom:				firstName,
-				sexeId:				sexe ? sexe : userProfile.sexeId,
-				profileId: 			profileId,
-				dateDeNaissance: 	dayjs( dateDeNaissanceRaw ).format("YYYY-MM-DD"),
-				langues: 			selectedLanguages.join( ',' ),
-			}
+				nom:                name,
+				prenom:             firstName,
+				sexeId:             sexe ? sexe : userProfile.sexeId,
+				profileId:          profileId,
+				userId:             userId,
+				dateDeNaissance:    dayjs( dateDeNaissanceRaw ).format("YYYY-MM-DD"),
+				langues:            selectedLanguages.join( ',' ),
+				// Location fields
+				lieuId:             userLieuId || null,
+				lieuAddress:        userAddress || '',
+				lieuCountryId:      userCountryId || null,
+				lieuCityId:         userCityId || null,
+				country:            userCountryId ? countriesAllowed.find(c => c.id === userCountryId)?.nom : '',
+				city:               userCityId ? userCityOptions.find(c => c.id === userCityId)?.nom : '',
+				adresse:            userAddress || '',
+			};
 			const rep = await profileUpdate( sendData, null, profileTypeId );
 			if( rep === false ){
 				message.error( getAContent( 'cmp_vetonest.com_Ls9uDe03Km' ) );
 				return;
 			}
-			else{
-				// Save location (Lieu) for the user
-				if (userCountryId && userCityId) {
-					const lieuData = {
-						lieuId: userLieuId || null,
-						adresse: userAddress || null,
-						paysId: userCountryId,
-						villeId: userCityId,
-						profileUserId: profileId,
-						enabled: true,
-					};
-					await saveLieu(lieuData);
-				}
-				user['userPrenom'] = firstName;
-				user['userNom'] = name;
-				logIn( user );
+			else {
+				// Update user object with new values
+				const updatedUser = { ...user };
+				updatedUser.userPrenom = firstName;
+				updatedUser.userNom = name;
+				await logIn(updatedUser);
+				
+				// Force a refresh of the parent profile data
 				const random = generateRandomDigits(3);
-				setProfileFormUpdated( random );
-				message.success( getAContent( 'cmp_vetonest.com_Fg6kVs22Qe' )  );
-				setModalProfileIdentityOpen( false );
+				setProfileFormUpdated(random);
+				
+				message.success(getAContent('cmp_vetonest.com_Fg6kVs22Qe'));
+				setModalProfileIdentityOpen(false);
+				
+				// Manually update local state to avoid delay
+				setName(name);
+				setFirstName(firstName);
+				setSexe(sexe ? sexe : userProfile.sexeId);
 			}
 		}
 		
@@ -2089,7 +2309,7 @@ const ModalProfile = ( params ) => {
 	const handleChangeFlag = ( countryIso ) => {
 		const country = countriesAllowed.filter( e => e.iso == countryIso )[0];
 		setSelectedFlag( country.iso );
-		setSelectedCountryCode( country.countryCodc );
+		setSelectedCountryCode( country.countryCode );
 	}
 
 	const handleChangeCountrySelected = ( countryCode ) => {
@@ -2105,21 +2325,37 @@ const ModalProfile = ( params ) => {
 	}
 
 	const [ displayLieuCity, setDisplayLieuCity ] = useState( 'none' );
-	const handleChangeLieuCountrySelected = async ( countryId ) => {
-		setLieuCountrySelected( countryId );
-		const lieuVilles = await getPaysVilles( countryId ); 
-		if( lieuVilles.length ){
-			setDisplayLieuCity( 'block' );
-			setLieuCities( lieuVilles );
+	const handleChangeLieuCountrySelected = async (countryId) => {
+		setLieuCountrySelected(countryId);
+		setLieuCountryError(''); // Clear error when user selects
+		setLieuCitySelected('');
+		setLieuCityError('');
+		form.setFieldsValue({ LieuCity: undefined });
+		
+		if (countryId) {
+			const lieuVilles = await getPaysVilles(countryId);
+			if (lieuVilles && lieuVilles.length) {
+				const localizedCities = await getLocalizedCities(lieuVilles);
+				setLieuCities(localizedCities);
+				setDisplayLieuCity('block');
+			} else {
+				setLieuCities([]);
+				setDisplayLieuCity('none');
+			}
+		} else {
+			setLieuCities([]);
+			setDisplayLieuCity('none');
 		}
-		else{
-			setDisplayLieuCity( 'none' )
-		}
-	}
+		
+		form.validateFields(['LieuCountry']);
+	};
 
-	const handleChangeLieuCitySelected = ( cityId ) => {
-		setLieuCitySelected( cityId );
-	}
+	const handleChangeLieuCitySelected = (cityId) => {
+		setLieuCitySelected(cityId);
+		setLieuCityError(''); // Clear error when user selects
+		form.setFieldsValue({ LieuCity: cityId });
+		form.validateFields(['LieuCity']);
+	};
 
 	// states
 	const [ stateError, setStateError ] = useState( '' );
@@ -2238,35 +2474,117 @@ const ModalProfile = ( params ) => {
 	}
 	
 	// veto RPPS
-	const [ vetoRpps, setVetoRpps ] =  useState( '' );
-	const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
-	const handleChangeVetoRpps = async ( e ) => {
-		const data = e.target.value;
-		setVetoRpps( data );
-		var vetoRppsErrorText = '';
-		const test = await validateRppsNumber( data );
-		if( data != '' && test === false ){
-			vetoRppsErrorText = getAContent(  'cmp_vetonest.com_Di6c1XpMf4'  ) ;
-		}
-		setVetoRppsError( vetoRppsErrorText );
-		form.validateFields();
-	}
+	// const [ vetoRpps, setVetoRpps ] =  useState( '' );
+	// const [ vetoRppsError, setVetoRppsError ] =  useState( '' );
+	// const handleChangeVetoRpps = async ( e ) => {
+		// const data = e.target.value;
+		// setVetoRpps( data );
+		// var vetoRppsErrorText = '';
+		// const test = await validateRppsNumber( data );
+		// if( data != '' && test === false ){
+			// vetoRppsErrorText = getAContent(  'cmp_vetonest.com_Di6c1XpMf4'  ) ;
+		// }
+		// setVetoRppsError( vetoRppsErrorText );
+		// form.validateFields();
+	// }
 
 	// veto SIRET 
-	const [ vetoSiret, setVetoSiret ] =  useState( '' );
-	const [ vetoSiretError, setVetoSiretError ] =  useState( '' );
-	const handleChangeVetoSiret = ( e ) => {
+	// const [ vetoSiret, setVetoSiret ] =  useState( '' );
+	// const [ vetoSiretError, setVetoSiretError ] =  useState( '' );
+	// const handleChangeVetoSiret = ( e ) => {
+		// const data = e.target.value;
+		// setVetoSiret( data );
+		// var vetoSiretErrorText = '';
+		// const test = validateSiretNumber( data )
+		// if( data != '' && test === false ){
+			// vetoSiretErrorText = getAContent( 'cmp_vetonest.com_Zz1k5BrTn8' );
+			// setVetoSiretError( vetoSiretErrorText )
+		// }
+		// setVetoSiretError( vetoSiretErrorText );
+		// form.validateFields();
+	// }
+
+	// Handler for individual professional ID (RPPS, NPI, GMC, etc.)
+	const handleChangeIndividualProfessionalId = async (e) => {
 		const data = e.target.value;
-		setVetoSiret( data );
-		var vetoSiretErrorText = '';
-		const test = validateSiretNumber( data )
-		if( data != '' && test === false ){
-			vetoSiretErrorText = getAContent( 'cmp_vetonest.com_Zz1k5BrTn8' );
-			setVetoSiretError( vetoSiretErrorText )
+		setIndividualProfessionalId(data);
+		form.setFieldsValue({ IndividualProfessionalId: data });
+		let errorText = '';
+		let isValidFormat = true;
+		
+		// Quick regex check for format
+		if (data && individualRegex) {
+			const regex = new RegExp(individualRegex);
+			isValidFormat = regex.test(data);
+			if (!isValidFormat) {
+				errorText = getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: individualLabel });
+			}
 		}
-		setVetoSiretError( vetoSiretErrorText );
+		
+		// If format passes and we have a country ID, do full validation via backend
+		if (isValidFormat && data && data.length > 0 && vetCountryId) {
+			try {
+				const response = await fetch('/api/validate/professionalId', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						value: data,
+						type: 'individual',
+						countryId: vetCountryId
+					})
+				});
+				const result = await response.json();
+				if (!result.valid) {
+					errorText = getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: individualLabel });
+				}
+			} catch (err) {
+				console.error('Validation error:', err);
+			}
+		}
+		
+		setIndividualProfessionalIdError(errorText);
 		form.validateFields();
-	}
+	};
+
+	// Handler for business professional ID (SIRET, EIN, CRN, etc.)
+	const handleChangeBusinessProfessionalId = (e) => {
+		const data = e.target.value;
+		setBusinessProfessionalId(data);
+		form.setFieldsValue({ BusinessProfessionalId: data });
+		let errorText = '';
+		let isValidFormat = true;
+		
+		// Quick regex check for format
+		if (data && businessRegex) {
+			const regex = new RegExp(businessRegex);
+			isValidFormat = regex.test(data);
+			if (!isValidFormat) {
+				errorText = getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: businessLabel });
+			}
+		}
+		
+		// If format passes and we have a country ID, do full validation via backend
+		if (isValidFormat && data && data.length > 0 && vetCountryId) {
+			// You can add async validation here if needed
+			// For now, just use regex validation
+			if (!isValidFormat) {
+				errorText = getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: businessLabel });
+			}
+		}
+		
+		setBusinessProfessionalIdError(errorText);
+		form.validateFields();
+	};
+
+	// Helper to open verification URL
+	const openVerificationUrl = () => {
+		if (verificationUrl) {
+			window.open(verificationUrl, '_blank');
+		}
+	};
+
+
+
 
 	const [ tarif, setTarif ] =  useState( '' );
 	const [ tarifVideo, setTarifVideo ] =  useState( '' );
@@ -2278,7 +2596,11 @@ const ModalProfile = ( params ) => {
 		setTarifMin( data );
 		setTarifMinError( '' );
 		setTarifMaxError( '' );
-		if( parseInt( data ) > parseInt( tarifMax )  ){
+		if( data && parseInt( data ) <= 0 ){
+			const tarifZeroErrorText = getAContent( 'cmp_vetonest.com_tarif_zero_not_allowed' ) || 'Price must be greater than 0';
+			setTarifMinError( tarifZeroErrorText );
+		}
+		else if( parseInt( data ) > parseInt( tarifMax )  ){
 			const tarifMinErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifMinError( tarifMinErrorText );
 		}
@@ -2301,7 +2623,11 @@ const ModalProfile = ( params ) => {
 		setTarifMax( data );
 		setTarifMinError( '' );
 		setTarifMaxError( '' );
-		if( parseInt( data ) < parseInt( tarifMin )  ){
+		if( data && parseInt( data ) <= 0 ){
+			const tarifZeroErrorText = getAContent( 'cmp_vetonest.com_tarif_zero_not_allowed' ) || 'Price must be greater than 0';
+			setTarifMaxError( tarifZeroErrorText );
+		}
+		else if( parseInt( data ) < parseInt( tarifMin )  ){
 			const tarifMaxErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifMaxError( tarifMaxErrorText );
 		}
@@ -2324,7 +2650,11 @@ const ModalProfile = ( params ) => {
 		setTarifVideoMin( data );
 		setTarifVideoMinError( '' );
 		setTarifVideoMaxError( '' );
-		if( parseInt( data ) > parseInt( tarifVideoMax )  ){
+		if( data && parseInt( data ) <= 0 ){
+			const tarifZeroErrorText = getAContent( 'cmp_vetonest.com_tarif_zero_not_allowed' ) || 'Price must be greater than 0';
+			setTarifVideoMinError( tarifZeroErrorText );
+		}
+		else if( parseInt( data ) > parseInt( tarifVideoMax )  ){
 			const tarifVideoMinErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifVideoMinError( tarifVideoMinErrorText );
 		}
@@ -2347,7 +2677,11 @@ const ModalProfile = ( params ) => {
 		setTarifVideoMax( data );
 		setTarifVideoMinError( '' );
 		setTarifVideoMaxError( '' );
-		if( parseInt( data ) < parseInt( tarifVideoMin )  ){
+		if( data && parseInt( data ) <= 0 ){
+			const tarifZeroErrorText = getAContent( 'cmp_vetonest.com_tarif_zero_not_allowed' ) || 'Price must be greater than 0';
+			setTarifVideoMaxError( tarifZeroErrorText );
+		}
+		else if( parseInt( data ) < parseInt( tarifVideoMin )  ){
 			const tarifVideoMaxErrorText = getAContent( 'cmp_vetonest.com_Ra73Qm81Lp' );
 			setTarifVideoMaxError( tarifVideoMaxErrorText );
 		}
@@ -2362,14 +2696,49 @@ const ModalProfile = ( params ) => {
 		form.validateFields();
 	}
 
-	// Veto Type
-	const [ vetoType, setVetoType ] = useState( userProfile.atHome );
-	const [ vetoTypeError, setVetoTypeError ] = useState( userProfile.atHome );
-	const handleChangeVetoType =  ( e ) => { 
-		const vetoTypeId = e.target.value;
-		setVetoType( vetoTypeId );
-		setVetoTypeError( '' );
+	// Video consultation allowed (1 = allowed, 0 = not allowed, null = not specified yet)
+	const [ videoAllowed, setVideoAllowed ] = useState( null );
+	const [ videoAllowedError, setVideoAllowedError ] = useState( '' );
+	const handleChangeVideoAllowed = ( e ) => {
+		const value = e.target.value;
+		setVideoAllowed( value );
+		setVideoAllowedError( '' );
+		if( value === 0 ){
+			// Video consultation disallowed: clear the video price range, it's no longer relevant
+			setTarifVideoMin( '' );
+			setTarifVideoMax( '' );
+			setTarifVideoMinError( '' );
+			setTarifVideoMaxError( '' );
+			form.setFieldsValue( { TarifVideoMin: '', TarifVideoMax: '' } );
+		}
+		form.validateFields();
 	}
+
+	// Veto Type
+	// Veto modes (home / clinic / online) loaded from the API
+	const [ allVetoModes, setAllVetoModes ] = useState( [] );
+	// The selected VetoMode id (matches veto_mode.id: 1=home, 2=clinic, 3=online)
+	const [ vetoModeId, setVetoModeId ] = useState( null );
+	const [ vetoTypeError, setVetoTypeError ] = useState( '' );
+
+	// Kept as a derived convenience so legacy code that reads vetoType still
+	// compiles.  1 = home, 0 = clinic/online (mirrors old atHome bool).
+	const vetoType = vetoModeId !== null
+		? (allVetoModes.find(m => m.id === vetoModeId)?.name === 'home' ? 1 : 0)
+		: null;
+
+	const handleChangeVetoType = ( e ) => {
+		const selectedId = e.target.value; // veto_mode.id
+		setVetoModeId( selectedId );
+		setVetoTypeError( '' );
+		// Online-only vets must always have video enabled — force it and lock it
+		const selectedMode = allVetoModes.find( m => m.id === selectedId );
+		if ( selectedMode?.name === 'online' ) {
+			setVideoAllowed( 1 );
+			setVideoAllowedError( '' );
+			form.setFieldsValue( { VideoAllowed: 1 } );
+		}
+	};
 
 	const [ checkboxesAtHomeNoneSelectedDisplay, setCheckboxesAtHomeNoneSelectedDisplay ] = useState( 'none' );
 	
@@ -2391,6 +2760,25 @@ const ModalProfile = ( params ) => {
 
 	// form
 	const [form] = Form.useForm();
+
+	// When Effect 2 loads the profile it sets vetCountryId, which triggers the
+	// vetCountryId watcher. That watcher would normally reset the professional ID
+	// fields. To prevent this, Effect 2 stores the saved IDs here first; the
+	// watcher reads and clears them so it can restore instead of reset.
+	const pendingProfessionalIds = React.useRef(null);
+
+	// Effect 0: load veto modes once on mount — these are static reference data
+	// (home / clinic / online) that don't change per session, so we only fetch
+	// once and cache in state.
+	useEffect( () => {
+		const fetchModes = async () => {
+			const modes = await listVetoMode();
+			if ( modes && modes.length ) {
+				setAllVetoModes( modes );
+			}
+		};
+		fetchModes();
+	}, [] ); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Effect 1: control modal open/close only — isolated so data-loading state
 	// changes don't retrigger the guard and immediately close the modal.
@@ -2426,6 +2814,8 @@ const ModalProfile = ( params ) => {
 		}
 		setCountries( countries );
 		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
+// console.log( '>>>>>>>>>>>>>> cccccccccc countriesOptions', countriesOptions );
+
 		setCountriesOptions( countriesOptions  );
 		const countryDefault = [ userProfile.paysDeLaConsultation ? userProfile.paysDeLaConsultation.id : 1 ];
 		setCountriesSelected( countryDefault );
@@ -2443,49 +2833,34 @@ const ModalProfile = ( params ) => {
 		setAnimalInsurance( null );
 		const a = async () => {
 			// Etablissement
-			if( fieldName == "Etablissement" ){
-				if( vetoCliniqueInfo ){
-					setEtablissementName( vetoCliniqueInfo.nom );
-					setEtablissementPresentation( vetoCliniqueInfo.presentation );
-					setSelectedEtablissementTypes( [ vetoCliniqueInfo.etablissementType.id ] );
-					form.setFieldsValue( { EtablissementName: vetoCliniqueInfo.nom } );
-					form.setFieldsValue( { EtablissementPresentation: vetoCliniqueInfo.presentation } );
-					form.setFieldsValue( { EtablissementType: [ vetoCliniqueInfo.etablissementType.id ] } );
-					setVetoCliniqueInfo( vetoCliniqueInfo );
+			const vetoCliniqueInfo = await getVetoCliniqueInfo(profileId);
+			if (fieldName == "Etablissement") {
+				if (vetoCliniqueInfo.etablissementId) {
+// console.log( 'vvvvvvvvvvvvvvvvvvvvvvvvv vetoCliniqueInfo', vetoCliniqueInfo );
+					setEtablissementName(vetoCliniqueInfo.name);
+					setEtablissementPresentation(vetoCliniqueInfo.presentation);
+
+					// etablissementType may be null if the clinic has no type set yet
+					const etablissementTypeId = vetoCliniqueInfo.type?.id ?? null;
+					setSelectedEtablissementTypes(etablissementTypeId ? [etablissementTypeId] : []);
+
+					// Load existing photo
+					if (vetoCliniqueInfo.picture) {
+						setEtablissementPhoto(base_url + 'uploads/files/etablissement/' + vetoCliniqueInfo.picture);
+					}
+
+					form.setFieldsValue({
+						EtablissementName: vetoCliniqueInfo.name,
+						EtablissementPresentation: vetoCliniqueInfo.presentation,
+						EtablissementType: etablissementTypeId ? [etablissementTypeId] : [],
+						EtablissementPhoto: vetoCliniqueInfo.picture ?? null,
+					});
+					setVetoCliniqueInfo(vetoCliniqueInfo);
 				}
-			}
-			// Animals
-			if( fieldName == "Animaux" && selectedPetId ){
-				const pets = userPets;
-				const pet = pets.filter( e => e.id == selectedPetId )[0];
-				const animalName = pet.nom;
-				setAnimalName( animalName );
-				form.setFieldsValue( {AnimalName: animalName} );
-				const especeId = pet.espece.id;
-				form.setFieldsValue( { Espece: especeId } );
-				setEspeceSelectedId( especeId );
-				if( especeId ){
-					const breeds = await speciesBreedList( especeId );
-					setRaces( breeds );
-					const raceId = pet.race.id;
-					form.setFieldsValue( { Race: raceId } );		
-					setRaceSelectedId( raceId );
-					setShowBreeds( '' )
-				}
-				const dateStr = pet.dateNaissance.date;
-				setAnimalDateNaissanceRaw( dateStr );
-				setAnimalDateNaissance( await dateFormater( dateStr ) );
-				const haveInsurance = pet.assurance;
-				form.setFieldsValue( { HaveInsurance: haveInsurance } );
-				setAnimalInsurance( haveInsurance ); 
-				const sexId = pet.sexe.id;
-				form.setFieldsValue( { AnimalSex: sexId } );
-				setAnimalSexe( sexId );				
-				const picture = pet.picture;
-				setAnimalPhoto( picture );
 			}
 			// User profile
 			if( fieldName == "Profile" ){
+// console.log( '------ uuuuuuuuuuserProfile', userProfile );
 				const name = userProfile.nom;
 				setName( name );
 				form.setFieldsValue( {Name: name} );
@@ -2516,7 +2891,8 @@ const ModalProfile = ( params ) => {
 						if (userLieu.pays?.id) {
 							const cities = await getPaysVilles(userLieu.pays.id);
 							if (cities.length) {
-								setUserCityOptions(cities);
+								const localizedCities = await getLocalizedCities( cities );
+								setUserCityOptions(localizedCities);
 								setDisplayUserCity('block');
 							}
 						}
@@ -2536,23 +2912,41 @@ const ModalProfile = ( params ) => {
 				form.setFieldsValue( { VetoFirstName: userProfile.prenom } );
 				const countryCode = userProfile.phone ? userProfile.phone.split( ' ' )[0] : '+33'
 				const phone = userProfile.phone ? userProfile.phone.split( ' ' )[1] : ''
-				const country = countriesAllowed.filter( e => e.countryCodc == countryCode )[0];
+				const country = countriesAllowed.filter( e => e.countryCode == countryCode )[0];
 				const countryIso = country ? country.iso : 'fr';
 				setSelectedCountryCode( countryCode );
 				setSelectedFlag( countryIso );
 				setPhoneNumber( phone );
 				form.setFieldsValue( { PhoneNumber: phone } );
-				setVetoSiret( userProfile.siret );
-				form.setFieldsValue( { VetoSiret: userProfile.siret } );
-				setVetoRpps( !userProfile.rpps );
-				form.setFieldsValue( { VetoRpps: userProfile.rpps } );
+				// setVetoSiret( userProfile.siret );
+				// form.setFieldsValue( { VetoSiret: userProfile.siret } );
+				// setVetoRpps( !userProfile.rpps );
+				// form.setFieldsValue( { VetoRpps: userProfile.rpps } );
 				const specialiteId = userProfile.vetoSpecialite?.id ? Number(userProfile.vetoSpecialite.id) : null;
 				const specialiteIds = specialiteId ? [ specialiteId ] : [];
 				setVetoSelectedSpecialities( specialiteIds );
 				form.setFieldsValue( { VetoSpecialite: specialiteIds } );
-				const vetoType = userProfile.atHome != null ? ( userProfile.atHome == true ? 1 : 0 ) : null;
-				setVetoType( vetoType );
-				form.setFieldsValue( { VetoType: vetoType } );
+
+				// Load veto mode: prefer the vetoMode object from the API (new path),
+				// fall back to deriving from the legacy atHome bool for un-migrated rows.
+				let resolvedVetoModeId = null;
+				if ( userProfile.vetoMode?.id ) {
+					resolvedVetoModeId = userProfile.vetoMode.id;
+				} else if ( userProfile.atHome != null ) {
+					// Legacy fallback: find the matching mode by name from allVetoModes
+					// (which may not be loaded yet on first render - that's fine, the
+					// Effect 0 will populate it and re-renders will not re-run this).
+					const modeName = userProfile.atHome == true ? 'home' : 'clinic';
+					const fallbackMode = allVetoModes.find( m => m.name === modeName );
+					resolvedVetoModeId = fallbackMode?.id ?? null;
+				}
+				setVetoModeId( resolvedVetoModeId );
+				form.setFieldsValue( { VetoType: resolvedVetoModeId } );
+				// vet title ex.: Dr, ...
+				if (userProfile.vetTitle && userProfile.vetTitle.id) {
+					setSelectedVetTitleId(userProfile.vetTitle.id);
+					form.setFieldsValue({ VetTitleId: userProfile.vetTitle.id });
+				}
 				if( userProfile.tarifConsultation ){
 					const tarifMin = userProfile.tarifConsultation.split( '-' )[0];
 					const tarifMax = userProfile.tarifConsultation.split( '-' )[1];
@@ -2561,6 +2955,9 @@ const ModalProfile = ( params ) => {
 					form.setFieldsValue( { TarifMin: tarifMin } );
 					form.setFieldsValue( { TarifMax: tarifMax } );
 				}
+				const videoAllowedValue = userProfile.videoAllowed != null ? ( userProfile.videoAllowed == true ? 1 : 0 ) : null;
+				setVideoAllowed( videoAllowedValue );
+				form.setFieldsValue( { VideoAllowed: videoAllowedValue } );
 				if( userProfile.tarifConsultationVideo ){
 					const tarifVideoMin = userProfile.tarifConsultationVideo.split( '-' )[0];
 					const tarifVideoMax = userProfile.tarifConsultationVideo.split( '-' )[1];
@@ -2576,12 +2973,12 @@ const ModalProfile = ( params ) => {
 						const firstLieu = lieux[0];
 						setVetLieuId(firstLieu.id);
 						setVetAddress(firstLieu.adresse || '');
-						setVetCountryId(firstLieu.pays?.id || null);
 						setVetCityId(firstLieu.ville?.id || null);
 						if (firstLieu.pays?.id) {
-							const cities = await getPaysVilles(firstLieu.pays.id);
+							const cities = await getPaysVilles( firstLieu.pays.id );
 							if (cities && cities.length) {
-								setVetCityOptions(cities);
+								const localizedCities = await getLocalizedCities( cities );
+								setVetCityOptions(localizedCities);
 								setDisplayVetCity('block');
 							}
 						}
@@ -2590,7 +2987,21 @@ const ModalProfile = ( params ) => {
 							VetCountry: firstLieu.pays?.id || null,
 							VetCity: firstLieu.ville?.id || null,
 						});
+						// Store the saved professional IDs in the ref BEFORE calling
+						// setVetCountryId. The vetCountryId watcher will fire after
+						// this state update and will restore them instead of clearing.
+						pendingProfessionalIds.current = {
+							individualProfessionalId: userProfile.individualProfessionalId || '',
+							businessProfessionalId:   userProfile.businessProfessionalId   || '',
+							professionalIdMapping:    userProfile.professionalIdMapping     || null,
+						};
+						setVetCountryId(firstLieu.pays?.id || null);
 					}
+				}
+				// Biography
+				if (userProfile.biography) {
+					setBiography(userProfile.biography);
+					form.setFieldsValue({ Biography: userProfile.biography });
 				}
 			}
 			// veto absence
@@ -2615,8 +3026,28 @@ const ModalProfile = ( params ) => {
 				if( fieldName == "Opened" ){
 					const startTime 	= selectedTimeslotOpen.startTime;
 					const endTime 		= selectedTimeslotOpen.endTime;
-					setStartTime( dayjs( startTime ) );
-					setEndTime( dayjs( endTime ) );
+
+					// startTime/endTime are raw, timezone-less strings like
+					// "2026-06-26 14:00:00.000000" - the HH:mm digits ARE the
+					// vet's literal local wall-clock hour (see TimeSlotController::edit(),
+					// which never associates a timezone with these values at all).
+					//
+					// dayjs(startTime) here would parse this as the browser's
+					// *ambient system timezone* (no utc/timezone plugin is loaded
+					// in this file, so it falls back to native Date parsing rules),
+					// silently corrupting the prefilled time whenever the person
+					// editing isn't on a machine set to the vet's own timezone.
+					// Extract the digits directly and build a wall-clock value
+					// instead, so this can't drift based on where it's viewed from.
+					const toWallClockTime = ( raw ) => {
+						if( !raw ) return null;
+						const match = String( raw ).match( /(\d{2}):(\d{2})/ );
+						if( !match ) return null;
+						return dayjs().hour( parseInt( match[1], 10 ) ).minute( parseInt( match[2], 10 ) ).second( 0 ).millisecond( 0 );
+					};
+
+					setStartTime( toWallClockTime( startTime ) );
+					setEndTime( toWallClockTime( endTime ) );
 				}
 				const day 			= selectedTimeslotOpen.day;
 				const dayId			= selectedTimeslotOpen.dayId;
@@ -2647,11 +3078,14 @@ const ModalProfile = ( params ) => {
 						var cityId = '';
 						if( lieu.ville )
 							cityId = lieu.ville.id;
+						setLieuCountrySelected(countryId);
+						if( cityId ) setLieuCitySelected(cityId);
 						form.setFieldsValue( { LieuCountry: countryId } );
 						const lieuVilles = await getPaysVilles( countryId ); 
 						if( lieuVilles.length ){
+							const localizedCities = await getLocalizedCities( lieuVilles );
+							setLieuCities( localizedCities );
 							setDisplayLieuCity( 'block' );
-							setLieuCities( lieuVilles );
 							form.setFieldsValue( { LieuCity: cityId } );
 						}
 						else{
@@ -2659,10 +3093,6 @@ const ModalProfile = ( params ) => {
 						}
 					}
 				}
-			}
-			// Biography
-			if( fieldName == "Biography" ){
-				form.setFieldsValue({ Biography: userProfile.biography });
 			}
 			// Email
 			if( fieldName == "Email" ){
@@ -2693,6 +3123,87 @@ const ModalProfile = ( params ) => {
 		}
 		a()
 	}, [ openModal, userProfile, selectedTimeslotOpen, vetos, form ]) 
+
+	// Add this useEffect where you have your other effects
+	useEffect(() => {
+		const fetchProfessionalIdMapping = async () => {
+			// Check whether Effect 2 pre-loaded saved IDs for us to restore.
+			// Consume the ref immediately so subsequent user-driven country
+			// changes go through the normal reset path.
+			const pending = pendingProfessionalIds.current;
+			pendingProfessionalIds.current = null;
+
+			if (!vetCountryId) {
+				setProfessionalIdMapping(null);
+				setIndividualLabel('RPPS');
+				setBusinessLabel('SIRET');
+				setIndividualRegex(null);
+				setBusinessRegex(null);
+				setIndividualExample('');
+				setBusinessExample('');
+				setVerificationUrl(null);
+				if (!pending) {
+					setIndividualProfessionalId('');
+					setBusinessProfessionalId('');
+					form.setFieldsValue({ IndividualProfessionalId: '', BusinessProfessionalId: '' });
+					form.resetFields(['IndividualProfessionalId', 'BusinessProfessionalId']);
+				}
+				return;
+			}
+			
+			try {
+				const data = await professionalIdByCountry(vetCountryId);
+				
+				if (data && data.id) {
+					setProfessionalIdMapping(data);
+					setIndividualLabel(data.individualLabel || 'Professional ID');
+					setIndividualRegex(data.individualRegex);
+					setIndividualExample(data.individualExample || '');
+					setBusinessLabel(data.businessLabel || 'Business ID');
+					setBusinessRegex(data.businessRegex);
+					setBusinessExample(data.businessExample || '');
+					setVerificationUrl(data.verificationUrl);
+				} else {
+					setProfessionalIdMapping(null);
+					setIndividualLabel('Professional ID');
+					setBusinessLabel('Business ID');
+					setIndividualRegex(null);
+					setBusinessRegex(null);
+					setIndividualExample('');
+					setBusinessExample('');
+					setVerificationUrl(null);
+				}
+
+				if (pending) {
+					// Restore the saved professional IDs that Effect 2 stashed for us.
+					const indId  = pending.individualProfessionalId;
+					const busId  = pending.businessProfessionalId;
+					const mapping = pending.professionalIdMapping;
+					setIndividualProfessionalId(indId);
+					setBusinessProfessionalId(busId);
+					form.setFieldsValue({ IndividualProfessionalId: indId, BusinessProfessionalId: busId });
+					if (mapping) {
+						setProfessionalIdMapping(mapping);
+						setIndividualLabel(mapping.individualLabel || 'Professional ID');
+						setBusinessLabel(mapping.businessLabel || 'Business ID');
+						setIndividualRegex(mapping.individualRegex);
+						setBusinessRegex(mapping.businessRegex);
+						setVerificationUrl(mapping.verificationUrl);
+					}
+				} else {
+					// User changed country manually — clear the fields.
+					setIndividualProfessionalId('');
+					setBusinessProfessionalId('');
+					form.setFieldsValue({ IndividualProfessionalId: '', BusinessProfessionalId: '' });
+					form.resetFields(['IndividualProfessionalId', 'BusinessProfessionalId']);
+				}
+			} catch (error) {
+				console.error('Error fetching professional ID mapping:', error);
+			}
+		};
+		
+		fetchProfessionalIdMapping();
+	}, [vetCountryId]);
 
 	// Build especes
 	const BuildEspecesOptions = async () => {
@@ -2784,6 +3295,8 @@ const ModalProfile = ( params ) => {
 							type="success"
 							onClick={handleClickSave}
 							className="btnModalProfileIdentity"
+							loading={isSaving}
+							disabled={isSaving}
 						>
 							{getAContent('cmp_vetonest.com_Zx71Pa91Qm')}
 						</Button>
@@ -2800,6 +3313,7 @@ const ModalProfile = ( params ) => {
 					autoComplete="off"
 				>
 					{ fieldName == "Etablissement_veto" &&
+				
 						<Checkbox.Group onChange={onVetoListChange} value={checkedVetoList}>
 							<Space direction="vertical">
 								<div className="d-flex flex-wrap justify-content-center vetos" >
@@ -2818,14 +3332,24 @@ const ModalProfile = ( params ) => {
 													<div className="col-md-8" key={'b' + k}>
 														<div className="card-body" key={'74' + k}>
 															<h5 className="card-title" key={'r4' + k}>
-																{v.nom} {v.prenom}
+																<VetName 
+																	vet={v}
+																	showTitle={true}
+																	format="full"
+																	//linkToProfile={true}
+																	// withTooltip={true}
+																/>
 															</h5>
 															<p className="card-text" key={'c' + k}>
 																{v.vetoSpecialiteTab.nom ? v.vetoSpecialiteTab.nom : getAContent('cmp_vetonest.com_Ga83Kd92Lm')}
 															</p>
 															<p className="card-text" key={'d' + k}>
 																<small className="text-muted" key={'e9' + k}>
-																	{getAContent('cmp_vetonest.com_Qp17za92Bw') + dayjs(v.dateCreated.date).format(getDateFormatLocale())}
+																	<EnvironmentOutlined style={{ marginRight: 4, fontSize: '12px' }} />
+																	{v.villes && v.villes.length > 0 
+																		? v.villes[0]  // Show only the first city
+																		: getAContent('cmp_vetonest.com_location_not_available') || 'Location not specified'}
+																	{v.paysDeLaConsultation && `, ${v.paysDeLaConsultation.nom}`}
 																</small>
 															</p>
 															<p style={{ textAlign: 'center' }} key={'e' + k}>
@@ -2840,161 +3364,158 @@ const ModalProfile = ( params ) => {
 								</div>
 							</Space>
 						</Checkbox.Group>
+
 					}
 					{ fieldName == "Etablissement_lieu" &&
-						<>
-							<div className="profilIdentityField">
+					<>
+						<div className="profilIdentityField">
+							{/* Honeypot inputs — prevents browser autofill on real fields */}
+							<input type="text" name="fakeusernameremembered" style={{ display: 'none' }} autoComplete="username" readOnly />
+							<input type="text" name="fakeaddress" style={{ display: 'none' }} autoComplete="street-address" readOnly />
+							
+							{/* Address Field */}
+							<Form.Item
+								label={<span><HomeOutlined style={{ marginRight: 6, color: '#888' }} />{ getAContent( 'cmp_vetonest.com_Z19vb62Qpa' ) }</span>}
+								name="LieuAddress"
+								rules={[
+									{
+										required: true,
+										message: etablissementAddressError || getAContent('cmp_vetonest.com_address_required') || 'Address is required',
+									}
+								]}
+							>
+								<Input
+									name="AddressInput"
+									autoComplete="new-password"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={getAContent('cmp_vetonest.com_Kp81Lt93Ws')}
+									type="text"
+									value={etablissementAddress}
+									onChange={(e) => handleChangeEtablissementAddress(e)}
+								/>
+							</Form.Item>
+							
+							{/* Parking Field */}
+							<Form.Item 
+								name="Parking" 
+								label={<span><CarOutlined style={{ marginRight: 6, color: '#888' }} />{ getAContent( 'cmp_vetonest.com_Qs51Mb03Ye' ) }</span>}
+							>
+								<Input
+									name="parkingInput"
+									autoComplete="new-password"
+									className="backgroundYellow rounded10 width100per100 borderNone height40"
+									placeholder={getAContent('cmp_vetonest.com_Rf20Kc94Ux')}
+									type="text"
+									value={etablissementParking}
+									onChange={(e) => handleChangeEtablissementParking(e)}
+								/>
+							</Form.Item>
+							
+							{/* Transport Fields */}
+							{transports.map((field) => (
 								<Form.Item
-									label={ getAContent( 'cmp_vetonest.com_Z19vb62Qpa' ) }
-									name="LieuAddress"
-									rules={[
-										{
-											required:true,
-											message: etablissementAddressError,
-											validator: (value) => {
-												if (etablissementAddressError) return Promise.reject(etablissementAddressError);
-												return Promise.resolve();
-											}
-										}
-									]}
+									key={field.id}
+									name={field.fieldName}
+									label={<span><CompassOutlined style={{ marginRight: 6, color: '#888' }} />{ getAContent( field.fieldLabelTagRef ) }</span>}
+									validateStatus={errors[field.fieldName] ? "error" : ""}
+									help={errors[field.fieldName] || ""}
 								>
-									<Input
-										name="AddressInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40"
-										placeholder={getAContent('cmp_vetonest.com_Kp81Lt93Ws')}
-										type="text"
-										value={etablissementAddress}
-										onChange={(e) => handleChangeEtablissementAddress(e)}
-									/>
+									{renderField(field)}
 								</Form.Item>
-								<Form.Item 
-									name="Parking" 
-									label={ getAContent( 'cmp_vetonest.com_Qs51Mb03Ye' ) }
-									rules={[
-										{
-											message: etablissementParkingError,
-											validator: (value) => {
-												if (etablissementParkingError) 
-													return Promise.reject(etablissementParkingError);
-												return Promise.resolve();
-											}
-										}
-									]}
-								>
-									<Input
-										name="parkingInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40"
-										placeholder={getAContent('cmp_vetonest.com_Rf20Kc94Ux')}
-										type="text"
-										value={etablissementParking}
-										onChange={(e) => handleChangeEtablissementParking(e)}
-									/>
-								</Form.Item>
-								{transports.map((field) => (
+							))}
+							
+							{/* Info Field */}
+							<Form.Item
+								name="Info"
+								label={<span><InfoCircleOutlined style={{ marginRight: 6, color: '#888' }} />{ getAContent( 'cmp_vetonest.com_Mu63Bd27Nc' ) }</span>}
+							>
+								<TextArea
+									rows={3}
+									name="infoInput"
+									autoComplete="new-password"
+									className="backgroundYellow rounded10 width100per100 borderNone"
+									placeholder={ getAContent('cmp_vetonest.com_Pa37Lv82Hk') }
+									type="text"
+									value={etablissementInfo}
+									onChange={(e) => handleChangeEtablissementInfo(e)}
+								/>
+							</Form.Item>
+							
+							{/* Country and City Row - FIXED */}
+							<div className="row">
+								<div className="col-sm-12 col-md-6">
 									<Form.Item
-										key={field.id}
-										name={field.fieldName}
-										label={ getAContent( field.fieldLabelTagRef ) }
-										validateStatus={errors[field.fieldName] ? "error" : ""}
-										help={errors[field.fieldName] || ""}
+										name="LieuCountry"
+										label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
+										rules={[{
+											required: true,
+											message: getAContent('cmp_vetonest.com_select_country_error') || 'Veuillez sélectionner un pays',
+										}]}
 									>
-										{renderField(field)}
-									</Form.Item>
-								))}
-								<Form.Item
-									name="Info"
-									label={ getAContent( 'cmp_vetonest.com_Mu63Bd27Nc' ) }
-									rules={[
-										{
-											message: etablissementInfoError,
-											validator: (value) => {
-												if (etablissementInfoError) return Promise.reject(etablissementInfoError);
-												return Promise.resolve();
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											style={{ width: '100%' }}
+											placeholder={getAContent('cmp_vetonest.com_k3a92hFsP1') || 'Select a country'}
+											value={lieuCountrySelected || undefined}
+											onChange={(countryId) => {
+												setLieuCountrySelected(countryId);
+												setLieuCitySelected('');
+												setLieuCityError('');
+												setLieuCountryError('');
+												form.setFieldsValue({ LieuCountry: countryId, LieuCity: undefined });
+												handleChangeLieuCountrySelected(countryId);
+											}}
+											showSearch
+											optionFilterProp="label"
+											filterSort={(a, b) =>
+												(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
 											}
-										}
-									]}
-								>
-									<TextArea
-										rows={3}
-										name="infoInput"
-										className="backgroundYellow rounded10 width100per100 borderNone height40"
-										placeholder={ getAContent('cmp_vetonest.com_Pa37Lv82Hk') }
-										type="text"
-										value={etablissementInfo}
-										onChange={(e) => handleChangeEtablissementInfo(e)}
-									/>
-								</Form.Item>
-								<div className="row">
-									<div className="col-sm-12 col-md-6">
-										<Form.Item
-											name="LieuCountry"
-											label={getAContent('cmp_vetonest.com_n17Fd02Cka')}
-											rules={[
-												{
-													required: true,
-													message: lieuCountryError,
-													validator: (rule, value) => {
-														if (lieuCountryError) return Promise.reject(lieuCountryError);
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Select
-												variant="borderless"
-												className="custom-select-rounded"
-												style={{ width: '100%' }}
-												bordered={false}
-												value={countrySelected}
-												onChange={(e) => handleChangeLieuCountrySelected(e)}
-												showSearch
-												optionFilterProp="label"
-												filterSort={(a, b) =>
-													(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
-												}
-												options={BuildLieuCountriesOptions()}
-												notFoundContent={lieuCountryDefault}
-												placeholder={getAContent('cmp_vetonest.com_k3a92hFsP1')}
-											/>
-										</Form.Item>
-									</div>
-									<div className="col-sm-12 col-md-6">
-										<Form.Item
-											name="LieuCity"
-											label={ getAContent( 'cmp_vetonest.com_L20sx18Qmv' ) }
-											rules={[
-												{
-													required: true,
-													message: lieuCityError,
-													validator: (value) => {
-														if (lieuCityError) return Promise.reject(lieuCityError);
-														return Promise.resolve();
-													}
-												}
-											]}
-										>
-											<Select
-												variant="borderless"
-												className="custom-select-rounded"
-												style={{ width: '100%' }}
-												bordered={false}
-												value={citySelected}
-												onChange={(e) => handleChangeLieuCitySelected(e)}
-												showSearch
-												optionFilterProp="label"
-												filterSort={(a, b) =>
-													(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
-												}
-												options={BuildLieuCitiesOptions()}
-												notFoundContent={lieuCityDefault}
-												placeholder= { getAContent( 'cmp_vetonest.com_Pq8x2VmAz9' ) }
-											/>
-										</Form.Item>
-									</div>
+											options={BuildLieuCountriesOptions()}
+											notFoundContent={lieuCountryDefault}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
+								</div>
+								<div className="col-sm-12 col-md-6">
+									<Form.Item
+										name="LieuCity"
+										label={getAContent('cmp_vetonest.com_L20sx18Qmv')}
+										rules={[{
+											required: true,
+											message: getAContent('cmp_vetonest.com_select_city_error') || 'Veuillez sélectionner une ville',
+										}]}
+									>
+										<Select
+											variant="borderless"
+											className="custom-select-rounded backgroundYellow height40 borderNone"
+											style={{ width: '100%', display: displayLieuCity }}
+											placeholder={getAContent('cmp_vetonest.com_Pq8x2VmAz9') || 'Select a city'}
+											value={lieuCitySelected || undefined}
+											onChange={(cityId) => {
+												setLieuCitySelected(cityId);
+												setLieuCityError('');
+												form.setFieldsValue({ LieuCity: cityId });
+												handleChangeLieuCitySelected(cityId);
+											}}
+											showSearch
+											optionFilterProp="label"
+											filterSort={(a, b) =>
+												(a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())
+											}
+											options={lieuCities.map(city => ({ value: city.id, label: city.nom }))}
+											notFoundContent={lieuCities.length === 0 
+												? (getAContent('cmp_vetonest.com_select_country_first') || 'Please select a country first')
+												: (getAContent('cmp_vetonest.com_no_cities_available') || 'No cities available')}
+											disabled={!lieuCountrySelected}
+											autoComplete="new-password"
+										/>
+									</Form.Item>
 								</div>
 							</div>
-						</>
-					}
+						</div>
+					</>
+				}
 					{ fieldName == "Etablissement" &&
 						<>
 							<div className="profilIdentityField">
@@ -3075,6 +3596,39 @@ const ModalProfile = ( params ) => {
 										</Select>
 									</ConfigProvider>
 								</Form.Item>
+								{/* Add Photo Upload Field */}
+								<Form.Item
+									name="EtablissementPhoto"
+									label={ getAContent('cmp_vetonest.com_clinic_photo') || 'Photo de la clinique' }
+									rules={[{
+										message: etablissementPhotoError,
+										validator: (value) => {
+											if (etablissementPhotoError) return Promise.reject(etablissementPhotoError);
+											return Promise.resolve();
+										}
+									}]}
+								>
+									<div>
+										<div className="row marginTop10px">
+											&nbsp;&nbsp;
+											<Dragger {...etablissementPhotoProps}>
+												<i className="fa fa-camera" aria-hidden="true"></i> 
+												{getAContent('cmp_vetonest.com_upload_clinic_photo') || 'Cliquez ou glissez une photo de votre clinique'}
+											</Dragger>
+										</div>
+										{etablissementPhoto && (
+											<div className="align-items-center marginTop10px">
+												<img 
+													id="etablissementPhotoId"
+													className="marginTop10px profilePhotoContainer"
+													src={etablissementPhoto}
+													style={{ width: '95%' }}
+													alt="Clinic preview"
+												/>
+											</div>
+										)}
+									</div>
+								</Form.Item>
 							</div>
 						</>
 					}
@@ -3085,6 +3639,25 @@ const ModalProfile = ( params ) => {
 								{day} : {opened ? getAContent('cmp_vetonest.com_Zf10Kr82Pq') : getAContent('cmp_vetonest.com_Js19Ve63Hu')}
 							</div>
 							<p>&nbsp;</p>
+							
+							{/* Timezone Display */}
+							<div className="row justify-content-center" style={{ marginBottom: '12px' }}>
+								<span style={{ 
+									fontSize: '13px', 
+									color: '#666',
+									background: '#f5f5f5',
+									padding: '4px 12px',
+									borderRadius: '16px',
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: '6px'
+								}}>
+									<GlobalOutlined style={{ fontSize: '14px', color: '#FFDE59' }} />
+									{getAContent('cmp_vetonest.com_timezone_label') || 'Timezone'}: 
+									<strong>{userProfile?.timezone || 'Europe/Paris'}</strong>
+								</span>
+							</div>
+							
 							{opened &&
 								<div className="row">
 									<div className="col-6">
@@ -3121,6 +3694,18 @@ const ModalProfile = ( params ) => {
 									</div>
 								</div>
 							}
+							
+							{/* Info text about timezone */}
+							{opened && (
+								<div className="row justify-content-center" style={{ marginTop: '8px' }}>
+									<small style={{ color: '#999', fontSize: '11px' }}>
+										<GlobalOutlined style={{ marginRight: '4px', fontSize: '11px' }} />
+										{getAContent('cmp_vetonest.com_timezone_info') || 'Times are displayed in the veterinarian\'s timezone'} 
+										(<strong>{userProfile?.timezone || 'Europe/Paris'}</strong>)
+									</small>
+								</div>
+							)}
+							
 							<div className="row justify-content-center marginTop10px">
 								{opened ?
 									<Popconfirm
@@ -3414,7 +3999,8 @@ const ModalProfile = ( params ) => {
 							<div className="row" style={{ marginTop: '20px' }}>
 								<div className="col-12">
 									<label className="ant-form-item-label">
-										<EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_consultation_location') || 'Lieu de consultation'}
+										<EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />
+										{getAContent('cmp_vetonest.com_consultation_location') || 'Lieu de consultation'}
 									</label>
 								</div>
 							</div>
@@ -3423,7 +4009,12 @@ const ModalProfile = ( params ) => {
 									<Form.Item
 										name="UserCountry"
 										label={<span><GlobalOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_n17Fd02Cka') || 'Pays'}</span>}
-										rules={[{ required: true, message: userCountryError || 'Please select a country' }]}
+										rules={[
+											{
+												required: true,
+												message: getAContent('cmp_vetonest.com_select_country_error') || 'Please select a country',
+											}
+										]}
 									>
 										<Select
 											variant="borderless"
@@ -3439,10 +4030,13 @@ const ModalProfile = ( params ) => {
 									</Form.Item>
 								</div>
 								<div className="col-12 col-md-6">
-									<Form.Item
+									<Form.Item 
 										name="UserCity"
 										label={<span><EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_L20sx18Qmv') || 'Ville'}</span>}
-										rules={[{ required: true, message: userCityError || 'Please select a city' }]}
+										rules={[{
+											required: true,
+											message: getAContent('cmp_vetonest.com_select_city_error') || 'Please select a city',
+										}]}
 									>
 										<Select
 											variant="borderless"
@@ -3471,7 +4065,7 @@ const ModalProfile = ( params ) => {
 										<Input
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
 											placeholder={getAContent('cmp_vetonest.com_address_placeholder') || 'Rue, bâtiment, etc.'}
-											prefix={<HomeOutlined style={{ color: '#888' }} />}
+											// REMOVED: prefix={<HomeOutlined style={{ color: '#888' }} />}
 											value={userAddress}
 											onChange={handleUserAddressChange}
 											autoComplete="off"
@@ -3482,17 +4076,34 @@ const ModalProfile = ( params ) => {
 							{/* ===== END OF LOCATION SECTION ===== */}
 						</div>
 					)}
-					{
-						fieldName == "ProfileVeto" &&
-						<div className="container">
+					{ fieldName == "ProfileVeto" &&
+					<div className="container">
+						
+						{/* ==================== SECTION 1: CONTACT INFORMATION ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<PhoneOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_contact_information') || 'Coordonnées'}
+								</h3>
+							</div>
+							
+							{/* Phone Number */}
 							<Form.Item
-								label={ getAContent('cmp_vetonest.com_Zp83Na41Lt') }
+								label={getAContent('cmp_vetonest.com_Zp83Na41Lt')}
 								className="phoneFormItem"
 								name="PhoneNumber"
-								style={{ marginBottom: '0px', float: 'rigth' }}
+								style={{ marginBottom: '16px' }}
 								rules={[
 									{
-										required:true, 
+										required: true, 
 										message: phoneNumberError,
 										validator: (value) => {
 											if (phoneNumberError) return Promise.reject(phoneNumberError);
@@ -3504,34 +4115,51 @@ const ModalProfile = ( params ) => {
 							>
 								<div className="phoneRow">
 									<Select
-									  variant="borderless"
-									  className="phoneFlagSelect"
-									  value={selectedFlag}
-									  onChange={handleChangeFlag}
-									  getPopupContainer={(n) => n.parentElement}
+										variant="borderless"
+										className="phoneFlagSelect"
+										value={selectedFlag}
+										onChange={handleChangeFlag}
+										getPopupContainer={(n) => n.parentElement}
 									>
 										{countriesAllowed.map((v) => (
-										  <Option key={v.iso} value={v.iso}>
-											<img
-											  src={`/img/flags/${v.iso}.svg`}
-											  className="phoneFlagImg"
-											/>
-										  </Option>
+											<Option key={v.iso} value={v.iso}>
+												<img src={`/img/flags/${v.iso}.svg`} className="phoneFlagImg" />
+											</Option>
 										))}
-									  </Select>
-									  <div className="phoneCode">
-										{selectedCountryCode}
-									  </div>
-									  <Input
+									</Select>
+									<div className="phoneCode">{selectedCountryCode}</div>
+									<Input
 										type="text"
 										className="phoneInput backgroundYellow rounded10 borderNone height40"
 										placeholder={getAContent('cmp_vetonest.com_Qp91Ts3Fka')}
 										value={phoneNumber}
 										onChange={handleChangePhoneNumber}
-									  />
-									</div>
+									/>
+								</div>
 							</Form.Item>
-							<div className="row gy-2" >
+						</div>
+
+						{/* Separator */}
+						<Divider style={{ margin: '20px 0' }} />
+
+						{/* ==================== SECTION 2: IDENTITY & PROFESSIONAL TITLE ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<UserOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_identity_title') || 'Identité et titre professionnel'}
+								</h3>
+							</div>
+
+							{/* Name and First Name - Two columns */}
+							<div className="row gy-2">
 								<div className="col-6">
 									<Form.Item
 										label={signUp_namePlaceholder}
@@ -3551,7 +4179,7 @@ const ModalProfile = ( params ) => {
 										<Input
 											name="vetoNameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={ getAContent( 'cmp_vetonest.com_Lk58Pw7Qms' )}
+											placeholder={getAContent('cmp_vetonest.com_Lk58Pw7Qms')}
 											type="text"
 											value={vetoName}
 											onChange={(e) => handleChangeVetoName(e)}
@@ -3560,7 +4188,7 @@ const ModalProfile = ( params ) => {
 								</div>
 								<div className="col-6">
 									<Form.Item
-										label={ signUp_firstNamePlaceholder }
+										label={signUp_firstNamePlaceholder}
 										name="VetoFirstName"
 										rules={[
 											{
@@ -3577,7 +4205,7 @@ const ModalProfile = ( params ) => {
 										<Input
 											name="vetoFirstNameInput"
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={ getAContent( 'cmp_vetonest.com_Bt63Xa1Npe' )}
+											placeholder={getAContent('cmp_vetonest.com_Bt63Xa1Npe')}
 											type="text"
 											value={vetoFirstName}
 											onChange={(e) => handleChangeVetoFirstName(e)}
@@ -3585,102 +4213,181 @@ const ModalProfile = ( params ) => {
 									</Form.Item>
 								</div>
 							</div>
-							<div>
-								<Form.Item
-								  label={getAContent('cmp_vetonest.com_Sp44Ma27Kw')}
-								  name="VetoSpecialite"
-								  rules={[
-									{
-									  required: true,
-									  message: vetoSpecialiteError,
-									  validator: () => {
-										if (vetoSpecialiteError) return Promise.reject(vetoSpecialiteError);
-										return Promise.resolve();
-									  }
+
+							{/* Vet Title */}
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_professional_title') || 'Titre professionnel'}
+								name="VetTitleId"
+								style={{ marginBottom: 16 }}
+							>
+								<Select
+									variant="borderless"
+									className="backgroundYellow rounded10 height40 width100per100 borderNone"
+									placeholder={getAContent('cmp_vetonest.com_select_title') || 'Sélectionnez votre titre professionnel'}
+									allowClear
+									value={selectedVetTitleId}
+									onChange={handleVetTitleChange}
+									showSearch
+									optionFilterProp="children"
+									filterOption={(input, option) =>
+										(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
 									}
-								  ]}
-								  className="specialityFormItem"
+									dropdownStyle={{ maxHeight: 300 }}
 								>
-								  <div className="specialityRow">
+									{vetTitles.map((title) => {
+										const translatedCode = getAContent(title.tagRefCode) || title.code;
+										const translatedLabel = getAContent(title.tagRefLabel) || '';
+										const translatedDescription = title.tagRefDescription 
+											? getAContent(title.tagRefDescription) 
+											: '';
+										
+										let optionLabel = `${translatedCode} - ${translatedLabel}`;
+										
+										return (
+											<Option 
+												key={title.id} 
+												value={title.id}
+												label={optionLabel}
+											>
+												<div style={{ lineHeight: '1.4', padding: '4px 0' }}>
+													<strong>{translatedCode}</strong> - {translatedLabel}
+													{translatedDescription && (
+														<div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+															{translatedDescription}
+														</div>
+													)}
+												</div>
+											</Option>
+										);
+									})}
+								</Select>
+							</Form.Item>
+						</div>
+
+						{/* Separator */}
+						<Divider style={{ margin: '20px 0' }} />
+
+						{/* ==================== SECTION 3: SPECIALITY & PRACTICE TYPE ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<MedicineBoxOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_professional_info') || 'Informations professionnelles'}
+								</h3>
+							</div>
+
+							{/* Speciality */}
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_Sp44Ma27Kw')}
+								name="VetoSpecialite"
+								rules={[
+									{
+										required: true,
+										message: vetoSpecialiteError,
+										validator: () => {
+											if (vetoSpecialiteError) return Promise.reject(vetoSpecialiteError);
+											return Promise.resolve();
+										}
+									}
+								]}
+								className="specialityFormItem"
+							>
+								<div className="specialityRow">
 									<Select
-													mode="multiple"
-													placeholder={getAContent('cmp_vetonest.com_Mv72Qd98Pl')}
-													variant="borderless"
-													className=""
-													value={vetoSelectedSpecialities}
-													onChange={(e) => handleChangeVetoSpecialities(e)}
-													style={{ width: '100%' }}
-													suffixIcon={null}
-												>
-													{allSpecialities.map((v, k) => (
-														<Option key={v.id} value={Number(v.id)}>
-															<Checkbox checked={vetoSelectedSpecialities.includes(Number(v.id))}>
-																{v.name}
-															</Checkbox>
-														</Option>
-													))}
+										mode="multiple"
+										placeholder={getAContent('cmp_vetonest.com_Mv72Qd98Pl')}
+										variant="borderless"
+										className=""
+										value={vetoSelectedSpecialities}
+										onChange={(e) => handleChangeVetoSpecialities(e)}
+										style={{ width: '100%' }}
+										suffixIcon={null}
+									>
+										{allSpecialities.map((v, k) => (
+											<Option key={v.id} value={Number(v.id)}>
+												<Checkbox checked={vetoSelectedSpecialities.includes(Number(v.id))}>
+													{v.name}
+												</Checkbox>
+											</Option>
+										))}
 									</Select>
-								  </div>
-								</Form.Item>
-							</div>
-							<div className="row gy-2">
-								<div className="col-6">
-									<Form.Item
-										label={getAContent('cmp_vetonest.com_Dc44Xw21Om')}
-										name="VetoRpps"
-										rules={[
-											{
-												message: vetoRppsError,
-												validator: (value) => {
-													if (vetoRppsError) return Promise.reject(vetoRppsError);
-													return Promise.resolve();
-												}
-											}
-										]}
-									>
-										<Input
-											placeholder={getAContent('cmp_vetonest.com_Xp62Qa81Mv')}
-											className="backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
-											value={vetoRpps}
-											onChange={(e) => handleChangeVetoRpps(e)}
-										/>
-									</Form.Item>
 								</div>
-								<div className="col-6">
-									<Form.Item
-										label={getAContent('cmp_vetonest.com_Jf39Lp77Qs')}
-										name="VetoSiret"
-										rules={[
-											{
-												message: vetoSiretError,
-												validator: (value) => {
-													if (vetoSiretError) return Promise.reject(vetoSiretError);
-													return Promise.resolve();
-												}
-											}
-										]}
-										initialValue={vetoSiret}
-									>
-										<Input
-											placeholder={getAContent('cmp_vetonest.com_La82Qm57Xp')}
-											className="backgroundYellow rounded10 height40 width100per100 birthdateField borderNone"
-											value={vetoSiret}
-											onChange={(e) => handleChangeVetoSiret(e)}
-										/>
-									</Form.Item>
-								</div>
-							</div>
-							<div className="">
+							</Form.Item>
+
+							{/* Practice Type (Home / Clinic / Online only) */}
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_Hr74Xk63Be')}
+								name="VetoType"
+								rules={[
+									{
+										required: true,
+										message: vetoTypeError,
+										validator: () => {
+											if (vetoTypeError) return Promise.reject(vetoTypeError);
+											return Promise.resolve();
+										},
+									},
+								]}
+							>
+								<Radio.Group
+									style={{ width: "100%" }}
+									value={vetoModeId}
+									onChange={(e) => handleChangeVetoType(e)}
+								>
+									<div className="vetoTypeRow">
+										{allVetoModes.map( mode => (
+											<div className="vetoTypeOption" key={mode.id}>
+												<Radio value={mode.id} className="checkbox-like-radio">
+													{getAContent(mode.tagRef) || mode.name}
+												</Radio>
+											</div>
+										))}
+									</div>
+								</Radio.Group>
+							</Form.Item>
+
+							{/* Video consultation allowed / disallowed
+							    Hidden for online-only vets: video is mandatory so there's
+							    nothing to choose — we show a locked notice instead. */}
+							{allVetoModes.find( m => m.id === vetoModeId )?.name === 'online' ? (
 								<Form.Item
-									label={getAContent('cmp_vetonest.com_Hr74Xk63Be')}
-									name="VetoType"
-									value={vetoType}
+									label={getAContent('cmp_vetonest.com_VideoConsultation_Btn') || 'Consultation vidéo'}
+								>
+									<div style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: '8px',
+										padding: '8px 12px',
+										background: '#f6ffed',
+										border: '1px solid #b7eb8f',
+										borderRadius: '8px',
+										fontSize: '13px',
+										color: '#389e0d',
+									}}>
+										<span>✅</span>
+										<span>
+											{getAContent('cmp_vetonest.com_VideoRequiredForOnline_Label') || 'Video consultation is required for online-only vets'}
+										</span>
+									</div>
+								</Form.Item>
+							) : (
+								<Form.Item
+									label={getAContent('cmp_vetonest.com_VideoConsultation_Btn') || 'Consultation vidéo'}
+									name="VideoAllowed"
+									value={videoAllowed}
 									rules={[
 										{
-											required:true,
-											message: vetoTypeError,
+											required: true,
+											message: videoAllowedError,
 											validator: (value) => {
-												if (vetoTypeError) return Promise.reject(vetoTypeError);
+												if (videoAllowedError) return Promise.reject(videoAllowedError);
 												return Promise.resolve();
 											},
 										},
@@ -3688,200 +4395,186 @@ const ModalProfile = ( params ) => {
 								>
 									<Radio.Group
 										style={{ width: "100%" }}
-										onChange={(e) => handleChangeVetoType(e)}
+										onChange={(e) => handleChangeVideoAllowed(e)}
 									>
 										<div className="vetoTypeRow">
-										  <div className="vetoTypeOption">
-											<Radio value={1} className="checkbox-like-radio">
-											  {getAContent('cmp_vetonest.com_Hy63Rk84Vm')}
-											</Radio>
-										  </div>
-										  <div className="vetoTypeOption">
-											<Radio value={0} className="checkbox-like-radio">
-											  {getAContent('cmp_vetonest.com_Au27Wd56Cq')}
-											</Radio>
-										  </div>
+											<div className="vetoTypeOption">
+												<Radio value={1} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_video_allowed_yes') || 'Autorisée'}
+												</Radio>
+											</div>
+											<div className="vetoTypeOption">
+												<Radio value={0} className="checkbox-like-radio">
+													{getAContent('cmp_vetonest.com_video_allowed_no') || 'Non autorisée'}
+												</Radio>
+											</div>
 										</div>
 									</Radio.Group>
 								</Form.Item>
-							</div>
-							<div className="row" style={{ height: '84px' }}>
-								<div className="col-6">
-									<Form.Item label={getAContent('cmp_vetonest.com_Qr84Lm20Ps')}>
-										<Space.Compact
-											style={{
-												display: 'flex',
-												alignItems: 'center'
-											}}
-										>
-											<Form.Item
-												name="TarifMin"
-												noStyle
-												rules={[
-													{
-														message: tarifMinError,
-														validator: () => {
-															if (tarifMinError) {
-																return Promise.reject(tarifMinError);
+							)}
+						</div>
+
+						{/* Separator */}
+						<Divider style={{ margin: '20px 0' }} />
+
+						{/* ==================== SECTION 4: CONSULTATION FEES ==================== */}
+						{allVetoModes.find(m => m.id === vetoModeId)?.name !== 'online' && (
+							<>
+								<div className="form-section">
+									<div className="section-title" style={{ 
+										marginBottom: '16px', 
+										paddingBottom: '8px', 
+										borderBottom: '2px solid #FFDE59',
+										display: 'flex',
+										alignItems: 'center',
+										gap: '8px'
+									}}>
+										<EuroCircleOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+										<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+											{getAContent('cmp_vetonest.com_consultation_fees') || 'Tarifs des consultations'}
+										</h3>
+									</div>
+
+									<div className="row" style={{ height: '84px' }}>
+										<div className="col-6">
+											<Form.Item label={getAContent('cmp_vetonest.com_Qr84Lm20Ps')}>
+												<Space.Compact style={{ display: 'flex', alignItems: 'center' }}>
+													<Form.Item
+														name="TarifMin"
+														noStyle
+														rules={[
+															{
+																message: tarifMinError,
+																validator: () => {
+																	if (tarifMinError) return Promise.reject(tarifMinError);
+																	return Promise.resolve();
+																}
 															}
-															return Promise.resolve();
-														}
-													}
-												]}
-											>
-												<Input
-													type="number"
-													min={0}
-													placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
-													className="backgroundYellow height40 borderNone rounded10"
-													onChange={handleChangeTarifMin}
-												/>
-											</Form.Item>
-											<span
-												style={{
-													margin: '0 6px',
-													color: '#666',
-													fontWeight: 500,
-													userSelect: 'none',
-													lineHeight: '40px'
-												}}
-											>
-												–
-											</span>
-											<Form.Item
-												name="TarifMax"
-												noStyle
-												dependencies={['TarifMin']}
-												rules={[
-													{
-														message: tarifMaxError,
-														validator: () => {
-															if (tarifMaxError) {
-																return Promise.reject(tarifMaxError);
+														]}
+													>
+														<Input
+															type="number"
+															min={1}
+															placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
+															className="backgroundYellow height40 borderNone rounded10"
+															onChange={handleChangeTarifMin}
+														/>
+													</Form.Item>
+													<span style={{ margin: '0 6px', color: '#666', fontWeight: 500, userSelect: 'none', lineHeight: '40px' }}>–</span>
+													<Form.Item
+														name="TarifMax"
+														noStyle
+														dependencies={['TarifMin']}
+														rules={[
+															{
+																message: tarifMaxError,
+																validator: () => {
+																	if (tarifMaxError) return Promise.reject(tarifMaxError);
+																	return Promise.resolve();
+																}
 															}
-															return Promise.resolve();
-														}
-													}
-												]}
-											>
-												<Input
-													type="number"
-													min={0}
-													placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
-													className="backgroundYellow height40 borderNone rounded10"
-													onChange={handleChangeTarifMax}
-												/>
+														]}
+													>
+														<Input
+															type="number"
+															min={1}
+															placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
+															className="backgroundYellow height40 borderNone rounded10"
+															onChange={handleChangeTarifMax}
+														/>
+													</Form.Item>
+													<div style={{ height: '40px', display: 'flex', alignItems: 'center', marginLeft: '6px' }}>€</div>
+												</Space.Compact>
 											</Form.Item>
-											<div
-												style={{
-													height: '40px',
-													display: 'flex',
-													alignItems: 'center',
-													marginLeft: '6px'
-												}}
-											>
-												€
+										</div>
+										{/* Video consultation fee - only shown if video is allowed and not online-only */}
+										{videoAllowed === 1 && allVetoModes.find(m => m.id === vetoModeId)?.name !== 'online' && (
+											<div className="col-6">
+												<Form.Item label={getAContent('cmp_vetonest.com_Mn92Ks41Wa')} className="tarifFormItem">
+													<Space.Compact style={{ display: 'flex', alignItems: 'center' }}>
+														<Form.Item
+															name="TarifVideoMin"
+															noStyle
+															rules={[
+																{
+																	message: tarifVideoMinError,
+																	validator: () => {
+																		if (tarifVideoMinError) return Promise.reject(tarifVideoMinError);
+																		return Promise.resolve();
+																	}
+																}
+															]}
+														>
+															<Input
+																type="number"
+																min={1}
+																placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
+																className="backgroundYellow height40 borderNone rounded10"
+																onChange={handleChangeTarifVideoMin}
+															/>
+														</Form.Item>
+														<span style={{ margin: '0 6px', color: '#666', fontWeight: 500, userSelect: 'none', lineHeight: '40px' }}>–</span>
+														<Form.Item
+															name="TarifVideoMax"
+															noStyle
+															dependencies={['TarifVideoMin']}
+															rules={[
+																{
+																	message: tarifVideoMaxError,
+																	validator: () => {
+																		if (tarifVideoMaxError) return Promise.reject(tarifVideoMaxError);
+																		return Promise.resolve();
+																	}
+																}
+															]}
+														>
+															<Input
+																type="number"
+																min={1}
+																placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
+																className="backgroundYellow height40 borderNone rounded10"
+																onChange={handleChangeTarifVideoMax}
+															/>
+														</Form.Item>
+														<div style={{ height: '40px', display: 'flex', alignItems: 'center', marginLeft: '6px' }}>€</div>
+													</Space.Compact>
+												</Form.Item>
 											</div>
-										</Space.Compact>
-									</Form.Item>
+										)}
+									</div>
 								</div>
-								<div className="col-6">
-									<Form.Item 
-										label={getAContent('cmp_vetonest.com_Mn92Ks41Wa')}
-										className="tarifFormItem"
-									>
-										<Space.Compact
-											style={{
-												display: 'flex',
-												alignItems: 'center'
-											}}
-										>
-											<Form.Item
-												name="TarifVideoMin"
-												noStyle
-												rules={[
-													{
-														message: tarifVideoMinError,
-														validator: () => {
-															if (tarifVideoMinError) {
-																return Promise.reject(tarifVideoMinError);
-															}
-															return Promise.resolve();
-														}
-													}
-												]}
-											>
-												<Input
-													type="number"
-													min={0}
-													placeholder={getAContent('cmp_vetonest.com_Mn82Qa17Xf')}
-													className="backgroundYellow height40 borderNone rounded10"
-													onChange={handleChangeTarifVideoMin}
-												/>
-											</Form.Item>
-											<span
-												style={{
-													margin: '0 6px',
-													color: '#666',
-													fontWeight: 500,
-													userSelect: 'none',
-													lineHeight: '40px'
-												}}
-											>
-												–
-											</span>
-											<Form.Item
-												name="TarifVideoMax"
-												noStyle
-												dependencies={['TarifVideoMin']}
-												rules={[
-													{
-														message: tarifVideoMaxError,
-														validator: () => {
-															if (tarifVideoMaxError) {
-																return Promise.reject(tarifVideoMaxError);
-															}
-															return Promise.resolve();
-														}
-													}
-												]}
-											>
-												<Input
-													type="number"
-													min={0}
-													placeholder={getAContent('cmp_vetonest.com_Mx39Lp84Rt')}
-													className="backgroundYellow height40 borderNone rounded10"
-													onChange={handleChangeTarifVideoMax}
-												/>
-											</Form.Item>
-											<div
-												style={{
-													height: '40px',
-													display: 'flex',
-													alignItems: 'center',
-													marginLeft: '6px'
-												}}
-											>
-												€
-											</div>
-										</Space.Compact>
-									</Form.Item>
-								</div>
+
+							</>
+						)}
+
+
+						{/* ==================== SECTION 5: PRACTICE LOCATION ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<EnvironmentOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_practice_location') || 'Lieu d\'exercice'}
+								</h3>
 							</div>
-							{/* ===== VET LOCATION SECTION ===== */}
-							<div className="row" style={{ marginTop: '20px' }}>
-								<div className="col-12">
-									<label className="ant-form-item-label">
-										{getAContent('cmp_vetonest.com_consultation_location') || 'Consultation location'}
-									</label>
-								</div>
-							</div>
+
 							<div className="row">
 								<div className="col-12 col-md-6">
 									<Form.Item
 										name="VetCountry"
 										label={<span><GlobalOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_n17Fd02Cka') || 'Pays'}</span>}
-										rules={[{ required: true, message: vetCountryError || 'Please select a country' }]}
+										rules={[
+											{
+												required: true,
+												message: getAContent('cmp_vetonest.com_select_country_error') || 'Please select a country',
+											}
+										]}
 									>
 										<Select
 											variant="borderless"
@@ -3900,7 +4593,10 @@ const ModalProfile = ( params ) => {
 									<Form.Item
 										name="VetCity"
 										label={<span><EnvironmentOutlined style={{ marginRight: 6, color: '#888' }} />{getAContent('cmp_vetonest.com_L20sx18Qmv') || 'Ville'}</span>}
-										rules={[{ required: true, message: vetCityError || 'Please select a city' }]}
+										rules={[{
+											required: true,
+											message: getAContent('cmp_vetonest.com_select_city_error') || 'Please select a city',
+										}]}
 									>
 										<Select
 											variant="borderless"
@@ -3928,7 +4624,7 @@ const ModalProfile = ( params ) => {
 									>
 										<Input
 											className="backgroundYellow rounded10 width100per100 borderNone height40"
-											placeholder={getAContent('cmp_vetonest.com_address_placeholder') || 'Street, building, etc.'}
+											placeholder={getAContent('cmp_vetonest.com_address_placeholder') || 'Rue, bâtiment, etc.'}
 											value={vetAddress}
 											onChange={handleVetAddressChange}
 											autoComplete="off"
@@ -3936,8 +4632,149 @@ const ModalProfile = ( params ) => {
 									</Form.Item>
 								</div>
 							</div>
-							{/* ===== END OF VET LOCATION SECTION ===== */}
 						</div>
+
+						{/* Separator */}
+						<Divider style={{ margin: '20px 0' }} />
+
+						{/* ==================== SECTION 6: PROFESSIONAL IDENTIFICATION ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<SafetyOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_professional_identification') || 'Identification professionnelle'}
+								</h3>
+							</div>
+
+							{/* Professional IDs - Two fields on the same row */}
+							<div className="row">
+								<div className="col-12 col-md-6">
+									<Form.Item
+										label={individualLabel}
+										name="IndividualProfessionalId"
+										rules={[
+											{
+												required: false,
+												validator: async (_, value) => {
+													if (value && individualRegex) {
+														const regex = new RegExp(individualRegex);
+														if (!regex.test(value)) {
+															return Promise.reject(
+																getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: individualLabel })
+															);
+														}
+													}
+													return Promise.resolve();
+												}
+											}
+										]}
+									>
+										<div>
+											<Input
+												placeholder={getTranslatedMessage('cmp_vetonest.com_enter_professional_id', { label: individualLabel })}
+												className="backgroundYellow rounded10 height40 width100per100 borderNone"
+												value={individualProfessionalId}
+												onChange={handleChangeIndividualProfessionalId}
+											/>
+											{individualExample && (
+												<div style={{ fontSize: '12px', color: '#888', marginTop: '5px' }}>
+													{getTranslatedMessage('cmp_vetonest.com_example') || 'Exemple'}: {individualExample}
+												</div>
+											)}
+										</div>
+									</Form.Item>
+								</div>
+								<div className="col-12 col-md-6">
+									<Form.Item
+										label={businessLabel}
+										name="BusinessProfessionalId"
+										rules={[
+											{
+												required: false,
+												validator: async (_, value) => {
+													if (value && businessRegex) {
+														const regex = new RegExp(businessRegex);
+														if (!regex.test(value)) {
+															return Promise.reject(
+																getTranslatedMessage('cmp_vetonest.com_professional_id_invalid_format', { label: businessLabel })
+															);
+														}
+													}
+													return Promise.resolve();
+												}
+											}
+										]}
+									>
+										<div>
+											<Input
+												placeholder={getTranslatedMessage('cmp_vetonest.com_enter_professional_id', { label: businessLabel })}
+												className="backgroundYellow rounded10 height40 width100per100 borderNone"
+												value={businessProfessionalId}
+												onChange={handleChangeBusinessProfessionalId}
+											/>
+											{businessExample && (
+												<div style={{ fontSize: '12px', color: '#888', marginTop: '5px' }}>
+													{getTranslatedMessage('cmp_vetonest.com_example') || 'Exemple'}: {businessExample}
+												</div>
+											)}
+										</div>
+									</Form.Item>
+								</div>
+							</div>
+						</div>
+
+						{/* Separator */}
+						<Divider style={{ margin: '20px 0' }} />
+
+						{/* ==================== SECTION 7: BIOGRAPHY ==================== */}
+						<div className="form-section">
+							<div className="section-title" style={{ 
+								marginBottom: '16px', 
+								paddingBottom: '8px', 
+								borderBottom: '2px solid #FFDE59',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}>
+								<EditOutlined style={{ color: '#6B8E23', fontSize: '18px' }} />
+								<h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
+									{getAContent('cmp_vetonest.com_Mn2Vr7sLpQ') || 'Biographie'}
+								</h3>
+							</div>
+
+							<Form.Item
+								name="Biography"
+								rules={[
+									{
+										message: biographyError,
+										validator: (_, value) => {
+											if (biographyError) return Promise.reject(biographyError);
+											return Promise.resolve();
+										}
+									}
+								]}
+								validateTrigger="onChange"
+							>
+								<TextArea
+									rows={4}
+									name="biographyInput"
+									className="backgroundYellow rounded10 width100per100 borderNone"
+									placeholder={getAContent('cmp_vetonest.com_biography_placeholder_hint') || 'Décrivez votre parcours, vos spécialités, votre approche...'}
+									value={biography}
+									onChange={(e) => handleChangeBiography(e)}
+									style={{ resize: 'vertical' }}
+								/>
+							</Form.Item>
+						</div>
+
+					</div>
 					}
 					{
 						fieldName == "Animaux" &&
@@ -4371,31 +5208,7 @@ const ModalProfile = ( params ) => {
 							</Form.Item>
 						</div>
 					}
-					{ fieldName == "Biography" &&
-						<Form.Item
-							name="Biography"
-							style={{ marginBottom: '0px' }}
-							rules={[
-								{
-									message: biographyError,
-									validator: (_, value) => {
-										if (biographyError) return Promise.reject(biographyError);
-										return Promise.resolve();
-									}
-								}
-							]}
-							validateTrigger="onChange"
-						>
-							<TextArea
-								rows={3}
-								name="biographyInput"
-								className="backgroundYellow rounded10 width100per100 borderNone height40 marginTop10"
-								placeholder={getAContent('cmp_vetonest.com_Tp63Ye21Ks')}
-								value={biography}
-								onChange={(e) => handleChangeBiography(e)}
-							/>
-						</Form.Item>
-					}
+					
 				</Form>
 				<div style={{ display: formError01 }} className="row formError formError01">
 					<span id="cmp_vetonest.com_4LbLKwutmz">
