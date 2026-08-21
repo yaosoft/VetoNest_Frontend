@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { Drawer, Tag, Divider, Avatar, Tooltip } from "antd";
-import { UserOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { UserOutlined, ClockCircleOutlined, DollarOutlined, CheckCircleOutlined, ClockCircleOutlined as TimeOutlined } from '@ant-design/icons';
 import { SiteContext } from "../context/site";
+import VetName from "./VetName";
 
 // ── Urgency colour ────────────────────────────────────────────────────────────
 const urgencyColor = (u = "") => {
@@ -17,20 +18,18 @@ const statusColor = (nom = "") => {
   const s = nom.toLowerCase();
   if (s.includes("pending"))   return "blue";
   if (s.includes("accepted"))  return "green";
+  if (s.includes("in progress")) return "orange";
   if (s.includes("cancelled")) return "red";
+  if (s.includes("finished"))  return "purple";
   if (s.includes("completed")) return "purple";
   if (s.includes("expired"))   return "volcano";
   return "default";
 };
 
 // ── Helper function to check if consultation is expired ──────────────────────
-// ── Helper function to check if consultation is expired ──────────────────────
-// ONLY for PENDING consultations (status ID 1)
 const isExpired = (consultation) => {
   if (!consultation?.startingDatetime) return false;
-  
   const statusId = consultation.consultationStatus?.id;
-  // Only for PENDING (1) - NOT for accepted
   if (statusId !== 1) return false;
   
   let startDate;
@@ -39,58 +38,136 @@ const isExpired = (consultation) => {
   } else {
     startDate = new Date(consultation.startingDatetime);
   }
-  
   const now = new Date();
   const minutesSinceStart = (now - startDate) / 1000 / 60;
-  
   return minutesSinceStart > 60;
 };
 
-// ── Helper function to format dates from Symfony DateTime object ─────────────
-const formatDate = (dateTimeData, siteLocale, atLabel) => {
-  if (!dateTimeData) return "—";
+// ── Helper function to format dates in the consultation's timezone ───────────
+const formatDateInTimezone = (consultation, siteLocale, atLabel) => {
+  if (!consultation?.startingDatetime) return "—";
+  
+  const timezone = consultation.timezone || 'UTC';
   
   let date;
-  
-  // Handle the DateTime object format from Symfony
-  if (typeof dateTimeData === 'object' && dateTimeData.date) {
-    date = new Date(dateTimeData.date);
-  } 
-  // Handle string format
-  else if (typeof dateTimeData === 'string') {
-    date = new Date(dateTimeData.replace(" ", "T"));
-  }
-  // Handle timestamp or other formats
-  else {
-    date = new Date(dateTimeData);
+  if (typeof consultation.startingDatetime === 'string') {
+    if (consultation.startingDatetime.includes('T')) {
+      date = new Date(consultation.startingDatetime);
+    } else {
+      date = new Date(consultation.startingDatetime + ' UTC');
+    }
+  } else if (consultation.startingDatetime?.date) {
+    date = new Date(consultation.startingDatetime.date + ' UTC');
+  } else {
+    date = new Date(consultation.startingDatetime);
   }
   
-  // Check if date is valid
-  if (isNaN(date.getTime())) {
-    console.warn('Invalid date:', dateTimeData);
-    return "—";
-  }
+  if (isNaN(date.getTime())) return "—";
   
   const formattedDate = date.toLocaleDateString(siteLocale || "en-GB", { 
     weekday: "long", 
     day: "numeric", 
     month: "long", 
-    year: "numeric" 
+    year: "numeric",
+    timeZone: timezone
   });
+  
   const time = date.toLocaleTimeString(siteLocale || "en-GB", { 
     hour: "2-digit", 
-    minute: "2-digit" 
+    minute: "2-digit",
+    timeZone: timezone
   });
-  return `${formattedDate} ${atLabel} ${time}`;
+  
+  // Get timezone display
+  const getTimezoneDisplay = (tz) => {
+    try {
+      const formatter = new Intl.DateTimeFormat(siteLocale || "en-GB", {
+        timeZone: tz,
+        timeZoneName: 'shortOffset'
+      });
+      const parts = formatter.formatToParts(new Date());
+      const offsetPart = parts.find(p => p.type === 'timeZoneName');
+      if (offsetPart && offsetPart.value) {
+        let offset = offsetPart.value;
+        offset = offset.replace('GMT', 'UTC');
+        return ` (${offset})`;
+      }
+    } catch {
+      try {
+        const shortFormatter = new Intl.DateTimeFormat(siteLocale || "en-GB", {
+          timeZone: tz,
+          timeZoneName: 'short'
+        });
+        const parts = shortFormatter.formatToParts(new Date());
+        const tzPart = parts.find(p => p.type === 'timeZoneName');
+        if (tzPart && tzPart.value) return ` (${tzPart.value})`;
+      } catch {}
+    }
+    return '';
+  };
+  
+  const tzDisplay = getTimezoneDisplay(timezone);
+  
+  return `${formattedDate} ${atLabel} ${time}${tzDisplay}`;
+};
+
+// ── Payment status helper ─────────────────────────────────────────────────────
+const getPaymentStatusDisplay = (payment, getAContentFn) => {
+  if (!payment) return null;
+  
+  const status = payment.paymentStatus;
+  if (status === 'captured') {
+    return {
+      label: getAContentFn('cmp_vetonest.com_PaymentCaptured_Label') || 'Payment Captured',
+      color: 'success',
+      icon: <CheckCircleOutlined />,
+      description: getAContentFn('cmp_vetonest.com_PaymentCaptured_Description') || 'Payment has been successfully captured'
+    };
+  } else if (status === 'authorized') {
+    return {
+      label: getAContentFn('cmp_vetonest.com_PaymentAuthorized_Label') || 'Payment Authorized',
+      color: 'warning',
+      icon: <DollarOutlined />,
+      description: getAContentFn('cmp_vetonest.com_PaymentAuthorized_Description') || 'Payment is authorized but not yet captured'
+    };
+  } else if (status === 'pending') {
+    return {
+      label: getAContentFn('cmp_vetonest.com_PaymentPending_Label') || 'Payment Pending',
+      color: 'processing',
+      icon: <TimeOutlined />,
+      description: getAContentFn('cmp_vetonest.com_PaymentPending_Description') || 'Payment is being processed'
+    };
+  } else if (status === 'failed') {
+    return {
+      label: getAContentFn('cmp_vetonest.com_PaymentFailed_Label') || 'Payment Failed',
+      color: 'error',
+      icon: <ClockCircleOutlined />,
+      description: getAContentFn('cmp_vetonest.com_PaymentFailed_Description') || 'Payment attempt failed'
+    };
+  } else if (status === 'refunded') {
+    return {
+      label: getAContentFn('cmp_vetonest.com_PaymentRefunded_Label') || 'Payment Refunded',
+      color: 'default',
+      icon: <DollarOutlined />,
+      description: getAContentFn('cmp_vetonest.com_PaymentRefunded_Description') || 'Payment has been refunded'
+    };
+  }
+  return null;
 };
 
 const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions }) => {
   const { base_url, siteLocale, getAContent, truncateString, photoAnimalDefaultSrc } = useContext(SiteContext);
   
-  const Row = ({ label, value }) => value ? (
+  // Helper to safely get translation with fallback
+  const safeGetContent = (key, fallback) => {
+    const val = getAContent(key);
+    return (val && val !== '***' && val !== '...') ? val : fallback;
+  };
+  
+  const Row = ({ labelKey, labelFallback, value }) => value ? (
     <div style={{ marginBottom: "10px", fontSize: "14px" }}>
       <span style={{ color: "#888", minWidth: "160px", display: "inline-block" }}>
-        {getAContent('cmp_vetonest.com_' + label + '_Label') || label}:
+        {safeGetContent(labelKey, labelFallback)}:
       </span>
       <span style={{ color: "#222", fontWeight: 500 }}>{value}</span>
     </div>
@@ -99,39 +176,50 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
   if (!consultation) return null;
 
   const { profileVeto, carnetAnimal, consultationType, consultationStatus,
-          etablissement, symptom, startingDatetime, creationDate, description } = consultation;
+          etablissement, symptom, startingDatetime, creationDate, description, timezone, payment } = consultation;
   
-  const atLabel = getAContent('cmp_vetonest.com_At_Prefix') || 'at';
-  const formattedStartDate = formatDate(startingDatetime, siteLocale, atLabel);
-  const formattedCreationDate = formatDate(creationDate, siteLocale, atLabel);
+  const atLabel = safeGetContent('cmp_vetonest.com_At_Prefix', 'at');
+  const formattedStartDate = formatDateInTimezone(consultation, siteLocale, atLabel);
   
-  // Check if consultation is expired
+  // Format creation date (no timezone conversion needed)
+  const formatCreationDate = () => {
+    if (!creationDate) return "—";
+    let date;
+    if (typeof creationDate === 'object' && creationDate.date) {
+      date = new Date(creationDate.date);
+    } else if (typeof creationDate === 'string') {
+      date = new Date(creationDate.replace(" ", "T"));
+    } else {
+      date = new Date(creationDate);
+    }
+    if (isNaN(date.getTime())) return "—";
+    const formattedDate = date.toLocaleDateString(siteLocale || "en-GB", { 
+      weekday: "long", 
+      day: "numeric", 
+      month: "long", 
+      year: "numeric" 
+    });
+    const time = date.toLocaleTimeString(siteLocale || "en-GB", { 
+      hour: "2-digit", 
+      minute: "2-digit" 
+    });
+    return `${formattedDate} ${atLabel} ${time}`;
+  };
+  
+  const formattedCreationDate = formatCreationDate();
   const expired = isExpired(consultation);
   
-  // Get status display text
   const getStatusDisplayText = () => {
     if (expired) return 'Expired';
     if (consultationStatus?.nom) return consultationStatus.nom;
     return '—';
   };
   
-  // Get status color
   const getStatusColorValue = () => {
     if (expired) return 'volcano';
     return statusColor(consultationStatus?.nom || '');
   };
 
-  // Get full vet name with fallback and truncate to 20 characters
-  const getFullVetName = () => {
-    if (!profileVeto) return '';
-    const prenom = profileVeto.prenom || '';
-    const nom = profileVeto.nom || '';
-    if (!prenom && !nom) return 'Veterinarian';
-    const fullName = `${prenom} ${nom}`.trim();
-    return truncateString(fullName, 20);
-  };
-
-  // Get vet picture URL
   const getVetPictureUrl = () => {
     if (!profileVeto) return null;
     if (profileVeto.picture && profileVeto.picture !== '') {
@@ -148,7 +236,6 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
     return null;
   };
 
-  // Get pet picture URL
   const getPetPictureUrl = () => {
     if (!carnetAnimal) return null;
     if (carnetAnimal.picture && carnetAnimal.picture !== '') {
@@ -165,68 +252,87 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
     return null;
   };
 
-  // Get full pet owner name with truncate to 20 characters
   const getPetOwnerName = () => {
     if (!carnetAnimal?.profileUser) return '';
     const prenom = carnetAnimal.profileUser.prenom || '';
     const nom = carnetAnimal.profileUser.nom || '';
     if (!prenom && !nom) return 'Pet Owner';
     const fullName = `${prenom} ${nom}`.trim();
-    return truncateString(fullName, 20);
+    return truncateString(fullName, 25);
   };
 
-  // Get pet name with truncate to 20 characters
   const getPetName = () => {
     if (!carnetAnimal) return '';
-    const petName = carnetAnimal.nom || '';
-    return truncateString(petName, 20);
+    return truncateString(carnetAnimal.nom || '', 25);
   };
 
   const vetPictureUrl = getVetPictureUrl();
   const petPictureUrl = getPetPictureUrl();
-  const fullVetName = getFullVetName();
-  const fullVetNameTooltip = () => {
-    if (!profileVeto) return '';
-    const prenom = profileVeto.prenom || '';
-    const nom = profileVeto.nom || '';
-    return `${prenom} ${nom}`.trim();
-  };
   const petOwnerName = getPetOwnerName();
   const petName = getPetName();
   const petFullName = carnetAnimal?.nom || '';
 
+  // ── Payment status ──────────────────────────────────────────────────────────
+  const paymentStatus = getPaymentStatusDisplay(payment, getAContent);
+  const paymentAmount = payment?.amount || consultation?.paymentAmount || null;
+  const paymentCurrency = payment?.currency || 'EUR';
+  const paymentDate = payment?.capturedAt || payment?.authorizedAt || payment?.createdAt || null;
+
+  const formatPaymentDate = () => {
+    if (!paymentDate) return null;
+    let date;
+    if (typeof paymentDate === 'object' && paymentDate.date) {
+      date = new Date(paymentDate.date);
+    } else if (typeof paymentDate === 'string') {
+      date = new Date(paymentDate);
+    } else {
+      date = new Date(paymentDate);
+    }
+    if (isNaN(date.getTime())) return null;
+    return date.toLocaleDateString(siteLocale || "en-GB", { 
+      day: "numeric", 
+      month: "long", 
+      year: "numeric" 
+    });
+  };
+
+  const formattedPaymentDate = formatPaymentDate();
+
   return (
     <Drawer
-      title={
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          <span style={{ fontWeight: 700, fontSize: "16px" }}>
-            {getAContent('cmp_vetonest.com_ConsultationDetails_Title') || 'Consultation Details'}
-          </span>
-          <Tag color={getStatusColorValue()} style={{ margin: 0 }}>
-            {getAContent(`cmp_vetonest.com_Status_${getStatusDisplayText()}_Txt`) || getStatusDisplayText()}
-          </Tag>
-          {expired && (
-            <Tag icon={<ClockCircleOutlined />} color="volcano" style={{ margin: 0 }}>
-              {getAContent('cmp_vetonest.com_ConsultationExpired_Label') || 'Consultation window has passed'}
-            </Tag>
-          )}
-        </div>
-      }
+     title={
+		<div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+		  <span style={{ fontWeight: 700, fontSize: "16px" }}>
+			{safeGetContent('cmp_vetonest.com_ConsultationDetails_Title', 'Consultation Details')}
+		  </span>
+		  <Tag color={getStatusColorValue()} style={{ margin: 0 }}>
+			{safeGetContent(`cmp_vetonest.com_Status_${getStatusDisplayText()}_Txt`, getStatusDisplayText())}
+		  </Tag>
+		  {expired && (
+			<Tag icon={<ClockCircleOutlined />} color="volcano" style={{ margin: 0 }}>
+			  {safeGetContent('cmp_vetonest.com_ConsultationExpired_Label', 'Consultation window has passed')}
+			</Tag>
+		  )}
+		  {/* REMOVED: timezone tag from header - it's already shown in the date/time section */}
+		</div>
+	  }
       placement="right"
       width={480}
       onClose={onClose}
       open={open}
-      footer={extraActions && !expired ? (
-        <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-          {extraActions}
-        </div>
-      ) : expired ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: "8px 0" }}>
-          <span style={{ color: "#999", fontSize: "13px" }}>
-            {getAContent('cmp_vetonest.com_ExpiredConsultationFooter_Txt') || 'This consultation can no longer be modified.'}
-          </span>
-        </div>
-      ) : null}
+      footer={
+        extraActions ? (
+          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+            {extraActions}
+          </div>
+        ) : expired ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: "8px 0" }}>
+            <span style={{ color: "#999", fontSize: "13px" }}>
+              {safeGetContent('cmp_vetonest.com_ExpiredConsultationFooter_Txt', 'This consultation can no longer be modified.')}
+            </span>
+          </div>
+        ) : null
+      }
     >
 
       {/* ── Vet & pet header ── */}
@@ -241,13 +347,18 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
               style={{ flexShrink: 0 }}
             />
             <div>
-              <Tooltip title={fullVetNameTooltip()} placement="top">
+              <Tooltip title={`${profileVeto.prenom || ''} ${profileVeto.nom || ''}`.trim()} placement="top">
                 <p style={{ margin: 0, fontWeight: 700, fontSize: "14px" }}>
-                  Dr. {fullVetName}
+                  <VetName 
+                    vet={profileVeto}
+                    showTitle={true}
+                    format="full"
+                    withTooltip={false}
+                  />
                 </p>
               </Tooltip>
               <p style={{ margin: 0, fontSize: "12px", color: "#888" }}>
-                {getAContent('cmp_vetonest.com_Veterinarian_Label') || 'Veterinarian'}
+                {safeGetContent('cmp_vetonest.com_Veterinarian_Label', 'Veterinarian')}
               </p>
             </div>
           </div>
@@ -266,7 +377,7 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
                 <p style={{ margin: 0, fontWeight: 700, fontSize: "14px" }}>{petName}</p>
               </Tooltip>
               <p style={{ margin: 0, fontSize: "12px", color: "#888" }}>
-                {getAContent('cmp_vetonest.com_Pet_Label') || 'Pet'}
+                {safeGetContent('cmp_vetonest.com_Pet_Label', 'Pet')}
                 {petOwnerName && (
                   <Tooltip title={petOwnerName} placement="top">
                     <span> · {petOwnerName}</span>
@@ -281,34 +392,114 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
       <Divider style={{ margin: "12px 0" }} />
 
       {/* ── Appointment info ── */}
-      <Row label="DateTime" value={formattedStartDate} />
-      <Row label="ConsultationType" value={consultationType?.tagRef ? getAContent(consultationType.tagRef) : consultationType?.nom} />
-      <Row label="Clinic" value={etablissement?.nom} />
-      <Row label="RequestedOn" value={formattedCreationDate} />
-      {description && <Row label="Description" value={description} />}
+      <Row labelKey="cmp_vetonest.com_DateTime_Label" labelFallback="Date and Time" value={formattedStartDate} />
+      {timezone && (
+        <div style={{ marginBottom: "10px", fontSize: "12px", color: "#aaa" }}>
+          <ClockCircleOutlined style={{ marginRight: "4px" }} />
+          {safeGetContent('cmp_vetonest.com_Timezone_Label', 'Timezone')}: {timezone}
+        </div>
+      )}
+      <Row labelKey="cmp_vetonest.com_ConsultationType_Label" labelFallback="Consultation Type" value={consultationType?.tagRef ? safeGetContent(consultationType.tagRef, consultationType.nom) : consultationType?.nom} />
+      <Row labelKey="cmp_vetonest.com_Clinic_Label" labelFallback="Clinic" value={etablissement?.nom} />
+      <Row labelKey="cmp_vetonest.com_RequestedOn_Label" labelFallback="Requested on" value={formattedCreationDate} />
+      {description && <Row labelKey="cmp_vetonest.com_Description_Label" labelFallback="Description" value={description} />}
+
+      {/* ── Payment Information ── */}
+      {paymentStatus && (
+        <>
+          <Divider style={{ margin: "16px 0 12px" }}>
+            <span style={{ fontSize: "13px", color: "#888" }}>
+              💳 {safeGetContent('cmp_vetonest.com_PaymentInformation_Title', 'Payment Information')}
+            </span>
+          </Divider>
+
+          <div style={{ 
+            background: paymentStatus.color === 'success' ? '#f6ffed' : 
+                       paymentStatus.color === 'warning' ? '#fffbe6' : 
+                       paymentStatus.color === 'error' ? '#fff1f0' : 
+                       '#fafafa',
+            border: `1px solid ${paymentStatus.color === 'success' ? '#b7eb8f' : 
+                                   paymentStatus.color === 'warning' ? '#ffe58f' : 
+                                   paymentStatus.color === 'error' ? '#ffa39e' : 
+                                   '#d9d9d9'}`,
+            borderRadius: "8px",
+            padding: "12px 16px",
+            marginBottom: "12px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+              <span style={{ fontSize: "18px", color: paymentStatus.color === 'success' ? '#52c41a' : 
+                                                    paymentStatus.color === 'warning' ? '#faad14' : 
+                                                    paymentStatus.color === 'error' ? '#ff4d4f' : 
+                                                    '#888' }}>
+                {paymentStatus.icon}
+              </span>
+              <Tag color={paymentStatus.color} style={{ margin: 0, fontSize: "13px", padding: "2px 12px" }}>
+                {paymentStatus.label}
+              </Tag>
+            </div>
+            
+            <p style={{ margin: "4px 0 0 28px", fontSize: "13px", color: "#555" }}>
+              {paymentStatus.description}
+            </p>
+
+            {/* Payment Amount */}
+            {paymentAmount && (
+              <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #f0f0f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "#888", fontSize: "13px" }}>
+                    {safeGetContent('cmp_vetonest.com_Amount_Label', 'Amount')}:
+                  </span>
+                  <span style={{ fontWeight: 700, fontSize: "16px", color: "#222" }}>
+                    {paymentAmount.toFixed(2)} {paymentCurrency}
+                  </span>
+                </div>
+                {formattedPaymentDate && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
+                    <span style={{ color: "#888", fontSize: "12px" }}>
+                      {paymentStatus.label === (safeGetContent('cmp_vetonest.com_PaymentCaptured_Label') || 'Payment Captured') ? 
+                        safeGetContent('cmp_vetonest.com_CapturedOn_Label', 'Captured on') :
+                        safeGetContent('cmp_vetonest.com_AuthorizedOn_Label', 'Authorized on')}:
+                    </span>
+                    <span style={{ color: "#888", fontSize: "12px" }}>
+                      {formattedPaymentDate}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Payment Method (if available) */}
+            {payment?.paymentMethod && (
+              <div style={{ marginTop: "4px", fontSize: "12px", color: "#aaa" }}>
+                {safeGetContent('cmp_vetonest.com_PaymentMethod_Label', 'Method')}: {payment.paymentMethod}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* ── Symptom report ── */}
       {symptom && (
         <>
           <Divider style={{ margin: "16px 0 12px" }}>
             <span style={{ fontSize: "13px", color: "#888" }}>
-              {getAContent('cmp_vetonest.com_SymptomReport_Label') || 'Symptom Report'}
+              {safeGetContent('cmp_vetonest.com_SymptomReport_Label', 'Symptom Report')}
             </span>
           </Divider>
 
           {symptom.primaryComplaint && (
             <div style={{ background: "#fafafa", border: "1px solid #eee", borderRadius: "8px", padding: "12px", marginBottom: "12px", fontSize: "13px", color: "#444" }}>
-              <strong>{getAContent('cmp_vetonest.com_Complaint_Label') || 'Primary Complaint'}:</strong> {symptom.primaryComplaint}
+              <strong>{safeGetContent('cmp_vetonest.com_Complaint_Label', 'Primary Complaint')}:</strong> {symptom.primaryComplaint}
             </div>
           )}
 
           {symptom.urgency && (
             <div style={{ marginBottom: "10px" }}>
               <span style={{ color: "#888", fontSize: "13px" }}>
-                {getAContent('cmp_vetonest.com_Urgency_Label') || 'Urgency'}:
+                {safeGetContent('cmp_vetonest.com_Urgency_Label', 'Urgency')}:
               </span>{" "}
               <Tag color={urgencyColor(symptom.urgency.name)}>
-                {symptom.urgency.tagRef ? getAContent(symptom.urgency.tagRef) || symptom.urgency.name : symptom.urgency.name}
+                {symptom.urgency.tagRef ? safeGetContent(symptom.urgency.tagRef, symptom.urgency.name) : symptom.urgency.name}
               </Tag>
             </div>
           )}
@@ -316,7 +507,7 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
           {symptom.detectedSymptoms && symptom.detectedSymptoms.length > 0 && (
             <div style={{ marginBottom: "10px" }}>
               <p style={{ margin: "0 0 6px", color: "#888", fontSize: "13px" }}>
-                {getAContent('cmp_vetonest.com_DetectedSymptoms_Label') || 'Detected Symptoms'}:
+                {safeGetContent('cmp_vetonest.com_DetectedSymptoms_Label', 'Detected Symptoms')}:
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 {symptom.detectedSymptoms.map((s, i) => (
@@ -329,15 +520,15 @@ const ConsultationDetailDrawer = ({ consultation, open, onClose, extraActions })
           {symptom.followUpAnswers && Object.keys(symptom.followUpAnswers).length > 0 && (
             <div style={{ marginTop: "10px" }}>
               <p style={{ margin: "0 0 8px", color: "#888", fontSize: "13px" }}>
-                {getAContent('cmp_vetonest.com_FollowUpAnswers_Label') || 'Follow-up Answers'}:
+                {safeGetContent('cmp_vetonest.com_FollowUpAnswers_Label', 'Follow-up Answers')}:
               </p>
               {Object.entries(symptom.followUpAnswers).map(([q, a], i) => (
                 <div key={i} style={{ marginBottom: "6px", fontSize: "13px" }}>
                   <span style={{ color: "#555" }}>
-                    {getAContent('cmp_vetonest.com_Question_Short') || 'Q'} {q}:
+                    {safeGetContent('cmp_vetonest.com_Question_Short', 'Q')} {q}:
                   </span><br />
                   <span style={{ color: "#222", fontWeight: 500 }}>
-                    {getAContent('cmp_vetonest.com_Answer_Short') || 'A'} {Array.isArray(a) ? a.join(", ") : a}
+                    {safeGetContent('cmp_vetonest.com_Answer_Short', 'A')} {Array.isArray(a) ? a.join(", ") : a}
                   </span>
                 </div>
               ))}

@@ -56,7 +56,6 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
     if (!animals?.length) return;
 
     const loadBreeds = async () => {
-      // Collect unique species that need breed loading
       const speciesToLoad = [];
       const breedMap = {};
 
@@ -68,32 +67,28 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
           speciesToLoad.push(speciesId);
         }
         
-        // If breed name already exists in pet object, use it directly
         if (pet.race?.nom) {
           breedMap[breedId] = { nom: pet.race.nom, tagRef: pet.race.tagRef || null };
         }
       }
 
-      // Fetch if any breed is missing its nom OR its tagRef (needed for localisation)
       const needsFetching = speciesToLoad.length > 0 && 
         animals.some(pet => pet.race?.id && (!pet.race?.nom || !pet.race?.tagRef));
       
       if (!needsFetching && Object.keys(breedMap).length === 0) {
-        // No fetching needed
         return;
       }
 
       setIsLoadingBreeds(true);
 
       try {
-        // Fetch breeds for each unique species (only once per species)
         for (const speciesId of speciesToLoad) {
           if (!loadedSpeciesRef.current.has(speciesId)) {
             try {
               const breeds = await fetchWithCache(
                 `breeds_${speciesId}`,
                 () => speciesBreedList(speciesId),
-                300000 // Cache for 5 minutes
+                300000 
               );
               
               if (breeds && Array.isArray(breeds)) {
@@ -119,19 +114,17 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
     loadBreeds();
   }, [animals, speciesBreedList, fetchWithCache]);
 
-  // Memoize animals list
   const memoizedAnimals = useMemo(() => {
     if (!animals?.length) return [];
     return animals;
   }, [animals]);
 
-  // If no animals, show create button
   if (!memoizedAnimals.length) {
     return (
       <div style={{ textAlign: "center", marginTop: "20px" }}>
         <button
           className="consultation-next-button"
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/my-pets")}
         >
           {getAContent('cmp_vetonest.com_CreateNewPet_Btn')}
         </button>
@@ -143,12 +136,13 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
     <div>
       {isLoadingBreeds && (
         <div style={{ textAlign: "center", padding: "10px" }}>
-          <span style={{ fontSize: "12px", color: "#888" }}>Loading breeds...</span>
+          <span style={{ fontSize: "12px", color: "#888" }}>
+            {getAContent('cmp_vetonest.com_LoadingBreeds_Txt')}
+          </span>
         </div>
       )}
       <div className="consultation-pet-cards-container"> 
         {memoizedAnimals.map((pet) => {
-          // Get breed name from pet object or from fetched breeds
           const _breedEntry = pet.race?.id ? breedNames[pet.race.id] : null;
           const breedName = _breedEntry
             ? (_breedEntry.tagRef ? getAContent(_breedEntry.tagRef) : (_breedEntry.nom || '—'))
@@ -172,12 +166,12 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
               <div className="consultation-pet-details">
                 <h4 className="consultation-pet-name">{pet.nom}</h4>
                 <p className="consultation-pet-info">
-                  {getAContent('cmp_vetonest.com_Sp94Te63Kz')} : {pet.espece ? getEspeceName(pet.espece.id) : "Unknown"}
+                  {getAContent('cmp_vetonest.com_Species_Label')} : {pet.espece ? getEspeceName(pet.espece.id) : getAContent('cmp_vetonest.com_Unknown_Txt')}
                   <br />
-                  {getAContent('cmp_vetonest.com_Br61Mx80Qp')} : {breedName}
+                  {getAContent('cmp_vetonest.com_Breed_Label')} : {breedName}
                   <br />
                   <span className="date-line">
-                    {getAContent('cmp_vetonest.com_f82Ns91Qaz')} : {formatShortDate(pet.dateNaissance?.date || pet.dateNaissance)}
+                    {getAContent('cmp_vetonest.com_BirthDate_Label')} : {formatShortDate(pet.dateNaissance?.date || pet.dateNaissance)}
                   </span>
                 </p>
               </div>

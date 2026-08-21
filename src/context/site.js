@@ -11,6 +11,19 @@ import {
 } from '@ant-design/icons';
 
 
+// Language code → BCP 47 locale. Some languages use a country code that differs
+// from their language code, so the mapping has to be explicit.
+const LANGUAGE_LOCALE_MAP = {
+	'en': 'en-GB',
+	'fr': 'fr-FR',
+	'de': 'de-DE',
+	'es': 'es-ES',
+	'it': 'it-IT',
+	'ee': 'et-EE',  // Estonian: language code "et", country code "EE"
+};
+export const toSiteLocale = ( languageCode ) =>
+	LANGUAGE_LOCALE_MAP[languageCode] ?? ( languageCode + '-' + languageCode.toUpperCase() );
+
 export const SiteContext = createContext();
 export const SiteProvider = ({ children }) => {
 
@@ -25,6 +38,7 @@ export const SiteProvider = ({ children }) => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: 'include',
 			...(method == 'POST' && { body: JSON.stringify(data) })
 		});
 		
@@ -68,12 +82,13 @@ export const SiteProvider = ({ children }) => {
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
 	// Backend api url 
-	const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
-	// const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
+	// const base_api_url = '/api/'; // dev
+	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
 
 	// Backend public url 
-	const base_url = 'http://localhost/VetoNest/public/'; // dev
-	// const base_url = 'https://backend.vetonest.com/'// prod 
+	// const base_url = 'http://localhost/VetoNest/public/'; // dev
+	const base_url = 'https://backend.vetonest.com/'// prod 
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -105,28 +120,49 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
-	// send an email 
-// Send email
-const sendEmail = async (emailData) => {
-    console.log('=== SEND EMAIL DEBUG ===');
-    console.log('Email data:', emailData);
-    console.log('Email template:', emailData.emailTemplate);
-    console.log('To email:', emailData.to_email);
-    
-    const url = base_api_url + 'user/send';
-    const method = 'POST';
-    setSpiner('block');
-    try {
-        const rep = await fetchData(url, emailData, method);
-        console.log('Email response:', rep);
-        return rep;
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return null;
-    } finally {
-        setSpiner('none');
-    }
-};
+	// get professional title titles
+	const getVetTitles = async () => {
+		const url		= base_api_url + 'vet/title';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// get vet veriication statuses
+	const getVetStatuses = async () => {
+		const url		= base_api_url + 'verification/statuses';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// Send email
+	const sendEmail = async (emailData) => {
+		console.log('=== SEND EMAIL DEBUG ===');
+		console.log('Email data:', emailData);
+		console.log('Email template:', emailData.emailTemplate);
+		console.log('To email:', emailData.to_email);
+		
+		const url = base_api_url + 'user/send';
+		const method = 'POST';
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, emailData, method);
+			console.log('Email response:', rep);
+			return rep;
+		} catch (error) {
+			console.error('Error sending email:', error);
+			return null;
+		} finally {
+			setSpiner('none');
+		}
+	};
 
 	// signup
 	const signUp = async ( signupData ) => {
@@ -152,17 +188,60 @@ const sendEmail = async (emailData) => {
 		return rep;
 	}
 
-	
-	// signin
-	const signIn = async ( signinData ) => {
-		const url		= base_api_url + 'user/login';
-		const data 		= signinData;
-		const method 	= 'POST';
-		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		return rep;
-	}
+	// // In SiteContext.js - Update the signIn function
+	// const signIn = async (signinData) => {
+		// const url = base_api_url + 'user/login';
+		// const data = signinData;
+		// const method = 'POST';
+		// setSpiner('block');
+		
+		// try {
+			// const rep = await fetchData(url, data, method);
+			// setSpiner('none');
+			// return { success: true, data: rep };
+		// } catch (error) {
+			// console.error('Login error:', error);
+			// setSpiner('none');
+			// // Return error details instead of just false
+			// return { 
+				// success: false, 
+				// error: error.message || "Authentication failed"
+			// };
+		// }
+	// }
+
+	// logOut - Complete logout with server session destruction
+	const signOut = async () => {
+		try {
+			// ─── CALL THE SERVER LOGOUT API ──────────────────────────────────────
+			const response = await apiCall('/user/logout', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+			
+			if (!response.success) {
+				console.error('Server signOut failed:', response.message);
+			
+			}
+			
+			return true;
+			
+		} catch (error) {
+			console.error('Logout error:', error);
+			
+			// Even if API call fails, clear local state
+			// setUser(null);
+			// setProfileTypeId(null);
+			// setProfileId(null);
+			// setUserId(null);
+			// localStorage.removeItem('user');
+			
+			return false;
+		}
+	};
+
 
 	// update password
 	const updatePassword = async ( updatePasswordData ) => {
@@ -199,23 +278,22 @@ const sendEmail = async (emailData) => {
 		return rep;
 	}
 
-	// List all site countries
+	// List all countries
 	const countryList = async () => {
 		const url		= base_api_url + 'pays/list';
 		const data 		= '';
 		const method 	= 'GET';
 		setSpiner( 'none' );
-		const rep = await fetchData( url, data, method );
+		const rep 		= await fetchData( url, data, method );
 		return rep;
 	}
 
-	// list all pays villes
+	// list all cities by country
 	const getPaysVilles = async ( countryId ) => {
 		const url		= base_api_url + 'pays/villes?countryId=' + countryId;
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'none' );
-		const rep = await fetchData( url, data, method );
+		const rep 		= await fetchData( url, data, method );
 		return rep;
 	}
 
@@ -227,6 +305,28 @@ const sendEmail = async (emailData) => {
 		setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
 		setSpiner( 'none' );
+		return rep;
+	}
+	
+	// List all profesional Ids ( SIRET, RPPS, ... )
+	const professionalIdList = async () => { 
+		const url		= base_api_url + 'professionalIdMappings/list';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+
+	// List profesional Ids by country
+	const professionalIdByCountry = async ( countryId ) => {
+		const url		= base_api_url + 'professionalIdMappings/country?countryId=' + countryId;;
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
 		return rep;
 	}
 
@@ -244,6 +344,10 @@ const sendEmail = async (emailData) => {
 
 	const defaultLanguageId   = 1; // fr
 	const defaultLanguageCode = 'fr'; // fr
+	// The site default locale ('fr-FR'). Used for anything addressed to someone
+	// with no language preference of their own — invitation emails, for one —
+	// where siteLocale (which follows the current user's choice) is wrong.
+	const defaultSiteLocale   = toSiteLocale( defaultLanguageCode );
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
@@ -255,17 +359,7 @@ const sendEmail = async (emailData) => {
 		setSiteLanguage( languageCode );
 
 		// ── Language code → correct BCP 47 locale ────────────────────────────
-		// Some languages have a different country code than their language code
-		const localeMap = {
-			'en': 'en-GB',
-			'fr': 'fr-FR',
-			'de': 'de-DE',
-			'es': 'es-ES',
-			'it': 'it-IT',
-			'ee': 'et-EE',  // Estonian: language code "et", country code "EE"
-		};
-		const locale = localeMap[languageCode] ?? (languageCode + '-' + languageCode.toUpperCase());
-		setSiteLocale( locale );
+		setSiteLocale( toSiteLocale( languageCode ) );
 
 		// get content
 		const siteContentData = {
@@ -288,7 +382,7 @@ const sendEmail = async (emailData) => {
 	const [ selectedLanguageId, setSelectedLanguageId ] = useState( defaultLanguageId ); 
 
 	// Format date
-	const [siteLocale, setSiteLocale] = useState( defaultLanguageCode + '-' + defaultLanguageCode.toUpperCase() );
+	const [siteLocale, setSiteLocale] = useState( defaultSiteLocale );
 	const formatter = new Intl.DateTimeFormat( siteLocale, {
 		/*weekday: 'long',*/
 		year: 'numeric',
@@ -317,8 +411,8 @@ const sendEmail = async (emailData) => {
 		return str;
 	}
 
-	const base_cmp_Url = "http://localhost/Diamta_CMP/public/index.php/api/"; // dev
-	// const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
+	// const base_cmp_Url = "http://localhost/Diamta_CMP/public/index.php/api/"; // dev
+	const base_cmp_Url = "https://cmp.diamta.com/api/"; // prod 
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
@@ -335,6 +429,7 @@ const sendEmail = async (emailData) => {
 		setSpiner( 'none' );
 		return rep;
 	}
+
 	// Get a content from site siteContent.
 	const getAContent = ( tagRef ) => {
 		if( !siteContent.length )
@@ -351,6 +446,30 @@ const sendEmail = async (emailData) => {
 
 		return content.contents[0].textContent
 	}
+	
+	// Wrapper for getTranslatedMessage
+	const getTranslatedMessage = (tagRef, replacements = {}) => {
+		let message = getAContent(tagRef);
+		
+		if (!message || message === tagRef) {
+			// Fallback logic
+			const fallbacks = {
+				'cmp_vetonest.com_professional_id_invalid_format': `Invalid ${replacements.label || 'ID'} format`,
+				'cmp_vetonest.com_professional_id_required': `${replacements.label || 'ID'} is required`,
+				'cmp_vetonest.com_verify': 'Verify',
+				'cmp_vetonest.com_format_help': `Format: ${replacements.regex || ''}`,
+				'cmp_vetonest.com_enter': `Enter ${replacements.label || 'ID'}`,
+			};
+			return fallbacks[tagRef] || message || tagRef;
+		}
+		
+		Object.keys(replacements).forEach(placeholder => {
+			const regex = new RegExp(`{${placeholder}}`, 'g');
+			message = message.replace(regex, replacements[placeholder]);
+		});
+		
+		return message;
+	};
 	
 	// insert space at position x
 	const insertSpaceAtPosition = ( originalString, position ) => {
@@ -466,6 +585,11 @@ const sendEmail = async (emailData) => {
 		return rep;
 	}
 
+	// Impersonate
+	const getImpersonationStatus = async () => {
+	  return await fetchData(`${base_api_url}admin/impersonation-status`, {}, 'GET');
+	};
+
 	// Notifications - post
 	const postNotification = async ( notificationData ) => {
 		const url		= base_api_url + 'notification/post';
@@ -544,15 +668,39 @@ const sendEmail = async (emailData) => {
 	// user payment method
 	const [ userPaymentMethods, setUserPaymentMethods ] = useState( [] );
 
+
+	// list veto modes ( home, clinic, online )
+	const listVetoMode = async () => {
+		const url		= base_api_url + 'vetoMode/list';
+		const data 		= '';
+		const method 	= 'GET';
+		//setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		//setSpiner( 'none' );
+		return rep;
+	}
+
+	// show a veto mode
+	const showVetoMode = async ( vetoModeId ) => {
+		const url		= base_api_url + 'vetoMode/show?vetoModeId=' + vetoModeId;
+		const data 		= '';
+		const method 	= 'GET';
+		//setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		//setSpiner( 'none' );
+		return rep;
+	}
+
+
 	// list specialité
 	const [ allSpecialities, setAllSpecialities ] = useState( [] );
 	const getAllSpecialities = async () => {
 		const url		= base_api_url + 'vetoSpecialite/list';
 		const data 		= '';
 		const method 	= 'GET';
-		setSpiner( 'block' );
+		// setSpiner( 'block' );
 		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
+		// setSpiner( 'none' );
 		return rep;
 	}
 
@@ -672,25 +820,28 @@ const sendEmail = async (emailData) => {
 	}
 
 	const getPetOwnerConsultationList = async (profileId) => {
-	  const url = base_api_url + 'consultation/list/pet-owner?profileId=' + profileId;
-	  const method = 'GET';
-	  setSpiner('block');
-	  try {
-		const rep = await fetchData(url, {}, method);
-		// The API returns an array directly, not an object
-		// Make sure we return an array
-		if (Array.isArray(rep)) {
-		  return { success: true, consultations: rep };
-		} else {
-		  console.error('Unexpected response format:', rep);
-		  return { success: false, consultations: [] };
+		const url = base_api_url + 'consultation/list/pet-owner?profileId=' + profileId;
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, {}, 'GET');
+
+			// API returns { success: true, consultations: [...] }
+			if (rep?.success && Array.isArray(rep.consultations)) {
+				return rep;
+			}
+			// Fallback: legacy bare-array response
+			if (Array.isArray(rep)) {
+				return { success: true, consultations: rep };
+			}
+
+			console.error('Unexpected response format:', rep);
+			return { success: false, consultations: [] };
+		} catch (error) {
+			console.error('Error fetching consultations:', error);
+			return { success: false, consultations: [] };
+		} finally {
+			setSpiner('none');
 		}
-	  } catch (error) {
-		console.error('Error fetching consultations:', error);
-		return { success: false, consultations: [] };
-	  } finally {
-		setSpiner('none');
-	  }
 	};
 
 	// Consultation cancel
@@ -706,11 +857,29 @@ const sendEmail = async (emailData) => {
 
 	// Consultation list
 	const getVetConsultationList = async (profileVetoId) => {
-		const url    = base_api_url + 'consultation/list/vet?profileVetoId=' + profileVetoId;
-		const method = 'GET';
-		const rep    = await fetchData(url, null, method);
-		return rep;
-	}
+		const url = base_api_url + 'consultation/list/vet?profileVetoId=' + profileVetoId;
+		setSpiner('block');
+		try {
+			const rep = await fetchData(url, {}, 'GET');
+
+			// API returns { success: true, consultations: [...] }
+			if (rep?.success && Array.isArray(rep.consultations)) {
+				return rep;
+			}
+			// Fallback: legacy bare-array response
+			if (Array.isArray(rep)) {
+				return { success: true, consultations: rep };
+			}
+
+			console.error('Unexpected response format:', rep);
+			return { success: false, consultations: [] };
+		} catch (error) {
+			console.error('Error fetching vet consultations:', error);
+			return { success: false, consultations: [] };
+		} finally {
+			setSpiner('none');
+		}
+	};
 
 	// Consultation accept
 	const consultationAccept = async (consultationId) => {
@@ -787,8 +956,8 @@ const sendEmail = async (emailData) => {
 		return null;
 	  }
 	  
-	  const url = base_api_url + 'vetoCliniqueInfo/get?profileVetoId=' + profileVetoId;
-	  const method = 'GET';
+	  const url = base_api_url + 'etablissement/getVetoEtablissement?profileVetoId=' + profileVetoId;
+	  const method = 'GET'; 
 	  setSpiner('block');
 	  try {
 		const rep = await fetchData(url, {}, method);
@@ -800,8 +969,7 @@ const sendEmail = async (emailData) => {
 		setSpiner('none');
 	  }
 	};
-	
-	// set veto etablissement
+
 	const setCliniqueVetos = async ( cliniqueVetoData ) => {
 		const url		= base_api_url + 'vetoEtablissementStatus/edit';
 		const data 		= cliniqueVetoData;
@@ -811,6 +979,38 @@ const sendEmail = async (emailData) => {
 		setSpiner( 'none' );
 		return rep;
 	}
+
+	// update etablissement photo
+	const updateEtablissementPhoto = async (etablissementData, photoFile) => {
+		const url = base_api_url + 'etablissement/edit';
+		const method = 'POST';
+		
+		const formData = new FormData();
+		
+		// Append file if provided
+		if (photoFile) {
+			formData.append('files[]', photoFile);
+		}
+		
+		// Append data
+		for (const key in etablissementData) {
+			if (etablissementData.hasOwnProperty(key) && etablissementData[key] !== null && etablissementData[key] !== undefined) {
+				formData.append(key, etablissementData[key]);
+			}
+		}
+		
+		try {
+			const response = await fetch(url, {
+				method: method,
+				body: formData,
+			});
+			const rep = await response.json();
+			return rep;
+		} catch (error) {
+			console.error('Error updating etablissement photo:', error);
+			return false;
+		}
+	};
 
 	// get a user notifications
 	const getUserNotifications = async (userId) => {
@@ -998,7 +1198,7 @@ const getUserLieu = async (profileUserId) => {
 		return rep;
 	}
 
-	// Lieu Transport edit lieu /edit
+	// Lieu Transport
 	const lieuTransportUpdate = async ( lieuTransportData ) => {
 		const url		= base_api_url + 'lieuTransport/edit';
 		const data 		= lieuTransportData;
@@ -1029,7 +1229,7 @@ const getUserLieu = async (profileUserId) => {
 		const method 	= 'GET';
 		setSpiner( 'none' );
 		const rep = await fetchData( url, data, method );
-// console.log( '------------------- rep', rep );
+// console.log( '------------------- Lieu', rep );
 		setSpiner( 'none' );
 	
 		return rep;
@@ -1051,44 +1251,16 @@ const getUserLieu = async (profileUserId) => {
 
 	const [ selectedLieuId, setSelectedLieuId ] = useState( null );
 
-	// RPPS validator
-	const validateRppsNumber = (rppsNumber) => {
-		// Remove any spaces or non-digit characters from the input string
-		const cleanedNumber = rppsNumber.toString().replace(/\D/g, '');
-		// Check if the cleaned number is a numeric string of exactly 11 digits
-		const rppsRegex = /^\d{11}$/;
-		return rppsRegex.test(cleanedNumber);
-	}
+	// professional Id validator
+	// const professionalIdValidator = async ( data ) => {
+		// const url	= base_api_url + 'validate/professionalId';
 
-	// SIRET number
-	const validateSiretNumber = (siret) => {
-		// Remove any non-digit characters
-		siret = String(siret).replace(/\D/g, '');
-
-		// A SIRET number must be 14 digits long
-		if (siret.length !== 14 || !/^\d+$/.test(siret)) {
-			return false;
-		}
-
-		let sum = 0;
-		for (let i = 0; i < siret.length; i++) {
-			let digit = parseInt(siret[i], 10);
-
-			// Double every second digit from the right (or every digit at an even index from the left)
-			if (i % 2 === 0) { // For SIRET, the Luhn algorithm usually applies to every second digit from the right.
-						   // When iterating from the left, this means digits at even indices (0, 2, 4...)
-						   // are treated differently. For SIRET specifically, the 1st, 3rd, 5th... digits
-						   // (from the left, index 0, 2, 4...) are multiplied by 2.
-				digit *= 2;
-				if (digit > 9) {
-					digit -= 9;
-				}
-			}
-			sum += digit;
-		}
-
-		return sum % 10 === 0;
-	}
+		// const method	= 'POST';
+		// // setSpiner( 'block' );
+		// const rep = await fetchData( url, data, method );
+		// // setSpiner( 'none' );
+		// return rep;
+	// }
 
 	// get a specie's breed
 	const speciesBreedList = async ( especeId ) => { 
@@ -1191,6 +1363,41 @@ const getUserLieu = async (profileUserId) => {
 	const getPlaceAutocomplete = async ( name, limit ) => {  // /api/v1/autocomplete/specialties?q=${encodeURIComponent(q)}&limit=8`
 		const url		= base_api_url + "v1/autocomplete/place?q=" + name + "&limit=" + limit;
 
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+	
+	// Search box - get popular cities
+	const getPopularCities = async () => {  
+		const url		= base_api_url + 'popular-cities';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+
+		const rep = await fetchData( url, data, method );
+	
+		// setSpiner( 'none' );
+		return rep;
+	}
+	
+	// Search box - country list
+	const getCountriesList = async () => {  
+		const url		= base_api_url + 'countries/list';
+		const data 		= '';
+		const method 	= 'GET';
+		// setSpiner( 'block' );
+		const rep = await fetchData( url, data, method );
+		// setSpiner( 'none' );
+		return rep;
+	}
+	
+	// Search box - country list
+	const getCitiesByCountry = async ( countryId ) => {  
+		const url		= base_api_url + 'cities/by-country?countryId=' + countryId;
 		const data 		= '';
 		const method 	= 'GET';
 		// setSpiner( 'block' );
@@ -1458,8 +1665,426 @@ const saveComment = async (commentData) => {
 	const [ recommendedClinicTypeId, setRecommendedClinicTypeId ] = useState( null );
 	//  Consultation timeslot
 	const [ consultationTimeslot, setConsultationTimeslot ] = useState( null );
-	//  Consultation timeslot
+	//  Consultation selected vet
 	const [ consultationSelectedVet, setConsultationSelectedVet ] = useState( null );
+	//  selected consultation date from vet profile page
+	const [ consultationSelectedDate, setConsultationSelectedDate ] = useState( null );
+
+
+	// ──────────────────────────────────────────────────────────────────────────────
+	// ADMIN VETERINARIAN MANAGEMENT FUNCTIONS
+	// ──────────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Get all veterinarians (admin only)
+	 * @param {Object} options - Filter options
+	 * @param {boolean} options.showDisabled - Include disabled profiles
+	 * @param {string} options.status - Filter by status: 'active', 'disabled', 'vacation', 'all'
+	 * @param {string} options.search - Search by name or email
+	 */
+	const getAllVeterinarians = async (options = {}) => {
+		try {
+			const params = new URLSearchParams();
+			if (options.showDisabled) params.append('showDisabled', 'true');
+			if (options.status && options.status !== 'all') params.append('status', options.status);
+			if (options.search) params.append('search', options.search);
+			
+			const url = base_api_url + 'admin/vet/list' + (params.toString() ? '?' + params.toString() : '');
+			// const response = await fetch(url, {
+				// method: 'GET',
+				// headers: {
+					// 'Accept': 'application/json',
+					// 'Authorization': 'Bearer ' + getToken() // Add auth if needed
+				// },
+			// });
+			const response = await fetchData(url, '', 'GET');
+			// const data = await response.json();
+			return response;
+		} catch (error) {
+			console.error('Error fetching veterinarians:', error);
+			return { success: false, veterinarians: [], message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Create a veterinarian profile without an account.
+	 * Requires only nom + phone. Any other known profile field can be
+	 * included and will be saved immediately (specialiteId, vetTitleId,
+	 * vetoModeId, languageIds, tarifs, etc. — all optional).
+	 * @param {Object} vetData
+	 */
+	const adminCreateVeterinarian = async (vetData) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify(vetData)
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error creating veterinarian:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * PUBLIC: Validate an invitation token and get pre-fill data for the
+	 * vet signup page.
+	 * @param {string} token
+	 */
+	const checkVetInvitation = async (token) => {
+		try {
+			const response = await fetch(base_api_url + 'vet/invitation/check?token=' + encodeURIComponent(token), {
+				method: 'GET',
+				headers: { 'Accept': 'application/json' },
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error checking invitation:', error);
+			return { valid: false, message: error.message };
+		}
+	};
+
+	/**
+	 * PUBLIC: Complete an invited vet's signup.
+	 * @param {Object} payload - { token, email, password }
+	 */
+	const completeVetInvitation = async (payload) => {
+		try {
+			const response = await fetch(base_api_url + 'vet/invitation/complete', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify(payload)
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error completing invitation signup:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Update a veterinarian's profile (partial update — only send
+	 * the fields that changed).
+	 * @param {number} profileVetoId
+	 * @param {Object} vetData
+	 */
+	const adminUpdateVeterinarian = async (profileVetoId, vetData) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/update', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId, ...vetData })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error updating veterinarian:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Send (or resend) an invitation to an admin-created, unclaimed vet.
+	 * Returns { success, token, vetName, email, phone } for the caller to
+	 * build the WhatsApp deep link / email itself.
+	 * @param {number} profileVetoId
+	 */
+	const adminSendVetInvitation = async (profileVetoId) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/invite', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error sending veterinarian invitation:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Disable a veterinarian profile
+	 * @param {number} profileVetoId - The vet profile ID
+	 * @param {string} reason - Reason for disabling
+	 * @param {number} adminUserId - ID of admin performing action
+	 */
+	const adminDisableVeterinarian = async (profileVetoId, reason, adminUserId) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/disable', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId, reason, adminUserId })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error disabling veterinarian:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Enable a veterinarian profile
+	 * @param {number} profileVetoId - The vet profile ID
+	 */
+	const adminEnableVeterinarian = async (profileVetoId) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/enable', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error enabling veterinarian:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Update vet verification status
+	 * @param {number} profileVetoId - The vet profile ID
+	 * @param {string} statusCode - 'verified', 'pending', 'rejected', 'not_submitted'
+	 * @param {string} notes - Optional notes about verification
+	 */
+	const adminUpdateVerificationStatus = async (profileVetoId, statusCode, notes = null) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/update-verification', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId, statusCode, notes })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error updating verification status:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Get vet profile details
+	 * @param {number} profileVetoId - The vet profile ID
+	 */
+	const adminGetVetDetails = async (profileVetoId) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/details?profileVetoId=' + profileVetoId, {
+				method: 'GET',
+				headers: {
+					'Accept': 'application/json',
+				},
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error fetching vet details:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Get vet statistics
+	 * @param {number} profileVetoId - The vet profile ID
+	 */
+	const adminGetVetStatistics = async (profileVetoId) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/statistics?profileVetoId=' + profileVetoId, {
+				method: 'GET',
+				headers: {
+					'Accept': 'application/json',
+				},
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error fetching vet statistics:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Admin: Delete vet profile (soft delete)
+	 * @param {number} profileVetoId - The vet profile ID
+	 * @param {string} reason - Reason for deletion
+	 */
+	const adminDeleteVeterinarian = async (profileVetoId, reason) => {
+		try {
+			const response = await fetch(base_api_url + 'admin/vet/delete', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId, reason })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error deleting veterinarian:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	// ──────────────────────────────────────────────────────────────────────────────
+	// VET SELF-MANAGEMENT FUNCTIONS
+	// ──────────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Get current vet profile status
+	 * @param {number} profileVetoId - The vet profile ID
+	 */
+	const getVetStatus = async (profileVetoId) => {
+		try {
+			const response = await fetch(base_api_url + 'vet/status?profileVetoId=' + profileVetoId, {
+				method: 'GET',
+				headers: {
+					'Accept': 'application/json',
+				},
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error fetching vet status:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Vet: Set vacation mode
+	 * @param {Object} params - Vacation parameters
+	 * @param {number} params.profileVetoId - The vet profile ID
+	 * @param {string} params.startDate - Start date (Y-m-d H:i:s)
+	 * @param {string} params.endDate - End date (Y-m-d H:i:s)
+	 * @param {string} params.message - Vacation message
+	 */
+	const setVacationMode = async (params) => {
+		try {
+			const response = await fetch(getVetStatus + 'vet/set-vacation', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify(params)
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error setting vacation mode:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Vet: Disable own profile
+	 * @param {Object} params - Disable parameters
+	 * @param {number} params.profileVetoId - The vet profile ID
+	 * @param {string} params.reason - Reason for disabling
+	 * @param {number} params.duration - Auto-reactivate after days (optional)
+	 */
+	const disableSelf = async (params) => {
+		try {
+			const response = await fetch(getVetStatus + 'vet/disable-self', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify(params)
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error disabling profile:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	/**
+	 * Vet: Enable own profile
+	 * @param {number} profileVetoId - The vet profile ID
+	 */
+	const enableSelf = async (profileVetoId) => {
+		try {
+			const response = await fetch(getVetStatus + 'vet/enable-self', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+				},
+				body: JSON.stringify({ profileVetoId })
+			});
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error('Error enabling profile:', error);
+			return { success: false, message: error.message };
+		}
+	};
+
+	// ── API Call helper (standalone) ──────────────────────────────────────────
+	const apiCall = useCallback(async (endpoint, options = {}) => {
+	  const url = base_api_url + endpoint.replace(/^\//, '');
+	  const method = options.method || 'POST';
+
+	  const fetchOptions = {
+		method: method,
+		headers: {
+		  'Content-Type': 'application/json',
+		},
+		credentials: 'include',
+	  };
+
+	  if (['POST', 'PUT', 'PATCH'].includes(method) && options.body) {
+		fetchOptions.body = options.body;
+	  }
+
+	  const response = await fetch(url, fetchOptions);
+	  const contentType = response.headers.get('content-type');
+
+	  if (contentType && contentType.includes('application/json')) {
+		const data = await response.json();
+		if (!response.ok) {
+		  const error = new Error(data.error || data.message || `API returned status ${response.status}`);
+		  error.status = response.status; // ← Add status to error
+		  throw error;
+		}
+		return data;
+	  } else {
+		const text = await response.text();
+		const error = new Error(`API returned status ${response.status} - expected JSON but got HTML`);
+		error.status = response.status; // ← Add status to error
+		throw error;
+	  }
+	}, [base_api_url]);
 
 	useEffect(() => {
 		const a = async () =>{
@@ -1478,7 +2103,7 @@ const saveComment = async (commentData) => {
 			}
 			const countries = await getCountries();
 			setCountriesAllowed( countries );
-			
+
 			// Especies
 			const getEspeces = async () => {
 				const species = await speciesList();
@@ -1498,12 +2123,12 @@ const saveComment = async (commentData) => {
 			// transport
 			const transports = await getTransports();
 			setTransports( transports )
-
+// console.log( 'ttttttttttttttttttttttt transports',  transports );
 			// veto list
 			const vetos = await getVetos();
 			setVetos( vetos )
 
-console.log('vetos changed in context', vetos?.length);
+// console.log('vetos changed in context', vetos?.length);
 
 			// veto etablissement
 			const etablissements = await getEtablissements();
@@ -1625,7 +2250,10 @@ console.log('vetos changed in context', vetos?.length);
 	const [ country_belgium, setCountry_belgium ] = useState( '' );				
 	const [ country_spain, setCountry_spain ] = useState( '' );	
 	const [ country_germain, setCountry_germain ] = useState( '' );	
-
+	const [ country_estonia, setCountry_estonia ] = useState( '' );
+	const [ country_usa, setCountry_usa ] = useState( '' );
+	const [ country_uk, setCountry_uk ] = useState( '' );
+	const [ country_canada, setCountry_canada ] = useState( '' );
 
 	const getBase64 = async (file) => {
 		return new Promise((resolve, reject) => {
@@ -1656,7 +2284,9 @@ console.log('vetos changed in context', vetos?.length);
 				siteDomainName,
 				base_url,
 				signUp,
-				signIn,
+				// signIn,
+				base_api_url,
+				signOut,
 				checkEmail,
 				insertSpaceAtPosition,
 				sendEmail,
@@ -1688,6 +2318,8 @@ console.log('vetos changed in context', vetos?.length);
 				userProfile, 
 				setUserProfile,
 				defaultLanguageId,
+				defaultLanguageCode,
+				defaultSiteLocale,
 				siteLanguage,
 				setSiteLanguage,
 				languageSetup,
@@ -1912,10 +2544,14 @@ console.log('vetos changed in context', vetos?.length);
 				setCountry_spain,
 				country_germain,
 				setCountry_germain,
+				country_estonia,   // add this
+				country_usa,       // add this
+				country_uk,        // add this
+				country_canada,    // add this
 				allSpecialities,
 				allEtablissementTypes,
-				validateRppsNumber,
-				validateSiretNumber,
+				// validateRppsNumber,
+				// validateSiretNumber,
 				getTimeslot,
 				timeslot, 
 				setTimeslot,
@@ -2004,7 +2640,37 @@ console.log('vetos changed in context', vetos?.length);
 				markCommentUseful,
 				reportCommentAbuse,
 				addCommentReply,
-
+				professionalIdList,
+				professionalIdByCountry,
+				getTranslatedMessage,  // Add this
+				updateEtablissementPhoto,
+				getVetTitles,
+				getVetStatuses,
+				// admin
+				getAllVeterinarians,
+				adminCreateVeterinarian,
+				adminUpdateVeterinarian,
+				adminSendVetInvitation,
+				checkVetInvitation,
+				completeVetInvitation,
+				adminDisableVeterinarian,
+				adminEnableVeterinarian,
+				adminGetVetDetails,
+				adminGetVetStatistics,
+				adminUpdateVerificationStatus,
+				adminDeleteVeterinarian,
+				getVetStatus,
+				setVacationMode,
+				disableSelf,
+				enableSelf,
+				getPopularCities,
+				setVetos,
+				getImpersonationStatus,
+				apiCall,
+				consultationSelectedDate,
+				setConsultationSelectedDate,
+				showVetoMode,
+				listVetoMode
 			}}
 		>
 

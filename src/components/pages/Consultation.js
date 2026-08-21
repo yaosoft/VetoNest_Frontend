@@ -8,22 +8,27 @@ import Title from '../Title';
 import ConsultationSidebar from '../ConsultationSidebar';
 import ConsultationProcess from "../ConsultationProcess";
 import { Spin } from "antd";
+
 // Cache for pets data
 const petsCache = new Map();
 let pendingRequest = null;
 
 const Consultation = () => {
   const { profileId } = useContext(AuthContext);
-  const { getUserPets, getAContent } = useContext(SiteContext);
+  const { getUserPets, getAContent, siteContent } = useContext(SiteContext); // ← add siteContent
 
   const [isCreation, setIsCreation] = useState(false);
   const [animals, setAnimals] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const hasFetchedRef = useRef(false);
 
+  const [isLoading, setIsLoading] = useState(() => {
+    const isCreationPath = window.location.pathname.includes('/consultation/creation');
+    const cacheKey = `pets_${profileId}`;
+    return isCreationPath && !petsCache.has(cacheKey);
+  });
+
+  const hasFetchedRef = useRef(false);
   const location = useLocation();
 
-  // Memoize the pathname check
   const checkIsCreation = useCallback(() => {
     return location.pathname.includes('/consultation/creation');
   }, [location.pathname]);
@@ -32,35 +37,41 @@ const Consultation = () => {
     setIsCreation(checkIsCreation());
   }, [checkIsCreation]);
 
-  // Optimized fetchPets with caching
   useEffect(() => {
-    // Only fetch if we're on the creation page and haven't fetched yet
-    if (!isCreation) return;
-    if (!profileId) return;
-    if (hasFetchedRef.current && animals.length > 0) return;
+    if (!isCreation || !profileId) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (hasFetchedRef.current && animals.length > 0) {
+      setIsLoading(false);
+      return;
+    }
 
     const fetchPets = async () => {
       const cacheKey = `pets_${profileId}`;
       
-      // Check cache first
       if (petsCache.has(cacheKey)) {
         const cached = petsCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < 30000) { // 30 seconds cache
+        if (Date.now() - cached.timestamp < 30000) {
           setAnimals(cached.data);
+          setIsLoading(false);
           return;
         }
       }
 
-      // Check if there's already a pending request
+      setIsLoading(true);
+
       if (pendingRequest) {
-        const data = await pendingRequest;
-        setAnimals(data || []);
+        try {
+          const data = await pendingRequest;
+          setAnimals(data || []);
+        } finally {
+          setIsLoading(false);
+        }
         return;
       }
 
-      setIsLoading(true);
-      
-      // Create the promise
       pendingRequest = (async () => {
         try {
           const userPets = await getUserPets(profileId);
@@ -73,7 +84,6 @@ const Consultation = () => {
 
       try {
         const data = await pendingRequest;
-        // Cache the result
         petsCache.set(cacheKey, {
           data: data,
           timestamp: Date.now()
@@ -92,24 +102,36 @@ const Consultation = () => {
     fetchPets();
   }, [isCreation, profileId, getUserPets, animals.length]);
 
+  // ↓ True loading = pets are loading OR siteContent isn't ready yet
+  const showSpinner = isCreation && (isLoading || !siteContent.length);
+
   return (
     <>
       <div className="sticky-stack">
         <Header />
-        <Title title={isCreation ? getAContent('cmp_vetonest.com_RequestConsultation_Btn') : getAContent('cmp_vetonest.com_YourConsultations_Txt')} />
+        <Title 
+          title={
+            isCreation 
+              ? getAContent('cmp_vetonest.com_RequestConsultation_Btn') 
+              : getAContent('cmp_vetonest.com_YourConsultations_Txt')
+          } 
+        />
       </div>
 
       <div style={{ display: "flex", alignItems: "flex-start", minHeight: "calc(100vh - 120px)" }}>
-        {/* Left sidebar */}
         <ConsultationSidebar />
 
-        {/* Main content */}
         <main style={{ flex: 1, padding: "24px 32px", minWidth: 0, boxSizing: "border-box" }}>
           {isCreation ? (
-            isLoading ? (
+            showSpinner ? (
               <div style={{ textAlign: "center", padding: "60px" }}>
                 <Spin size="large" />
-                <p style={{ marginTop: "20px", color: "#888" }}>Loading your pets...</p>
+                {/* Only render the text once siteContent is ready, avoiding the '...' fallback */}
+                {siteContent.length > 0 && (
+                  <p style={{ marginTop: "20px", color: "#888" }}>
+                    {getAContent('cmp_vetonest.com_loading_pets')}
+                  </p>
+                )}
               </div>
             ) : (
               <ConsultationProcess animals={animals} />

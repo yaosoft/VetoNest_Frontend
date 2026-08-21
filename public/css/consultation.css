@@ -40,6 +40,14 @@ body {
   box-sizing: border-box;
 }
 
+/* Wide variant — used by steps (like booking) that need the full available
+   width instead of the standard narrow 960px centered column. */
+.consultation-step-container.consultation-step-container--wide {
+  max-width: none;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
 /* Step headings */
 .consultation-step-title {
   margin-bottom: 20px;
@@ -297,51 +305,13 @@ button.consultation-next-button:disabled {
    6. BOOKING PAGE — 3-COLUMN LAYOUT
    ============================================================================= */
 
-/* Wider container for the booking step */
-.consultation-booking-container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 16px;
-  box-sizing: border-box;
-}
-
-/* Grid: [filters | vet list | AI panel] */
-.booking-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr 300px;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-/* Left column — filter controls, sticky */
-.booking-filters {
-  position: sticky;
-  top: 260px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.booking-filters input,
-.booking-filters select,
-.booking-filters .ant-select,
-.booking-filters .ant-select-selector {
-  width: 100% !important;
-  box-sizing: border-box;
-}
-
-/* Middle column — vet list */
-.booking-vets {
-  min-width: 0;
-  width: 500px;
-}
-
-/* Right column — AI recommendation panel, sticky */
-.booking-right {
-  position: sticky;
-  top: 260px;
-}
+/* NOTE: The booking page's grid/column/sticky-offset CSS now lives entirely
+   inside ConsultationBooking.js (scoped <style jsx> block), so it can use
+   the dynamic --sticky-offset variable and stay in one place. The old
+   duplicate rules here (.consultation-booking-container, .booking-layout,
+   .booking-filters, .booking-vets, .booking-right) were removed because a
+   hardcoded `.booking-vets { width: 500px }` and `top: 260px` were silently
+   overriding the component's real styles depending on CSS load order. */
 
 
 /* =============================================================================
@@ -350,18 +320,6 @@ button.consultation-next-button:disabled {
 
 /* Tablet — 2 cols: filters + list; AI panel spans full width below */
 @media (max-width: 1100px) {
-  .booking-layout {
-    grid-template-columns: 200px 1fr;
-  }
-
-  .booking-right {
-    grid-column: 1 / -1;
-    position: static;
-  }
-
-  .booking-vets {
-    width: auto;
-  }
 }
 
 /* Small tablet / large mobile */
@@ -391,19 +349,6 @@ button.consultation-next-button:disabled {
 
 /* Mobile — single column, everything stacks */
 @media (max-width: 700px) {
-  .booking-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .booking-filters,
-  .booking-vets,
-  .booking-right {
-    width: 100%;
-    position: static;
-  }
-
   .consultation-booking-container {
     padding: 0 8px;
   }

@@ -15,7 +15,7 @@ ORDER:
 3. Typography
 4. Buttons
 5. Generic components (cards, images)
-6. Sections (Hero, Why, Services, App, CTA, Search, Trust)
+6. Sections (Hero, Why, Services, App, CTA, Search, Trust, FAQ)
 7. Utilities
 8. Responsive overrides
    */
@@ -83,6 +83,17 @@ font-size: 1.1rem;
 margin-bottom: 20px;
 }
 
+.section-sub {
+font-size: 1rem;
+color: #555;
+max-width: 600px;
+margin: 0 auto;
+}
+
+.text-center {
+text-align: center;
+}
+
 /* ================= 4. Buttons ================= */
 .btn {
 display: inline-block;
@@ -108,6 +119,22 @@ border: 2px solid var(--green);
 .btn.large {
 font-size: 1.1rem;
 padding: 14px 28px;
+}
+
+.btn-success {
+background: var(--green);
+color: #fff;
+border-radius: var(--radius);
+}
+
+.backgroundYellow {
+background: var(--yellow);
+color: #333;
+}
+
+.backgroundBlack {
+background: #333;
+color: #fff;
 }
 
 /* ================= 5. Generic Components ================= */
@@ -155,7 +182,6 @@ z-index: 0;
 .hero-overlay {
 position: absolute;
 inset: 0;
-/* background: var(--yellow); */
 z-index: 1;
 }
 
@@ -243,7 +269,6 @@ flex-wrap: wrap;
 .hero-overlay {
   position: absolute;
   inset: 0;
-  /* background: rgba(255, 215, 0, 0.85); /* or your --yellow */ 
   z-index: 1;
 }
 
@@ -254,6 +279,10 @@ flex-wrap: wrap;
 }
 
 /* ---------- Search ---------- */
+.home-search {
+background: #fff;
+}
+
 /* FLAGS */
 .flags-row {
   display: flex;
@@ -276,14 +305,10 @@ flex-wrap: wrap;
   object-fit: cover;
 }
 
-/* ---------- Why / Trust / Reviews / App / CTA titles ---------- */
-.why h2,
-.services h2,
-.trust h2,
-.reviews h2,
-.app h2,
-.cta h2 {
-margin-bottom: 16px;
+.coming-soon {
+margin-top: 30px;
+font-style: italic;
+color: #888;
 }
 
 /* ---------- Why ---------- */
@@ -302,6 +327,10 @@ flex-direction: column;
 }
 
 /* ---------- Services ---------- */
+.services {
+background: #fff;
+}
+
 .services .grid-3 {
 gap: 24px;
 }
@@ -311,17 +340,23 @@ background: #fff;
 border-radius: 10px;
 overflow: hidden;
 text-align: center;
+box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
-.service-image {
+.image-wrapper {
 height: 200px;
 overflow: hidden;
 }
 
-.service-image img {
+.image-wrapper img {
 width: 100%;
 height: 100%;
 object-fit: cover;
+transition: transform 0.3s ease;
+}
+
+.service-card:hover .image-wrapper img {
+transform: scale(1.05);
 }
 
 .service-card h3 {
@@ -351,6 +386,16 @@ color: #fff;
 font-size: 18px;
 }
 
+/* ---------- AI Section (uses why class with yellow background) ---------- */
+.ai-section {
+background: var(--yellow);
+}
+
+/* ---------- Trust ---------- */
+.trust {
+background: #fff;
+}
+
 /* Checklist */
 .checklist {
   list-style: none;
@@ -371,11 +416,115 @@ font-size: 18px;
   font-weight: bold;
 }
 
+.lead {
+font-size: 1.1rem;
+font-weight: 500;
+}
+
+/* ---------- FAQ SECTION (alternating with yellow background) ---------- */
+.faq-section {
+background: var(--yellow);
+padding: 60px 0;
+}
+
+.faq-grid {
+max-width: 800px;
+margin: 40px auto 0;
+}
+
+.faq-item {
+background: white;
+border-radius: 12px;
+margin-bottom: 16px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.faq-question {
+display: flex;
+align-items: center;
+gap: 16px;
+padding: 20px 24px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+border-radius: 12px;
+}
+
+.faq-question:hover {
+background-color: #f5f5f5;
+}
+
+.faq-question.active {
+background-color: #fff;
+border-radius: 12px 12px 0 0;
+}
+
+.faq-icon {
+font-size: 24px;
+font-weight: 600;
+color: var(--green);
+width: 32px;
+height: 32px;
+display: flex;
+align-items: center;
+justify-content: center;
+background-color: #f0f0f0;
+border-radius: 50%;
+transition: all 0.3s ease;
+}
+
+.faq-question.active .faq-icon {
+background-color: var(--green);
+color: #fff;
+}
+
+.faq-question h3 {
+margin: 0;
+font-size: 18px;
+font-weight: 500;
+color: #333;
+flex: 1;
+}
+
+.faq-answer {
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.4s ease, padding 0.3s ease;
+padding: 0 24px;
+}
+
+.faq-answer.open {
+max-height: 300px;
+padding: 0 24px 20px 70px;
+}
+
+.faq-answer p {
+margin: 0;
+font-size: 15px;
+line-height: 1.6;
+color: #666;
+}
+
 /* ---------- App ---------- */
+.app {
+background: #fff;
+}
+
 .app-links {
 display: flex;
 gap: 14px;
 margin-top: 16px;
+flex-wrap: wrap;
+}
+
+.app-links img {
+max-height: 50px;
+width: auto;
+cursor: pointer;
 }
 
 .app-image {
@@ -386,6 +535,26 @@ margin-left: auto;
 .app-image img {
 border-radius: 24px;
 box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+}
+
+.app-responsive {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.responsive-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.responsive-text {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* ---------- CTA ---------- */
@@ -400,13 +569,13 @@ flex-direction: column;
 align-items: center;
 }
 
-.ai-section{
-	background: var(--yellow);
-}
-
 /* ================= 7. Utilities ================= */
 .trust-heart {
 color: #e63946;
+}
+
+.align-top {
+align-items: start;
 }
 
 /* ================= 8. Responsive ================= */
@@ -433,12 +602,9 @@ background: var(--green);
 	margin: 0 auto;
 	max-width: 100%;
 	}
-}
-
-@media (max-width: 376px) {
-
-	.hero-image {
-		display: none;
+	
+	.faq-answer.open {
+	padding: 0 20px 16px 60px;
 	}
 }
 
@@ -448,7 +614,7 @@ font-size: 1.6rem;
 line-height: 1.18;
 }
 
-.service-image {
+.image-wrapper {
 height: 180px;
 }
 
@@ -459,6 +625,28 @@ height: 40px;
 
 .icon-overlay i {
 font-size: 16px;
+}
+
+.faq-question {
+padding: 16px 20px;
+}
+
+.faq-question h3 {
+font-size: 16px;
+}
+
+.faq-icon {
+width: 28px;
+height: 28px;
+font-size: 20px;
+}
+
+.faq-answer.open {
+padding: 0 16px 16px 56px;
+}
+
+.faq-answer p {
+font-size: 14px;
 }
 }
 
@@ -476,5 +664,33 @@ padding-right: 18px;
 font-size: 1rem;
 box-sizing: border-box;
 }
+
+.faq-question {
+padding: 14px 16px;
+gap: 12px;
 }
 
+.faq-question h3 {
+font-size: 15px;
+}
+
+.faq-icon {
+width: 24px;
+height: 24px;
+font-size: 18px;
+}
+
+.faq-answer.open {
+padding: 0 12px 12px 48px;
+}
+
+.faq-answer p {
+font-size: 13px;
+}
+}
+
+@media (max-width: 376px) {
+	.hero-image {
+		display: none;
+	}
+}

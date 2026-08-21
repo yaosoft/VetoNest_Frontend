@@ -16,13 +16,27 @@ const VideoConsultationButton = ({
   isInitiator = true,
   disabled = false,
   title = '',
-  onBeforeCall,        // called before any async operation (kept for back-compat)
-  onAfterInit,         // called AFTER initializeCall() resolves — use this for emitCallRequest
+  style = {},
+  iconStyle = {},
+  onBeforeCall,
+  onAfterInit,
+  onCallEnd,
+  useProviderSocket = null,
+  vetSocket = null,
+  vetListenersAttached = null,
 }) => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [validationError, setValidationError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const initializedRef = useRef(false);
+
+  // Combined handler: close modal + notify parent
+  const handleCallEnd = useCallback(() => {
+    setShowVideoModal(false);
+    if (typeof onCallEnd === 'function') {
+      onCallEnd();
+    }
+  }, [onCallEnd]);
 
   const {
     localStream,
@@ -37,8 +51,12 @@ const VideoConsultationButton = ({
   } = useVideoConsultation(
     currentUserId,
     targetUserId,
-    () => setShowVideoModal(false),
+    handleCallEnd,
     isInitiator,
+    undefined,              // consultationId
+    useProviderSocket,      // null = auto-detect
+    vetSocket,              // vet's own socket ref to avoid double-registration
+    vetListenersAttached,   // shared listeners guard across all vet card buttons
   );
 
   const t = useCallback((key, fallback) =>
@@ -99,19 +117,34 @@ const VideoConsultationButton = ({
           display: 'inline-flex', alignItems: 'center', gap: '8px',
           opacity: (isLoading || disabled) ? 0.7 : 1,
           cursor: (isLoading || disabled) ? 'not-allowed' : 'pointer',
+          ...style,
         }}
       >
         {isLoading ? (
           <>
             <span style={{
               display: 'inline-block', width: '14px', height: '14px',
-              border: '2px solid white', borderTop: '2px solid transparent',
+              border: '2px solid currentColor', borderTop: '2px solid transparent',
               borderRadius: '50%', animation: 'spin 1s linear infinite',
             }} />
             {t('cmp_vetonest.com_Checking_Txt', 'Chargement...')}
           </>
         ) : (
-          <>🎥 {buttonText}</>
+          <>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ width: '15px', height: '15px', flexShrink: 0, ...iconStyle }}
+            >
+              <path d="M23 7l-7 5 7 5V7z" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+            </svg>
+            <span style={{ marginLeft: '2px' }}>{buttonText}</span>
+          </>
         )}
       </button>
 

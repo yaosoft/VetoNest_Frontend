@@ -19,6 +19,18 @@ import Consultation from './pages/Consultation';
 import ConsultationListPetOwner from './pages/ConsultationListPetOwner';
 import ConsultationListVet from './pages/ConsultationListVet';
 import MyPets from './pages/MyPets';
+import VetInvitationSignup from './pages/VetInvitationSignup';
+// New imports
+import LegalNotices from './pages/LegalNotices';
+import Disclaimer from './pages/Disclaimer';
+import TermsOfUse from './pages/TermsOfUse';
+import CookiePolicy from './pages/CookiePolicy';
+import AdminVetManagement from './admin/AdminVetManagement';
+import AdminLogin from './admin/AdminLogin';
+import AdminDashboard from './admin/AdminDashboard';
+import AdminRouteGuard from './admin/AdminRouteGuard';
+import VetEarnings from './pages/VetEarnings'
+import ConsultationRules from './pages/ConsultationRules';
 
 const AllRoutes = {
 
@@ -54,6 +66,10 @@ const AllRoutes = {
 		{	// Sign in
 			element:  <SignIn />,
 			path: '/connexion',
+		},
+		{	// Invited vet: create account (landing page from invitation link)
+			element:  <VetInvitationSignup />,
+			path: '/inscription-veterinaire',
 		},
 		{	// Profile
 			element:  <Profile />,
@@ -107,6 +123,31 @@ const AllRoutes = {
 			element:  <MyPets />,
 			path: '/my-pets',
 		},
+		// New legal routes
+		{	// Mentions légales
+			element: <LegalNotices />,
+			path: '/mentions-legales',
+		},
+		{	// Disclaimer médical
+			element: <Disclaimer />,
+			path: '/disclaimer',
+		},
+		{	// Conditions générales d'utilisation
+			element: <TermsOfUse />,
+			path: '/conditions-utilisation',
+		},
+		{	// Cookie Policy
+			element: <CookiePolicy />,
+			path: '/coolie-policy',
+		},
+		{
+		  path: "/consultation/rules",
+		  element: <ConsultationRules />,
+		},
+		{	// Admin
+			element: <AdminVetManagement />,
+			path: '/admin/vets',
+		},		
 		{	// Not found page
 			element: <NotFound 
 				params={{ 
@@ -115,7 +156,33 @@ const AllRoutes = {
 			/>,
 			path: '/*',
 		},
+		// Admin routes (protected)
+		{
+		  path: '/admin/login',
+		  element: <AdminLogin />
+		},
+		{
+		  path: "/consultation/vet/earnings",
+		  element: <VetEarnings />
+		},
+		{
+		  path: '/admin/dashboard',
+		  element: (
+			<AdminRouteGuard>
+			  <AdminDashboard />
+			</AdminRouteGuard>
+		  )
+		},
+		{
+		  path: '/admin/vets',
+		  element: (
+			<AdminRouteGuard>
+			  <AdminVetManagement />
+			</AdminRouteGuard>
+		  )
+		}
 	],
+	
 }
 
 export default AllRoutes;

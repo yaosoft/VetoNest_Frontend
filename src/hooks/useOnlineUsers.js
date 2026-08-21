@@ -6,7 +6,7 @@ let globalListeners = [];
 
 const getSocket = () => {
   if (!globalSocket) {
-    const url = process.env.REACT_APP_SIGNALING_URL || 'http://localhost:5000';
+    const url = process.env.REACT_APP_SIGNALING_URL || 'https://vetonest.com';
     globalSocket = io(url, { transports: ['websocket', 'polling'] });
     globalSocket.on('connect', () => console.log('Presence socket connected'));
   }

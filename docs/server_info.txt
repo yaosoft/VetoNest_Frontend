@@ -1,3 +1,0 @@
-pscp -pw "ns6A..wP8I9Ay3" C:\NodeJS\Websites\VetoNest_Frontend\public\img\Home\home.jpg root@64.188.10.87:/root/frontend/VetoNest_Frontend/public/img/Home
-
-pscp -pw "ns6A..wP8I9Ay3" C:\NodeJS\Websites\VetoNest_Frontend\src\components\pages\VetListing.js root@64.188.10.87:/root/frontend/VetoNest_Frontend/src/components/pages

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
-// import SearchBox from './SearchBox';
 import ResponsiveSearch from './ResponsiveSearch';
 
 import SecuredPagesAuth from "./SecuredPagesAuth";
@@ -11,8 +10,7 @@ import { Space, Modal, Spin, Button, notification, message, Popconfirm, Upload }
 
 import LanguageSelector from './LanguageSelector';
 
-import Notifications from "./Notifications.js"; 
-
+import Notifications from "./Notifications.js";
 
 const Header = () => {
 
@@ -26,7 +24,7 @@ const Header = () => {
 		setUser 
 	} = useContext( AuthContext );
 
-	const { 
+	const {
 		siteName,
 		siteEmail,
 		siteUrl,
@@ -45,103 +43,109 @@ const Header = () => {
 		userProfile,
 		profileFormUpdated,
 		getAContent,
+		signOut
 	} = useContext( SiteContext );
-	
+
 	const navigate = useNavigate();
 
-	const array = [ 
+	const array = [
 		{
 			path: 'home',
- 			actif: '',  
+ 			actif: '',
 		},
 		{
 			path: 'about',
- 			actif: '',  
+ 			actif: '',
 		},
 		{
 			path: 'import-export',
- 			actif: '', 
+ 			actif: '',
 		},
 		{
 			path: 'blog',
- 			actif: '',  
+ 			actif: '',
 		},
 		{
 			path: 'contact',
- 			actif: '' 
+ 			actif: ''
 		},
 	]
 
-	// var user = getUser();
 	const [menuOpen, setMenuOpen] = useState(false);
-
 	const [ languages, setLanguages ]  = useState( '' );
-
 	const [ active, setActive ] = useState( array );
-	
 	const [ currentUser, setCurrentUser ] = useState( user );
-	
+
+	// Ref for the menu container
+	const menuRef = useRef(null);
+
+	// Click-outside detection
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (menuRef.current && !menuRef.current.contains(event.target)) {
+				setMenuOpen(false);
+			}
+		};
+
+		if (menuOpen) {
+			document.addEventListener("mousedown", handleClickOutside);
+		} else {
+			document.removeEventListener("mousedown", handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, [menuOpen]);
+
 	const handleClickGoto = ( goTo ) => {
 		setMenuOpen(false);
 		const path = '/' + goTo;
 		navigate( path );
-		
 	}
 
-	// Login / logout
-	const handleClickLogInOut = async( event ) => {
-		event.preventDefault();		
-		if( isAuthenticated() ){
-			const resp = await logOut();
-			if( resp === true )
-				await navigate( '/connexion' )
-			else
-				message.error( 'Error' )
+	// logout
+	const handleClickLogOut = async( event ) => {
+		const resp = await signOut();
+		if( resp !== true ){
+			console.log( 'Sign out: network error' )
 		}
+		await logOut( user );
+		await navigate( '/connexion' );
 	}
 
-
-
-	// get the profile data
 	useEffect( () => {
-	
-		// Get user preference
 		const a = async () => {
-			// current user
 			const user = await getUser();
-// console.log( '>>>>>>>>>>> currentUser:', currentUser );
 			setCurrentUser( user );
-			
-			// default site language
+
 			var languageId = defaultLanguageId;
-			
-			// user is not loged in
+
 			if( user === null ){
 				if( selectedLanguageId == defaultLanguageId )
 					languageId = defaultLanguageId
 				else
 					languageId = selectedLanguageId
 
-				setSelectedLanguageId( languageId );			// update languagelist boxes
-				await languageSetup( languageId ); 
+				setSelectedLanguageId( languageId );
+				await languageSetup( languageId );
 			}
 			else{
-				// user's favourite language
 				const data = {
 					userId: user.userId,
-				}	
+				}
 				const resp = await getLanguagePreference ( data );
-				if( resp !== null )
-					await languageSetup( resp.id ) 
-				else
-					await languageSetup( selectedLanguageId ) 
-				
-			}			
-		}	
+				if( resp !== null ) {
+					setSelectedLanguageId( resp.id );
+					await languageSetup( resp.id );
+				} else {
+					await languageSetup( selectedLanguageId );
+				}
+			}
+		}
 		a()
+	}, [profileFormUpdated] );
 
-	}, [profileFormUpdated] ); // [user, userProfile, siteLanguage]
-	
 	return (
 		<>
 		<SecuredPagesAuth />
@@ -174,8 +178,7 @@ const Header = () => {
 							</div>
 						</div>
 						<div className="header-right">
-							  <nav className="navbar navbar-expand-lg navbar-dark navigation">
-
+							  <nav className="navbar navbar-expand-lg navbar-dark navigation" ref={menuRef}>
 								{/* RIGHT ACTIONS (mobile + desktop) */}
 								<div className="nav-actions">
 								  <Notifications /><div className="spaceAfterNotificationBell"></div>
@@ -200,26 +203,18 @@ const Header = () => {
 								{/* COLLAPSIBLE MENU */}
 								<div className={`navbar-collapse ${menuOpen ? "open" : ""}`}>
 								  <ul className="navbar-nav">
-									{/* "MY PETS" LINK - VISIBLE ONLY FOR USER PROFILES (NOT VETS) */}
-									
-										<li className="nav-item">
-										  <Link className="nav-link" onClick={() => handleClickGoto("my-pets")}>
-											  { getAContent( 'cmp_vetonest.com_MyPets_Txt' ) }
-										  </Link>
-										</li>
-									
+									<li className="nav-item">
+									  <Link className="nav-link" onClick={() => handleClickGoto("my-pets")}>
+										  { getAContent( 'cmp_vetonest.com_MyPets_Txt' ) }
+									  </Link>
+									</li>
+
 									<li className="nav-item">
 									  <Link className="nav-link" onClick={() => handleClickGoto(Number(profileTypeId) === 1 ? "consultation/list" : "consultation/vet/list")}>
 										  { getAContent( 'cmp_vetonest.com_Consultations_Plural_Txt' ) }
 									  </Link>
 									</li>
-									{/*
-										<li className="nav-item">
-										  <Link className="nav-link" onClick={() => handleClickGoto("blog")}>
-											Blog
-										  </Link>
-										</li>
-									*/}
+
 									<li className="nav-item">
 									  {isAuthenticated() ? (
 										<Link className="nav-link" onClick={() => handleClickGoto("profile")}>
@@ -234,7 +229,7 @@ const Header = () => {
 
 									<li className="nav-item">
 									  {isAuthenticated() ? (
-										<Link className="nav-link" onClick={handleClickLogInOut}>
+										<Link className="nav-link" onClick={handleClickLogOut}>
 											{ getAContent( 'cmp_vetonest.com_mzCrCgj9rj' ) }
 										</Link>
 									  ) : (
@@ -258,82 +253,82 @@ const Header = () => {
 			</header>
 			<div className="displayNone" >
 			{/* LANGUAGES TAG */}
-				<span 
+				<span
 					id="cmp_vetonest.com_JLQuQUHS9n"
-					className ="language_french" 
+					className ="language_french"
 				>
 					Français
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_wyemTkNBRm"
-					className ="language_english" 
+					className ="language_english"
 				>
 					Anglais
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_EJtVTUW6Bh"
-					className ="language_spanish" 
+					className ="language_spanish"
 				>
 					Espagnol
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_pxa8xJMVaM"
-					className ="language_german" 
+					className ="language_german"
 				>
 					Allemand
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_9tmtPx9JYg"
-					className ="language_italian" 
+					className ="language_italian"
 				>
 					Italien
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_0pM9CADe5s"
-					className ="language_estonian" 
+					className ="language_estonian"
 				>
 					Estonien
 				</span>
-				
+
 				/* COUNTRIES TAG */
-				<span 
+				<span
 					id="cmp_vetonest.com_hKFx1Nxwy1"
-					className ="country_france" 
+					className ="country_france"
 				>
 					France
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_zaQ8Sa8QFr"
-					className ="country_italy" 
+					className ="country_italy"
 				>
 					Italy
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_bfomRndj4C"
-					className ="country_suiss" 
+					className ="country_suiss"
 				>
 					Suisse
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_vhn75Axj1a"
-					className ="country_belgium" 
+					className ="country_belgium"
 				>
 					Belgique
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_c3XMo9aZSc"
-					className ="country_spain" 
+					className ="country_spain"
 				>
 					Espagne
 				</span>
-				<span 
+				<span
 					id="cmp_vetonest.com_bkNRecc1Tq"
-					className ="country_germain" 
+					className ="country_germain"
 				>
 					Allemagne
 				</span>
 			</div>
-			
+
 		</>
 	);
 };

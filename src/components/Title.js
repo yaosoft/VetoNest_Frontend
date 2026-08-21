@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useContext } from "react";
 
-
 const Title = ( params ) => {
-	const [ title, setTitle ] = useState( null );
+	const [ title, setTitle ] = useState( '' );
 	
-// console.log( 'title >>>>>>>>>>>>>> ', title );
 	useEffect(() => {
-		const title = params.title !== "undefined" ? params.title : '';
-		setTitle( title );
-		
-		document.title = title 
-	}, [params]);
-  
+		// Better handling of undefined or null title
+		let newTitle = '';
+		if (params.title && params.title !== "undefined" && params.title !== 'undefined') {
+			newTitle = params.title;
+		}
+		setTitle( newTitle );
+		document.title = newTitle || 'VetoNest';
+	}, [params.title]); // Only depend on title, not the whole params object
+	
 	return (
 		<div className="stickTitle titleStyle">
-			{ title }
+			{title}
 		</div>
 	);
 };
 
 export default Title;
- 
 			
 			
 			

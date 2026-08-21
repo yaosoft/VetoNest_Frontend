@@ -883,9 +883,10 @@ input::-moz-placeholder {
     color:#666666 !important;
 }
 
-input[type=text]:hover {
-	background-color: #FFC71C;
+input[type=text]:not(#signInEmailInput):hover {
+    background-color: #FFC71C;
 }
+
 /* ===== 1. Kill Chrome autofill background ===== */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -898,21 +899,32 @@ select:-webkit-autofill {
     transition: background-color 9999s ease-out 0s;
 }
 
+/* Fix autofill yellow background & caret visibility */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #FFDE59 inset !important;
+    -webkit-text-fill-color: #000000 !important;
+    caret-color: #000000 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 /* ===== 2. Ant Design wrapper (email + password) ===== */
-.ant-input-affix-wrapper,
-.ant-input-affix-wrapper:hover,
-.ant-input-affix-wrapper-focused,
-.ant-input-affix-wrapper:focus,
-.ant-input-affix-wrapper:focus-within {
+.ant-input-affix-wrapper.backgroundYellow,
+.ant-input-affix-wrapper.backgroundYellow:hover,
+.ant-input-affix-wrapper-focused.backgroundYellow,
+.ant-input-affix-wrapper.backgroundYellow:focus,
+.ant-input-affix-wrapper.backgroundYellow:focus-within {
     background-color: #FFDE59 !important;
     box-shadow: none !important;
     border-color: transparent !important;
 }
 
 /* ===== 3. Normal inputs (email field) ===== */
-.ant-input,
-.ant-input:focus,
-.ant-input-focused {
+.ant-input.backgroundYellow,
+.ant-input.backgroundYellow:focus,
+.ant-input-focused.backgroundYellow {
     background-color: #FFDE59 !important;
     box-shadow: none !important;
 }
@@ -1314,7 +1326,24 @@ button {
 
 .header {
     width: 100%;
-    min-height: 150px;   /* ensures green bar is never too small */
+    padding: 10px 0;     /* modern SaaS header: tight vertical rhythm, no forced min-height */
+    background: #00BF63;
+	position: relative;
+}
+
+/* Tighter inner spacing for the header only (doesn't affect .container elsewhere on the site) */
+.header .container {
+	padding: 6px 20px;
+}
+
+/* Tighter gap between the logo/nav row and the search bar row */
+.header .marginTop10 {
+	margin-top: 6px;
+}
+
+.headerDashboard {
+    width: 100%;
+    /* min-height: 150px;*/   /* ensures green bar is never too small */
     padding-bottom: 40px; /* creates space for the SearchBox */
     padding: 5px 0px 5px 0px;
     background: #00BF63;
@@ -1322,6 +1351,7 @@ button {
 	/* top: 0; */
     /* z-index: auto; */
 }
+
 
 /* Header shrink */
 .header-row {
@@ -1358,7 +1388,7 @@ button {
 
 /* Logo */
 .logo-wrap img {
-  height: 64px;        /* desktop default */
+  height: 48px;        /* desktop default - more compact, modern SaaS sizing */
   width: auto;
   max-width: 100%;
 }
@@ -1373,21 +1403,21 @@ button {
 /* Compact desktop (1024–1200px) */
 @media (max-width: 1200px) {
   .logo-wrap img {
-    height: 56px;
+    height: 44px;
   }
 }
 
 /* Tablet */
 @media (max-width: 992px) {
   .logo-wrap img {
-    height: 52px;
+    height: 40px;
   }
 }
 
 /* Small tablet / mobile */
 @media (max-width: 768px) {
   .logo-wrap img {
-    height: 48px;
+    height: 36px;
   }
 
   .slogan-wrap {
@@ -1403,11 +1433,11 @@ button {
 }
 
 .slogan{
-	padding-top: 7px;
+	padding-top: 2px;
 	transition: opacity 150ms ease;
 }
 .slogan img{
-	height: 45px;
+	height: 34px;
 	
 }
 
@@ -1775,8 +1805,7 @@ button {
 /* Wrapper spans header */
 .search-wrapper {
   width: 100%;
-  margin: 10px auto;
-  margin-bottom: 20px;
+  margin: 0 auto;
 }
 
 /* Panel */
@@ -2284,6 +2313,7 @@ button {
 	color: #000000 !important;
 	font-size: 12px;
 	font-family: 'Verdana', 'Tahoma';
+	white-space: nowrap;
 }
 
 .blog .titlepage {
@@ -2925,6 +2955,64 @@ ul.social_icon li a:hover {
   object-fit: cover;
 }
 
+.important-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background-color: #faad14;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 6px;
+    cursor: help;
+}
+
+.field-help-text {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+/* =================== Profesional IDs Verification component ========================*/
+
+.verification-status-card {
+    transition: all 0.3s ease;
+}
+
+.verification-status-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.verification-status-card .ant-steps-item-title {
+    font-weight: 500;
+}
+
+.verification-status-card .ant-steps-item-description {
+    font-size: 12px;
+    color: #888;
+}
+
+.verification-status-card .ant-alert {
+    border-radius: 8px;
+}
+
+.verification-status-card .ant-steps-item-process .ant-steps-item-icon {
+    background-color: #faad14;
+    border-color: #faad14;
+}
+
+.verification-status-card .ant-steps-item-finish .ant-steps-item-icon {
+    background-color: #52c41a;
+    border-color: #52c41a;
+}
+
+.verification-status-card .ant-steps-item-error .ant-steps-item-icon {
+    background-color: #ff4d4f;
+    border-color: #ff4d4f;
+}
+
 /* ================= PET ACTIONS ================= */
 
 .pet-actions {
@@ -3046,6 +3134,130 @@ ul.social_icon li a:hover {
   }
 }
 
+
+/* ================= VET NAME ================= */
+/* Vet name styles */
+.vet-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vet-name-link {
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+.vet-name-link:hover {
+    color: #FFDE59;
+    text-decoration: underline;
+}
+
+.vet-initials-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #FFDE59;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Tooltip customization */
+.ant-tooltip-inner {
+    padding: 8px 12px;
+}
+
+/* For table/list displays */
+.ant-table-cell .vet-name {
+    font-weight: 500;
+}
+
+
+
+/* ===== Fix: invisible cursor on yellow inputs ===== */
+
+/* Cursor on colored background issue */
+.ant-input-outlined input,
+.ant-input-affix-wrapper input,
+.ant-input-affix-wrapper > input.ant-input,
+.ant-input-outlined.backgroundYellow,
+input.ant-input.backgroundYellow {
+    caret-color: #000000 !important;
+    color: #000000 !important;
+}
+
+/* Also fix the wrapper itself when yellow */
+.ant-input-affix-wrapper.backgroundYellow,
+.ant-input-outlined.backgroundYellow {
+    caret-color: #000000 !important;
+    color: #000000 !important;
+}
+
+/* Ensure focus state doesn't override it */
+.ant-input-affix-wrapper:focus-within input,
+.ant-input-outlined:focus input {
+    caret-color: #000000 !important;
+    color: #000000 !important;
+}
+
+/* ===== Fix: Password input yellow background on focus ===== */
+
+/* The affix wrapper is the outer yellow box for Input.Password */
+.ant-input-affix-wrapper.backgroundYellow,
+.ant-input-affix-wrapper.backgroundYellow:hover,
+.ant-input-affix-wrapper.backgroundYellow:focus,
+.ant-input-affix-wrapper.backgroundYellow:focus-within,
+.ant-input-affix-wrapper-focused.backgroundYellow {
+    background-color: #FFDE59 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* The inner <input> inside the password wrapper also needs it */
+.ant-input-affix-wrapper.backgroundYellow > input.ant-input {
+    background-color: #FFDE59 !important;
+    color: #000000 !important;
+    caret-color: #000000 !important;
+}
+
+/* ===== Fix: Prevent yellow bleed onto filter selects ===== */
+/* ===== Fix: Prevent yellow bleed onto filter selects ===== */
+.filter-select .ant-select-selector,
+.filter-select .ant-select-selector:hover,
+.filter-select.ant-select-focused .ant-select-selector,
+.filter-select .ant-select-selection,
+.filter-select .ant-select-selection-wrap,
+.filter-select .ant-select-selection-search,
+.filter-select .ant-select-selection-item,
+.filter-select .ant-select-selection-placeholder {
+    background-color: #FFDE59 !important;
+    color: #000000 !important;
+}
+
+/* Placeholder needs separate treatment */
+.filter-select .ant-select-selection-placeholder {
+    color: #000000 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    pointer-events: none !important;
+}
+
+/* The search input inside may be covering it with a white/yellow bg */
+.filter-select .ant-select-selection-search {
+    background-color: transparent !important;
+}
+
+.filter-select .ant-select-selection-search-input {
+    background-color: transparent !important;
+    opacity: 0 !important;  /* hides the input itself but keeps the placeholder visible */
+}
+
+
 /* ================= SEPARATORS ================= */
 
 .section-separator-wrapper {
@@ -3054,7 +3266,7 @@ ul.social_icon li a:hover {
 }
 
 .section-separator {
-  height: 4px;
+  height: 2px;
   width: 100%;
   background: linear-gradient(
     to right,
