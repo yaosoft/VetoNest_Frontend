@@ -1,419 +1,369 @@
-import React, { useState, useEffect, useContext } from "react";
-// import { Modal } from 'react-responsive-modal';
-
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
+import React, { useState, useContext, useEffect, useRef } from "react";
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
-import { Space, Modal, Spin, Button, notification, message, Popconfirm } from 'antd';
-import {
-	RadiusBottomleftOutlined,
-	RadiusBottomrightOutlined,
-	RadiusUpleftOutlined,
-	RadiusUprightOutlined,
-	LoadingOutlined
-} from '@ant-design/icons';
-
-import InputCode from "../InputCode";
-
-import  "./inputCode.css";
-
+import { Space, Spin, Button, message, Form, Input, Alert } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 import Header from '../Header';
 import Footer from '../Footer';
-// import ModalEmailValidate from '../ModalEmailValidate';
-
-import { Form, Input, Select } from 'antd';
-
 import Title from '../Title';
 
-const SignIn = ( params ) => {
-	// context
-	const { getReferrer }		= useContext( SiteContext );
-	const { logIn, setUser, isValidPassword }	= useContext( AuthContext );
-	const { 
-		siteName,
-		siteEmail,
-		siteUrl,
-		siteDomain,
-		siteDomainName,
-		signIn,
-		defaultLanguageId,
-		siteLanguage,
+const INPUT_STYLE = {
+	backgroundColor: '#FFDE59',
+	caretColor: '#000000',
+	color: '#000000',
+	border: 'none',
+	boxShadow: 'none',
+};
+
+const SignIn = () => {
+	const { getReferrer } = useContext(SiteContext);
+	const { logIn, isValidPassword } = useContext(AuthContext);
+	const {
+		base_api_url,
 		languageSetup,
-		signIn_title,
-		signUp_passwordErrorText,
-		signUp_emailErrorText,
-		signUp_emailEmpty,
-		signUp_correctErrors,
-		signUp_passwordEmpty,
-		signUp_emailPlaceholder,
-		signUp_passwordPlaceholder,
+		getAContent,
 		signUp_btnSubmit,
-		signIn_passwordForgot
-	}	= useContext( SiteContext );
+		signIn_passwordForgot,
+	} = useContext(SiteContext);
 
-
-	const [ loading, setLoading] = useState(false);
-
-	const [ signInSpin, setSignInSpin ] = useState( 'none' );
-	const [ sendingDisabled, setSendingDisabled ] = useState( false );
-
-	// signIn email
-	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
-	const isValidEmail = ( email ) => {
-		if( !regexEmailValidation.test( email ) )
-			return false;
-
-		return true;
-	}
-	const [ signInEmail, setSignInEmail ] = useState( '' );
-	const [ signInEmailDefault, setEmailDefault ] = useState( 'Email' );
-	const [ signInEmailError, setSignInEmailError ] = useState( '' );
-	const handleChangeSignInEmail = ( e ) => {
-		const data = e.target.value;
-		setSignInEmail( data );
-
-		var signInEmailErrorText = '';
-		if( data && !isValidEmail( data ) )
-			signInEmailErrorText = signUp_emailErrorText
-		
-		setSignInEmailError ( signInEmailErrorText );
-	}
-	
-	// password
-	const [ signInPassword, setSignInPassword ] = useState( '' );
-	const [ signInPasswordError, setSignInPasswordError ] = useState( '' );
-	const handleChangeSignInPassword = ( e ) => {
-		const data = e.target.value;
-		setSignInPassword( data );
-		
-		var signInPasswordErrorText = '';
-		if( data && isValidPassword( data ) !== true )
-			signInPasswordErrorText = signUp_passwordErrorText;
-
-		setSignInPasswordError( signInPasswordErrorText );
-	}
-
-	// check the form errors
-	const checkFormErrors = async( ) => {
-		var errorsExist = false;
-		if( signInEmailError != '' )
-			errorsExist = true
-		else if( signInPasswordError != '' )
-			errorsExist = true
-		return errorsExist
-	}
-
-	// check the form empty fields
-	const checkFormEmpty = ( ) => {
-		var formHasEmpty = '';
-
-		if( signInEmail == '' ){
-			const errorMessage = signUp_emailEmpty;
-			document.getElementById( 'signInEmailInput' ).focus();
-			setSignInEmailError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-		else if( signInPassword == '' ){
-			const errorMessage =  signUp_passwordEmpty;
-			document.getElementById( 'signInPasswordInput' ).focus();
-			setSignInPasswordError( errorMessage );
-			formHasEmpty = errorMessage
-		}
-
-		return formHasEmpty
-	}
-	
-	
-	const navigate = useNavigate();
-
-	// sign in
-	const [ code, setCode ] = useState( '' );
-	const [ formError01, setFormError01 ] = useState( 'none' );
-	const [ formError02, setFormError02 ] = useState( 'none' );
-	const handleClickInscription = async ( event ) => {
-
-		// event.preventDefault();
-		setSignInSpin( 'block' );
-
-		clearFormErrors(); // clear form error
-
-		setSendingDisabled( true );
-
-		// check form erors
-		const formHasErrors = await checkFormErrors();
-		if( formHasErrors ){
-			message.error( signUp_correctErrors );
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			return
-		}
-
-		// check form empty fields
-		const formHasEmpty = await checkFormEmpty();
-	
-		if( formHasEmpty ){
-			message.error( formHasEmpty );
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			return
-		}
-		
-		// login
-		const signInData = {
-			password: 	signInPassword,
-			email: 		signInEmail
-		};
-		
-		const resp = await signIn( signInData );
-
-
-		// Login error
-		if( resp === false ){
-			
-			setFormError01( 'block' );	// display form error
-			message.error( showAFormError( 'formError01' ) );	// display ant error
-			document.getElementById( 'signInEmailInput' ).focus();
-			setSignInSpin( 'none' );
-			setSendingDisabled( false );
-			
-			return
-		}
-		
-		// const logInData = {
-			// password: 	signInPassword,
-			// email: 		signInEmail,
-			// userId: 	resp.userId
-		// };
-
-		// stop login button's spin
-		setSignInSpin( 'none' );
-
-		// Frontend login
-// console.log( 'logInData', logInData );
-		await logIn( resp );	
-		
-		languageSetup( resp.languageId ? resp.languageId : defaultLanguageId ); 
-		
-		// goto validation
-		const path	= getReferrer() ? getReferrer() : '/profile';
-
-		navigate( path );
-	}
-
-	// display a form error
-	const showAFormError = ( className ) => {
-		const errorTxt = document.getElementsByClassName( className )[0].innerText;
-		return errorTxt;
-	}
-
-	// clear form error
-	const clearFormErrors = () => {
-		setFormError01( 'none' );
-		setFormError02( 'none' );
-	}
-	
-	// form
+	const [signInSpin, setSignInSpin] = useState(false);
+	const [sendingDisabled, setSendingDisabled] = useState(false);
 	const [form] = Form.useForm();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const emailRef = useRef(null);
+	const passwordRef = useRef(null);
+
+	const handleInputClick = (e) => {
+    const el = e.target;
+    if (!el) return;
+
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+
+    // Only mutate value for text inputs (email), not password
+    if (el.type !== 'password') {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype, 'value'
+        ).set;
+
+        const val = el.value;
+
+        nativeInputValueSetter.call(el, val + ' ');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+
+        nativeInputValueSetter.call(el, val.trim());
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    requestAnimationFrame(() => {
+        el.setSelectionRange(start, end);
+        el.style.setProperty('caret-color', '#000000', 'important');
+        form.setFields([
+            { name: 'signInEmail', errors: [] },
+            { name: 'password', errors: [] },
+        ]);
+    });
+};
+
+	// Force caret and background on every navigation, reliably
+	useEffect(() => {
+		const breakAutofillState = () => {
+			const email = document.getElementById('signInEmailInput');
+			const password = document.getElementById('signInPasswordInput');
+
+			[email, password].forEach(el => {
+				if (!el) return;
+
+				// Save the autofilled value
+				const val = el.value;
+
+				// Clear it — this breaks Chrome's autofill internal state
+				const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+					window.HTMLInputElement.prototype, 'value'
+				).set;
+
+				nativeInputValueSetter.call(el, '');
+				el.dispatchEvent(new Event('input', { bubbles: true }));
+
+				// Restore it — now the browser treats it as a real typed value
+				nativeInputValueSetter.call(el, val);
+				el.dispatchEvent(new Event('input', { bubbles: true }));
+
+				// Force styles
+				el.style.setProperty('caret-color', '#000000', 'important');
+				el.style.setProperty('color', '#000000', 'important');
+				el.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+				el.style.setProperty('background-color', '#FFDE59', 'important');
+			});
+		};
+
+		const raf = requestAnimationFrame(() => {
+			requestAnimationFrame(breakAutofillState);
+		});
+
+		return () => cancelAnimationFrame(raf);
+	}, [location.key]);
+
+	const regexEmailValidation = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+	const isValidEmail = (email) => regexEmailValidation.test(email);
+
+	const [loginError, setLoginError] = useState(null);
+
+	const getLocalizedError = (errorCode, defaultMessage) => {
+		const errorMap = {
+			'USER_NOT_FOUND': {
+				messageKey: 'cmp_vetonest.com_login_error_user_not_found',
+				detailsKey: 'cmp_vetonest.com_login_error_user_not_found_details',
+				defaultMessage: "Account not found",
+				defaultDetails: "No account exists with this email address."
+			},
+			'BAD_PASSWORD': {
+				messageKey: 'cmp_vetonest.com_login_error_bad_password',
+				detailsKey: 'cmp_vetonest.com_login_error_bad_password_details',
+				defaultMessage: "Incorrect password",
+				defaultDetails: "The password you entered is incorrect. Please try again."
+			},
+			'USER_DEACTIVATED': {
+				messageKey: 'cmp_vetonest.com_login_error_account_disabled',
+				detailsKey: 'cmp_vetonest.com_login_error_account_disabled_details',
+				defaultMessage: "Account disabled",
+				defaultDetails: "Your account has been disabled. Please contact support."
+			},
+			'NETWORK_ERROR': {
+				messageKey: 'cmp_vetonest.com_login_error_network',
+				detailsKey: 'cmp_vetonest.com_login_error_network_details',
+				defaultMessage: "Connection error",
+				defaultDetails: "Unable to connect to the server. Please check your internet connection."
+			}
+		};
+
+		const error = errorMap[errorCode] || errorMap['NETWORK_ERROR'];
+		return {
+			message: getAContent(error.messageKey) || error.defaultMessage,
+			details: getAContent(error.detailsKey) || error.defaultDetails
+		};
+	};
+
+	const handleSubmit = async (values) => {
+		setLoginError(null);
+		setSignInSpin(true);
+		setSendingDisabled(true);
+
+		try {
+			const signInData = {
+				password: values.password,
+				email: values.signInEmail.trim()  // ← trim her
+			};
+
+			// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
+			// const base_api_url = 'https://backend.vetonest.com/api/'    // prod
+			const url = base_api_url + 'user/login';
+
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(signInData)
+			});
+
+			const data = await response.json();
+
+			setSignInSpin(false);
+			setSendingDisabled(false);
+
+			if (!response.ok || (data && data.success === false)) {
+				const errorCode = data.error_code ||
+					(response.status === 404 ? 'USER_NOT_FOUND' :
+						response.status === 401 ? 'BAD_PASSWORD' :
+							response.status === 403 ? 'USER_DEACTIVATED' :
+								'NETWORK_ERROR');
+
+				const localizedError = getLocalizedError(errorCode, data.message || "Authentication failed");
+				setLoginError({
+					message: localizedError.message,
+					description: localizedError.details
+				});
+				message.error(localizedError.message);
+				return;
+			}
+
+			const userData = data.data || data;
+			await logIn(userData);
+
+			if (userData.languageId) {
+				await languageSetup(userData.languageId);
+			}
+
+			const getConsultationPath = (referrer, profileTypeId) => {
+				if (referrer) return referrer;
+				const paths = {
+					1: '/consultation/creation',
+					2: '/consultation/vet/list'
+				};
+				return paths[profileTypeId] || '/';
+			};
+
+			const path = getConsultationPath(getReferrer(), userData.profileTypeId);
+			navigate(path);
+
+		} catch (error) {
+			console.error("Login error:", error);
+			setSignInSpin(false);
+			setSendingDisabled(false);
+
+			const localizedError = getLocalizedError('NETWORK_ERROR');
+			setLoginError({
+				message: localizedError.message,
+				description: localizedError.details
+			});
+			message.error(localizedError.message);
+		}
+	};
+
 	return (
 		<>
+			<div className="sticky-stack">
+				<Header />
+				<Title title={getAContent('cmp_vetonest.com_OK6429mzTG') || "Connexion"} />
+			</div>
 
-		<Header />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
+			<div className="container">
+				<div className="row justify-content-center h-100">
+					<div className="col-xl-6">
+						<Form
+							form={form}
+							key={location.key}
+							layout="vertical"
+							onFinish={handleSubmit}
+						>
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_Er51Nm92Qa') || "Adresse e-mail"}
+								name="signInEmail"
+								rules={[
+									{
+										required: true,
+										message: getAContent('cmp_vetonest.com_Em72Qa91Lp') || "Email is required"
+									},
+									{
+										validator: (_, value) => {
+											const trimmed = (value || '').trim();
+											if (!trimmed) {
+												return Promise.resolve();
+											}
+											if (!isValidEmail(trimmed)) {  // ← validate trimmed value
+												return Promise.reject(
+													getAContent('cmp_vetonest.com_Fm39Kd84Rw') || "Please enter a valid email"
+												);
+											}
+											return Promise.resolve();
+										}
+									}
+								]}
+							>
+								<Input
+									id="signInEmailInput"
+									autoComplete="username"
+									className="rounded10 width100per100 height45"
+									placeholder={getAContent('cmp_vetonest.com_Xep3PSNstf') || "Email"}
+									size="large"
+									style={INPUT_STYLE}
+									onClick={handleInputClick} 
+								/>
+							</Form.Item>
 
-            <Title title = { signIn_title } />
+							<Form.Item
+								label={getAContent('cmp_vetonest.com_LXBYsFPl1b') || "Mot de passe"}
+								name="password"
+								rules={[
+									{
+										required: true,
+										message: getAContent('cmp_vetonest.com_Kp83Wd61Lt') || "Password is required"
+									},
+								]}
+							>
+								<Input.Password
+									id="signInPasswordInput"
+									autoComplete="current-password"
+									className="rounded10 width100per100 height45"
+									placeholder={getAContent('cmp_vetonest.com_Kp83Wd61Lt') || "Password"}
+									size="large"
+									style={INPUT_STYLE}
+									onClick={handleInputClick}
+								/>
+							</Form.Item>
 
-			<div className="login-form-bg h-100">
-				<div className="container h-100">
-					<div className="row justify-content-center h-100">
-						<div className="col-xl-6">
-							<div className="form-input-content">
+							{loginError && (
+								<Form.Item>
+									<Alert
+										message={loginError.message}
+										description={loginError.details}
+										type="error"
+										showIcon
+										closable
+										onClose={() => setLoginError(null)}
+										style={{ marginBottom: 16 }}
+									/>
+								</Form.Item>
+							)}
 
-										 <Form 
-											className=""
-											form = {form}
-										 >
-	
-										<div className="form-group">
-											<Form.Item
-												name  = "signInEmail"
-												rules = {[
-													{
-														message: signInEmailError,
-														validator: ( value ) => {
-															if ( signInEmailError ) {
-																return Promise.reject( signInEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = '' */
-											>
+							<Form.Item style={{ marginTop: 24 }}>
+								<Button
+									type="primary"
+									htmlType="submit"
+									block
+									size="large"
+									className="login-form__btn rounded10"
+									disabled={sendingDisabled}
+									style={{
+										height: '45px',
+										backgroundColor: '#000000',
+										borderColor: '#000000',
+										color: '#ffffff'
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#333333';
+										e.currentTarget.style.borderColor = '#333333';
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = '#000000';
+										e.currentTarget.style.borderColor = '#000000';
+									}}
+								>
+									<Space>
+										{signInSpin && (
+											<Spin
+												indicator={
+													<LoadingOutlined
+														style={{ fontSize: 20, color: '#ffffff' }}
+														spin
+													/>
+												}
+											/>
+										)}
+										{signUp_btnSubmit || getAContent('cmp_vetonest.com_f8Pqk3fJ2H') || "Submit"}
+									</Space>
+								</Button>
+							</Form.Item>
 
-												<Input 
-													id="signInEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_emailPlaceholder }
-													type="text" 
-													name="signInmail"
-													value={ signInEmail }
-													onChange = { e => handleChangeSignInEmail(e)}
-													
-												/>
-											</Form.Item>
-											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "password"
-												rules = {[
-													{
-														message: signInPasswordError,
-														validator: ( value ) => {
-															if ( signInPasswordError ) {
-																return Promise.reject( signInPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = '' */
-											>
-												<Input 
-													id="signInPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordPlaceholder } 
-													type="password" 
-													name="password"
-													value={ signInPassword }
-													onChange = { e => handleChangeSignInPassword(e)}
-													
-												/>
-											</Form.Item>
-											</div>
-											
-									<>
-
-										<div style= {{ display: formError01 }}  className="row formError formError01">
-											<span id="cmp_vetonest.com_C73EvuNXZA">
-												Bad username or password.
-											</span>&nbsp;
-											<span id="cmp_vetonest.com_0lM8zJBsDN">
-												Please try another one.
-											</span>
-										</div>
-									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickInscription}
-												disabled = { sendingDisabled }
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		signInSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												{ signUp_btnSubmit }
-											</button> 
-											<div className='row'>
-												<div className='col-6'>
-													<Link to='/mot-de-passe-oublie' className="text-primary">{ signIn_passwordForgot }</Link>
-												</div>
-												<div className='col-6 textAlignRight'>
-													<Link 
-														to='/inscription' 
-														className="text-primary"
-														id = "cmp_vetonest.com_J50yit0tKU"
-													>
-														Create an account
-													</Link>
-												</div>
-											</div>
-										</Form>
-									</div>
+							<div className='row'>
+								<div className='col-6'>
+									<Link to='/mot-de-passe-oublie' className="text-primary">
+										{signIn_passwordForgot || getAContent('cmp_vetonest.com_Y9LbvGXMq2') || "Forgot password?"}
+									</Link>
 								</div>
-							
+								<div className='col-6 textAlignRight'>
+									<Link to='/inscription' className="text-primary" id="cmp_vetonest.com_J50yit0tKU">
+										{getAContent('cmp_vonetest.com_J50yit0tKU') || "Create an account"}
+									</Link>
+								</div>
+							</div>
+						</Form>
 					</div>
 				</div>
 			</div>
-			<div>&nbsp;</div>
-			<div className ="displayNone" >
-				<span 
-					id = "cmp_vetonest.com_UcvWQuFUwO"
-						className ="signUp_passwordErrorText" 
-					>
-						Password must be 6 to 100 characters long, uppercase and lowercase letters, and at least one number.
-				</span>
-				<span 
-					className ="cmp_vetonest.com_GomedYOvSx signUp_emailErrorText" 
-				>
-					Your email is not correct
-				</span>
-				<span 
-					id = "cmp_vetonest.com_EjMb0Ci9C6"
-					className ="signUp_emailEmpty" 
-				>
-					L'email est vide.
-				</span>
-				<span 
-					id = "cmp_vetonest.com_7cAD5u6fyj"
-					className ="signUp_passwordEmpty" 
-				>
-					Password is empty.
-				</span>
-				<span 
-					className ="cmp_vetonest.com_Af92YTwI3c signUp_correctErrors" 
-				>
-					Please correct the errors before continuing.
-				</span>
-				<span 
-					className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
-				>
-					Email
-				</span>
-				<span 
-					id = "cmp_vetonest.com_LXBYsFPl1b"
-					className ="signUp_passwordPlaceholder" 
-				>
-				</span>
-				<span
-					id = "cmp_vetonest.com_f8Pqk3fJ2H"
-					className ="signUp_btnSubmit" 
-				>
-					Submit
-				</span>
-				<span
-					id = "cmp_vetonest.com_Y9LbvGXMq2"
-					className ="signIn_passwordForgot" 
-				>
-					Mot de passe oublié
-				</span>
-				<span
-					id = "cmp_vetonest.com_OK6429mzTG"
-					className ="signIn_title" 
-				>
-					Connexion
-				</span>
 
-			</div>
+			<div>&nbsp;</div>
 			<Footer />
 		</>
 	);

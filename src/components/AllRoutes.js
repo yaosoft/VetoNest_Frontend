@@ -11,6 +11,26 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import PasswordForgot from './pages/PasswordForgot';
 import PasswordForgotReset from './pages/PasswordForgotReset';
+import Etablissement from './pages/Etablissement';
+import VetProfile from './pages/VetProfile';
+import VetListing from './pages/VetListing';
+import Usage from './pages/Usage';
+import Consultation from './pages/Consultation';
+import ConsultationListPetOwner from './pages/ConsultationListPetOwner';
+import ConsultationListVet from './pages/ConsultationListVet';
+import MyPets from './pages/MyPets';
+import VetInvitationSignup from './pages/VetInvitationSignup';
+// New imports
+import LegalNotices from './pages/LegalNotices';
+import Disclaimer from './pages/Disclaimer';
+import TermsOfUse from './pages/TermsOfUse';
+import CookiePolicy from './pages/CookiePolicy';
+import AdminVetManagement from './admin/AdminVetManagement';
+import AdminLogin from './admin/AdminLogin';
+import AdminDashboard from './admin/AdminDashboard';
+import AdminRouteGuard from './admin/AdminRouteGuard';
+import VetEarnings from './pages/VetEarnings'
+import ConsultationRules from './pages/ConsultationRules';
 
 const AllRoutes = {
 
@@ -47,6 +67,10 @@ const AllRoutes = {
 			element:  <SignIn />,
 			path: '/connexion',
 		},
+		{	// Invited vet: create account (landing page from invitation link)
+			element:  <VetInvitationSignup />,
+			path: '/inscription-veterinaire',
+		},
 		{	// Profile
 			element:  <Profile />,
 			path: '/profile',
@@ -59,6 +83,71 @@ const AllRoutes = {
 			element:  <PasswordForgotReset />,
 			path: '/mot-de-passe-oublie/reset/:code/:userId',
 		},
+		{	// etablissement
+			element:  <Etablissement />,
+			path: '/etablissement',
+		},
+		{	// vet profile page
+			element:  <VetProfile />,
+			path: '/vet-profile',
+		},
+		{	// vet listing page
+			element:  <VetListing />,
+			path: '/vet-listing',
+		},
+		{	// vet listing page
+			element:  <VetListing />,
+			path: '/clinic-listing',
+		},
+		{	// usage
+			element:  <Usage />,
+			path: '/vet-usage',
+		},		
+		{	// consultation
+			element:  <Consultation />,
+			path: '/consultation',
+		},
+		{	// consultation / creation
+			element:  <Consultation />,
+			path: '/consultation/creation',
+		},
+		{	// consultation / list
+			element:  <ConsultationListPetOwner />,
+			path: '/consultation/list',
+		},
+		{	// consultation / list
+			element:  <ConsultationListVet />,
+			path: '/consultation/vet/list',
+		},
+		{	// my pets
+			element:  <MyPets />,
+			path: '/my-pets',
+		},
+		// New legal routes
+		{	// Mentions légales
+			element: <LegalNotices />,
+			path: '/mentions-legales',
+		},
+		{	// Disclaimer médical
+			element: <Disclaimer />,
+			path: '/disclaimer',
+		},
+		{	// Conditions générales d'utilisation
+			element: <TermsOfUse />,
+			path: '/conditions-utilisation',
+		},
+		{	// Cookie Policy
+			element: <CookiePolicy />,
+			path: '/coolie-policy',
+		},
+		{
+		  path: "/consultation/rules",
+		  element: <ConsultationRules />,
+		},
+		{	// Admin
+			element: <AdminVetManagement />,
+			path: '/admin/vets',
+		},		
 		{	// Not found page
 			element: <NotFound 
 				params={{ 
@@ -67,7 +156,33 @@ const AllRoutes = {
 			/>,
 			path: '/*',
 		},
+		// Admin routes (protected)
+		{
+		  path: '/admin/login',
+		  element: <AdminLogin />
+		},
+		{
+		  path: "/consultation/vet/earnings",
+		  element: <VetEarnings />
+		},
+		{
+		  path: '/admin/dashboard',
+		  element: (
+			<AdminRouteGuard>
+			  <AdminDashboard />
+			</AdminRouteGuard>
+		  )
+		},
+		{
+		  path: '/admin/vets',
+		  element: (
+			<AdminRouteGuard>
+			  <AdminVetManagement />
+			</AdminRouteGuard>
+		  )
+		}
 	],
+	
 }
 
 export default AllRoutes;

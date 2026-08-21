@@ -1,476 +1,476 @@
 import React, { useState, useEffect, useContext } from "react";
-// import { Modal } from 'react-responsive-modal';
-
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
-import { Space, Modal, Spin, Button, notification, message, Popconfirm } from 'antd';
-import {
-	RadiusBottomleftOutlined,
-	RadiusBottomrightOutlined,
-	RadiusUpleftOutlined,
-	RadiusUprightOutlined,
-	LoadingOutlined
-} from '@ant-design/icons';
-
-
+import { Space, Spin, Button, message, Form, Input, Alert, Modal } from 'antd';
+import { LoadingOutlined, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import InputCode from "../InputCode";
 import Header from '../Header';
 import Footer from '../Footer';
-// import ModalEmailValidate from '../ModalEmailValidate';
-
-import { Form, Input, Select } from 'antd';
-import InputCode from "../InputCode";
-
 import Title from '../Title';
-const PasswordForgot = ( params ) => {
 
-	const { isValidPassword }	= useContext( AuthContext );
-	const { 
-		siteName,
-		siteEmail,
-		siteUrl,
-		siteDomain,
-		siteDomainName,
-		generateRandomDigits,
-		sendEmail,
-		checkEmail,
-		setVerificationCode,
-		setVerificationUserId,
-		insertSpaceAtPosition,
-		signUp_passwordErrorText,
-		signUp_correctErrors,
-		signUp_passwordEmpty,
-		signUp_emailErrorText,
-		signUp_emailEmpty,
-		signUp_emailPlaceholder,
-		signUp_passwordPlaceholder,
-		signUp_btnSubmit,
-		signIn_passwordForgot,
-		signUp_codeIncorrect,
-		signUp_codeCorrect,
-		signUp_codeTitle,
-		signUp_codeIntro,
-		signUp_codeLabel,
-		signUp_codeResend,
-		signUp_termsUsage,
+const PasswordForgot = () => {
+    // Context
+    const { isValidPassword } = useContext(AuthContext);
+    const {
+        siteName,
+        siteEmail,
+        siteUrl,
+        siteDomain,
+        generateRandomDigits,
+        sendEmail,
+        checkEmail,
+        setVerificationCode,
+        setVerificationUserId,
+        insertSpaceAtPosition,
+        getAContent,
+        siteLocale
+    } = useContext(SiteContext);
 
-	}	= useContext( SiteContext );
+    // Rate limiting state variables
+    const [resendCount, setResendCount] = useState(0);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const MAX_RESEND_ATTEMPTS = 3;
+    const COOLDOWN_SECONDS = 60;
 
-	const [ loading, setLoading] = useState(false);
+    // Navigation
+    const navigate = useNavigate();
+    const [form] = Form.useForm();
 
-	const [ emailVerificationResult, setEmailVerificationResult ] = useState( false );
+    // State management
+    const [loading, setLoading] = useState(false);
+    const [sendingDisabled, setSendingDisabled] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // Form data
+    const [email, setEmail] = useState('');
+    const [userId, setUserId] = useState(null);
+    const [generatedCode, setGeneratedCode] = useState('');
+    const [emailVerificationResult, setEmailVerificationResult] = useState(false);
+    
+    // Error states
+    const [formError, setFormError] = useState(null);
+    const [displayCodeCorrect, setDisplayCodeCorrect] = useState(false);
+    const [displayCodeIncorrect, setDisplayCodeIncorrect] = useState(false);
+    
+    // Email validation
+    const regexEmailValidation = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    const isValidEmail = (email) => regexEmailValidation.test(email);
 
-	const [ pwForgotSpin, setPwForgotSpin ] = useState( 'none' );
-	const [ sendingDisabled, setSendingDisabled ] = useState( false );
-	const { isAuthenticated, getUser }	= useContext( AuthContext );
+    // Auto-fill fix
+    useEffect(() => {
+        const id = setTimeout(() => setReady(true), 50);
+        return () => clearTimeout(id);
+    }, []);
 
-	// pwForgot email
-	const regexEmailValidation = /^[a-zA-Z0-9. _-]+@[a-zA-Z0-9. -]+\.[a-zA-Z]{2,4}$/; 
-	const isValidEmail = ( email ) => {
-		if( !regexEmailValidation.test( email ) )
-			return false;
+    // Clear errors
+    const clearErrors = () => {
+        setFormError(null);
+    };
 
-		return true;
-	}
-	const [ pwForgotEmail, setPwForgotEmail ] = useState( '' );
-	const [ pwForgotEmailError, setPwForgotEmailError ] = useState( '' );
-	const handleChangePwForgotEmail = ( e ) => {
-		setFormError01( 'none' );
-		const data = e.target.value;
-		setPwForgotEmail( data );
+    // Handle email submission
+    const handleSubmit = async (values) => {
+        clearErrors();
+        setLoading(true);
+        setSendingDisabled(true);
 
-		var pwForgotEmailErrorText = '';
-		if( data && !isValidEmail( data ) )
-			pwForgotEmailErrorText = signUp_emailErrorText;
-		
-		setPwForgotEmailError ( pwForgotEmailErrorText );
-	}
+        try {
+            // Check if email exists
+            const checkEmailData = { email: values.email };
+            const id = await checkEmail(checkEmailData);
 
-	// check the form errors
-	const checkFormErrors = async( ) => {
-		var errorsExist = false;
-		if( pwForgotEmailError != '' )
-			errorsExist = true
+            if (!id) {
+                setFormError({
+                    message: getAContent('cmp_vetonest.com_email_not_found') || "Email not found",
+                    description: getAContent('cmp_vetonest.com_email_not_found_details') || "No account exists with this email address.",
+                    type: 'error'
+                });
+                setLoading(false);
+                setSendingDisabled(false);
+                return;
+            }
 
-		return errorsExist
-	}
+            setUserId(id);
+            setEmail(values.email);
 
-	// check the form empty fields
-	const checkFormEmpty = async( ) => {
-		var formHasEmpty = '';
+            // Generate verification code
+            const genCode = await generateRandomDigits(6);
+            setGeneratedCode(genCode);
 
-		if( pwForgotEmail == '' ){
-			const errorMessage = signUp_emailEmpty;
-			document.getElementById( 'pwForgotEmailInput' ).focus();
-			// await setSignInEmailError( errorMessage );
-			formHasEmpty = errorMessage
-		}
+            // Determine if French (using same logic as ConsultationBooking.js)
+            const isFrench = siteLocale?.startsWith('fr');
+            
+            // Localized subject
+            const subject = isFrench
+                ? `Réinitialisez votre mot de passe - ${siteName}`
+                : `Reset Your Password - ${siteName}`;
 
-		return formHasEmpty
-	}
-	
-	// sign up
-	const [ code, setCode ] = useState( '' );
-	const [ formError01, setFormError01 ] = useState( 'none' );
-	const [ formError02, setFormError02 ] = useState( 'none' );
-	const [ userId, setUserId ] = useState( 'none' );
-	const handleClickEmailValidation = async ( event ) => {
+            // Send verification email
+            const domainName = values.email.split('@')[1];
+            
+            const sendEmailData = {
+                to_email: values.email,
+                to_domain: domainName,
+                subject: subject,
+                userName: '',
+                siteName: siteName,
+                siteDomain: siteDomain,
+                siteEmail: siteEmail,
+                siteUrl: siteUrl,
+                code: insertSpaceAtPosition(genCode, 3),
+                emailTemplate: 'password_forgot',
+                siteLocale: siteLocale,  // Pass the locale to template (same as consultation_request)
+                timezone: 'Europe/Paris', // Default timezone
+            };
 
-		// event.preventDefault();
-		setPwForgotSpin( 'block' );
+            const emailSent = await sendEmail(sendEmailData);
 
-		clearFormErrors(); // clear form error
+            if (!emailSent) {
+                setFormError({
+                    message: getAContent('cmp_vetonest.com_email_send_error') || "Failed to send email",
+                    description: getAContent('cmp_vetonest.com_email_send_error_details') || "Please check your network connection and try again.",
+                    type: 'error'
+                });
+                setLoading(false);
+                setSendingDisabled(false);
+                return;
+            }
 
-		setSendingDisabled( true );
+            // Open verification modal
+            setLoading(false);
+            setIsModalOpen(true);
 
-		// check form erors
-		const formHasErrors = await checkFormErrors();
-		if( formHasErrors ){
-			message.error( signUp_correctErrors );
-			setPwForgotSpin( 'none' );
-			setSendingDisabled( false );
-			return
-		}
-		
-		// check form empty fields
-		const formHasEmpty = await checkFormEmpty();
-	
-		if( formHasEmpty ){
-			message.error( formHasEmpty );
-			setPwForgotSpin( 'none' );
-			setSendingDisabled( false );
-			return
-		}
+        } catch (error) {
+            console.error("Password reset error:", error);
+            setFormError({
+                message: getAContent('cmp_vetonest.com_error_occurred') || "An error occurred",
+                description: getAContent('cmp_vetonest.com_try_again_later') || "Please try again later.",
+                type: 'error'
+            });
+            setLoading(false);
+            setSendingDisabled(false);
+        }
+    };
 
-		// check if email already exists
-		const checkEmailData = {
-			email: pwForgotEmail
-		}
+    // Handle code verification
+    const handleCodeComplete = async (code) => {
+        if (generatedCode !== code) {
+            setDisplayCodeIncorrect(true);
+            setDisplayCodeCorrect(false);
+            setEmailVerificationResult(false);
+            message.error(getAContent('cmp_vetonest.com_code_incorrect') || "Invalid verification code");
+            return;
+        }
 
-		const id = await checkEmail( checkEmailData );
+        setDisplayCodeCorrect(true);
+        setDisplayCodeIncorrect(false);
+        setEmailVerificationResult(true);
+        message.success(getAContent('cmp_vetonest.com_code_correct') || "Code verified successfully!");
 
-		if( !id ){
+        // Close modal and navigate to reset page
+        setTimeout(() => {
+            setIsModalOpen(false);
+            setVerificationCode(generatedCode);
+            setVerificationUserId(userId);
+            navigate(`/mot-de-passe-oublie/reset/${generatedCode}/${userId}`);
+        }, 1500);
+    };
 
-			setFormError01( 'block' );	// display form error
-			message.error( showAFormError( 'formError01' ) );	// display ant error
-			document.getElementById( 'pwForgotEmailInput' ).focus();
-			setPwForgotSpin( 'none' );
-			setSendingDisabled( false );
-			return
-		}
-		
-		setUserId( id );
-		
-		// setOpenModalEmailValidate( true );
-		const genCode = await generateRandomDigits( maxCodeLength );
-		setCode( genCode );
-// console.log( 'genCode: ' + genCode );
-		const domainName 	= pwForgotEmail.split( '@' )[1];
-		const subject 		= 'Reset Your Password for ' + siteName;
-		const code 			= genCode;
-		
-		const sendEmailData = {
-			to_email 		: pwForgotEmail,
-			to_domain		: domainName,
-			subject			: subject,
-			userName    	: '',
-			siteName    	: siteName,
-			siteDomain  	: siteDomain,
-			siteEmail		: siteEmail,
-			siteUrl     	: siteUrl,
-			code  			: insertSpaceAtPosition ( genCode, 3 ),
-			emailTemplate	: 'password_forgot'
-		}
-// console.log( 'sendEmailData', sendEmailData );
+    // Resend verification code with rate limiting
+    const handleResendCode = async () => {
+        if (!email) return;
 
-		const rep = await sendEmail( sendEmailData );	// send the code by email
-		
-		if( rep === false ){ // email address not found
-			setFormError02( 'block' );	// display form error
-			message.error( showAFormError( 'formError02' ) );	// display ant error
-			setPwForgotSpin( 'none' );
-			window.document.getElementById( 'pwForgotEmailInput' ).focus();
-			setSendingDisabled( false );
-			return;
-		}
-// console.log( 'Check email', rep );
-		setPwForgotSpin( 'none' );
-		
-		showModal()
+        // Check if user has exceeded max resend attempts
+        if (resendCount >= MAX_RESEND_ATTEMPTS) {
+            message.error(
+                getAContent('cmp_vetonest.com_code_resend_limit_reached') || 
+                "You have reached the maximum number of code requests. Please try again later."
+            );
+            return;
+        }
 
-	}
+        // Check cooldown
+        if (resendCooldown > 0) {
+            message.error(
+                getAContent('cmp_vetonest.com_code_resend_cooldown') || 
+                `Please wait ${resendCooldown} seconds before requesting another code.`
+            );
+            return;
+        }
 
+        setDisplayCodeIncorrect(false);
+        setDisplayCodeCorrect(false);
+        
+        // Increment resend count
+        setResendCount(prev => prev + 1);
+        
+        // Start cooldown
+        setResendCooldown(COOLDOWN_SECONDS);
+        const interval = setInterval(() => {
+            setResendCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        const genCode = await generateRandomDigits(6);
+        setGeneratedCode(genCode);
 
+        const isFrench = siteLocale?.startsWith('fr');
+        const subject = isFrench
+            ? `Réinitialisez votre mot de passe - ${siteName}`
+            : `Reset Your Password - ${siteName}`;
+        
+        const domainName = email.split('@')[1];
+        
+        const sendEmailData = {
+            to_email: email,
+            to_domain: domainName,
+            subject: subject,
+            userName: '',
+            siteName: siteName,
+            siteDomain: siteDomain,
+            siteEmail: siteEmail,
+            siteUrl: siteUrl,
+            code: insertSpaceAtPosition(genCode, 3),
+            emailTemplate: 'password_forgot',
+            siteLocale: siteLocale,  // Pass the locale to template
+            timezone: 'Europe/Paris',
+        };
 
-	// display a form error
-	const showAFormError = ( className ) => {
-		const errorTxt = document.getElementsByClassName( className )[0].innerText;
-		return errorTxt;
-	}
+        const emailSent = await sendEmail(sendEmailData);
+        
+        if (emailSent) {
+            message.success(getAContent('cmp_vetonest.com_code_resent') || "Verification code resent!");
+        } else {
+            message.error(getAContent('cmp_vetonest.com_code_resend_failed') || "Failed to resend code. Please try again.");
+        }
+    };
 
-	// clear form error
-	const clearFormErrors = () => {
-		setFormError01( 'none' );
-		setFormError02( 'none' );
-	}
+    return (
+        <>
+            {/* Verification Code Modal */}
+            <Modal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                footer={null}
+                width={450}
+                maskClosable={false}
+                closable={true}
+                centered
+                styles={{
+                    body: {
+                        padding: '24px',
+                        background: 'transparent'
+                    },
+                    content: {
+                        background: '#fff',
+                        borderRadius: '16px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                    }
+                }}
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        backgroundColor: '#FFDE59',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 16
+                    }}>
+                        <MailOutlined style={{ fontSize: 28, color: '#000' }} />
+                    </div>
+                    
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: 20, fontWeight: 600 }}>
+                        {getAContent('cmp_vetonest.com_WCfOc17hne') || "Email Verification"}
+                    </h3>
+                    
+                    <p style={{ margin: '0 0 24px 0', color: '#666', fontSize: 14 }}>
+                        {getAContent('cmp_vetonest.com_Xzm3u4t1uE') || "We've sent a verification code to"}
+                        <br />
+                        <strong style={{ color: '#000', fontSize: 15 }}>{email}</strong>
+                    </p>
 
+                    <InputCode
+                        length={6}
+                        label={getAContent('cmp_vetonest.com_code_label') || "Enter verification code"}
+                        loading={loading}
+                        onComplete={handleCodeComplete}
+                        autoFocus
+                    />
 
-	const navigate = useNavigate();
-	const modalClosed = async () => {
-		if( emailVerificationResult === false ){
-			setSendingDisabled( false );
-			return
-		}
+                    {displayCodeCorrect && (
+                        <Alert
+                            message={getAContent('cmp_vetonest.com_MnveaCfq6X') || "Code verified successfully!"}
+                            type="success"
+                            showIcon
+                            style={{ marginTop: 16, textAlign: 'left' }}
+                        />
+                    )}
+                    
+                    {displayCodeIncorrect && (
+                        <Alert
+                            message={getAContent('cmp_vetonest.com_2NbkrLN1Nt') || "Invalid verification code"}
+                            description={getAContent('cmp_vetonest.com_code_incorrect_details') || "Please check your code and try again."}
+                            type="error"
+                            showIcon
+                            style={{ marginTop: 16, textAlign: 'left' }}
+                        />
+                    )}
+                    
+                    <div style={{ marginTop: 24 }}>
+                        <span style={{ color: '#666', marginRight: 8 }}>
+                            {getAContent('cmp_vetonest.com_didnt_receive_code') || "Didn't receive the code?"}
+                        </span>
+                        <Button 
+                            type="link" 
+                            onClick={handleResendCode}
+                            style={{ padding: 0, color: '#000', fontWeight: 500 }}
+                            disabled={resendCooldown > 0}
+                        >
+                            {resendCooldown > 0 
+                                ? `${getAContent('cmp_vetonest.com_PlOAvkzjQx') || "Resend code"} (${resendCooldown}s)`
+                                : (getAContent('cmp_vetonest.com_PlOAvkzjQx') || "Resend code")
+                            }
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
-		setVerificationCode( code );
-		setVerificationUserId( userId );
-		navigate( '/mot-de-passe-oublie/reset/' + code + '/' + userId );
-	}
+            {/* Main Password Reset Form */}
+            <div className="sticky-stack">
+                <Header />
+                <Title title={getAContent('cmp_vetonest.com_Y9LbvGXMq2') || "Forgot Password"} />
+            </div>
 
-	// modal
-	const [ isModalOpen, setIsModalOpen ] = useState(false);
-	const [ displayCodeCorrect, setDisplayCodeCorrect ] = useState( 'none' );
-	const [ displayCodeIncorrect, setDisplayCodeIncorrect ] = useState( 'none' );
-	const [ displayCodeResend, setDisplayCodeResend ] = useState( 'block' );
-	
-	const [ maxCodeLength, setMaxCodeLength ] = useState( 6 );
-	
-	const handleCompletedCode = ( typedCode ) => {
-		
-		if( code != typedCode ){
-				message.error( signUp_codeIncorrect );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
-		}
-		else{
-			message.success( signUp_codeCorrect );
-			setEmailVerificationResult( true );
-			setDisplayCodeCorrect( 'block' );
-			setDisplayCodeIncorrect( 'none' );
-			setDisplayCodeResend( 'none' );
-			setTimeout( setIsModalOpen, 2000, false );
-		}
-	}
-	
-	const showModal = () => {
-		setIsModalOpen(true);
-	};
-	  
-	const handleOk = () => {
-		setIsModalOpen(false);
-	};
-	const handleCancel = () => {
-		setIsModalOpen(false);
-	}
-	 
-	 // form
-	 const [form] = Form.useForm();
-	 
-	 return (
-		<>
-			<Modal
-				title			= { signUp_codeTitle }
-				closable		= {{ 'aria-label': 'Custom Close Button' }}
-				open			= { isModalOpen }
-				onOk			= { handleOk }
-				onCancel		= { handleCancel }
-				afterClose		= { modalClosed }
-				footer			= {null}
-				maskClosable	= {false} // This prevents closing on mask click
-			>
-    <div className="App">
-		<span>{ signUp_codeIntro } { pwForgotEmail }.</span>
-      <InputCode
-        length={6}
-        label={ signUp_codeLabel }
-        loading={loading}
-        onComplete={code => {
-          setLoading(true);
-          setTimeout(() => setLoading(false), 10000);
-		  handleCompletedCode( code )
-        }}
-      />
-	<div className = "row" >
-		<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
-		<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
-		<span className='text text-info' >{ signUp_codeResend }</span>
-	</div>
-	</div>		
-					<br/><br/>
-			</Modal>
-		
-		<Header />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<Title title = { signIn_passwordForgot } />
-			<div className="login-form-bg h-100">
-				<div className="container h-100">
-					<div className="row justify-content-center h-100">
-						<div className="col-xl-6">
-							<div className="form-input-content">
+            <div style={{ minHeight: 'calc(100vh - 300px)', display: 'flex', alignItems: 'center', padding: '40px 0' }}>
+                <div className="container">
+                    <div className="row justify-content-center">
+                        <div className="col-xl-5 col-lg-6 col-md-8">
+                            <div style={{ 
+                                background: '#fff', 
+                                borderRadius: 16, 
+                                padding: '32px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                            }}>
+                                <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                                    <div style={{
+                                        width: 64,
+                                        height: 64,
+                                        borderRadius: '50%',
+                                        backgroundColor: '#FFF8E1',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: 16
+                                    }}>
+                                        <MailOutlined style={{ fontSize: 32, color: '#FFDE59' }} />
+                                    </div>
+                                    <h2 style={{ marginBottom: 8, fontSize: 24, fontWeight: 600 }}>
+                                        {getAContent('cmp_vetonest.com_JwgqTDF9g7') || "Reset Password"}
+                                    </h2>
+                                    <p style={{ color: '#666', marginBottom: 0, fontSize: 14 }}>
+                                        {getAContent('cmp_vetonest.com_reset_password_instruction') || 
+                                         "Enter your email address and we'll send you a verification code to reset your password."}
+                                    </p>
+                                </div>
 
-										 <Form 
-											className=""
-											form = {form}
-										 >
-										
-										
-										<div className="form-group">
-											<Form.Item
-												name  = "pwForgotEmail"
-												rules = {[
-													{
-														message: pwForgotEmailError,
-														validator: ( value ) => {
-															if ( pwForgotEmailError ) {
-																return Promise.reject( pwForgotEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
+                                <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                                    {formError && (
+                                        <Form.Item>
+                                            <Alert
+                                                message={formError.message}
+                                                description={formError.description}
+                                                type={formError.type}
+                                                showIcon
+                                                closable
+                                                onClose={() => setFormError(null)}
+                                            />
+                                        </Form.Item>
+                                    )}
 
-												<Input 
-													id="pwForgotEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={signUp_emailPlaceholder} 
-													type="text" 
-													name="pwForgotmail"
-													value={ pwForgotEmail }
-													onChange = { e => handleChangePwForgotEmail(e)}
-												/>
-											</Form.Item>
-											</div>
-											
-									<>
-										
-										<div style={{ display: formError01 }} className="row formError formError01">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Email address
-											</span> 
-												&nbsp;{ pwForgotEmail }&nbsp;
-											<span id="cmp_vetonest.com_WbKGYyavtn">
-												not found.
-											</span>
-										</div>
-										<div style= {{ display: formError02 }}  className="row formError formError02">
-											<span id="cmp_vetonest.com_4LbLKwutmz">
-												Please check your network and email address.
-											</span>
-										</div>
-									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickEmailValidation}
-												disabled = { sendingDisabled }
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		pwForgotSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-											{ signUp_btnSubmit }
-											</button> 
-											<div className='row'>
-												<div className='col-6'>
-													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
-												</div>
-												<div className='col-md-6 textAlignRight'>
-													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
-												</div>
-											</div>
-										</Form>
-									</div>
-								</div>
-						<div className ="displayNone" >
-						<span 
-								id = "cmp_vetonest.com_2NbkrLN1Nt"
-								className ="signUp_codeIncorrect" 
-							>
-								Your code is not correct. Try again.
-							</span>
-							<span 
-								id = "cmp_vetonest.com_MnveaCfq6X"
-								className ="signUp_codeCorrect" 
-							>
-								Your code is correct.
-							</span>
-							<span 
-								id = "cmp_vetonest.com_WCfOc17hne"
-								className ="signUp_codeTitle" 
-							>
-								Email verification
-							</span>
-							<span
-								id = "cmp_vetonest.com_Xzm3u4t1uE"
-								className ="signUp_codeIntro" 
-							>
-							</span>
-							<span
-								id = "cmp_vetonest.com_Xzm3u4t1uE"
-								className ="signUp_codeIntro" 
-							>
-							</span>
-							<span
-								id = "cmp_vetonest.com_Y9LbvGXMq2"
-								className ="signIn_passwordForgot" 
-							>
-								Mot de passe oublié
-							</span>
-							<span 
-								id = "cmp_vetonest.com_LXBYsFPl1b"
-								className ="signUp_passwordPlaceholder" 
-							>
-							</span>
-							<span
-								id = "cmp_vetonest.com_f8Pqk3fJ2H"
-								className ="signUp_btnSubmit" 
-							>
-								Submit
-							</span>
-							<span
-								id = "cmp_vetonest.com_OFArwroEkk"
-								className ="signUp_termsUsage" 
-							>
-								Term and usage
-							</span>
-								
-							<span 
-								className ="cmp_vetonest.com_GomedYOvSx signUp_emailErrorText" 
-							>
-								Your email is not correct
-							</span>
-							<span 
-								className ="cmp_vetonest.com_Xep3PSNstf signUp_emailPlaceholder" 
-							>
-								Email
-							</span>
-						</div>	
-						</div>
-					</div>
-				</div>
-			<div>&nbsp;</div>
-			<Footer />
-		</>
-	);
+                                    <Form.Item
+                                        label={getAContent('cmp_vetonest.com_4LbLKwutmz') || "Email Address"}
+                                        name="email"
+                                        rules={[
+                                            { required: true, message: getAContent('cmp_vetonest.com_EjMb0Ci9C6') || "Please enter your email address" },
+                                            {
+                                                validator: (_, value) => {
+                                                    if (value && !isValidEmail(value)) {
+                                                        return Promise.reject(
+                                                            getAContent('cmp_vetonest.com_GomedYOvSx') || "Please enter a valid email address"
+                                                        );
+                                                    }
+                                                    return Promise.resolve();
+                                                }
+                                            }
+                                        ]}
+                                    >
+                                        <Input
+                                            id="pwForgotEmailInput"
+                                            readOnly={!ready}
+                                            autoComplete="email"
+                                            size="large"
+                                            placeholder={getAContent('cmp_vetonest.com_Xep3PSNstf') || "your@email.com"}
+                                            style={{ height: 48 }}
+                                            prefix={<MailOutlined style={{ color: '#999' }} />}
+                                        />
+                                    </Form.Item>
+
+                                    <Form.Item>
+                                        <Button
+                                            type="primary"
+                                            htmlType="submit"
+                                            block
+                                            size="large"
+                                            disabled={sendingDisabled}
+                                            style={{ 
+                                                height: 48, 
+                                                backgroundColor: '#000000', 
+                                                color: '#fff',
+                                                fontWeight: 500,
+                                                border: 'none',
+                                                marginTop: 10,
+                                            }}
+                                        >
+                                            <Space>
+                                                {loading && <Spin indicator={<LoadingOutlined spin style={{ color: '#fff' }} />} />}
+                                                {getAContent('cmp_vetonest.com_f8Pqk3fJ2H') || "Send Reset Link"}
+                                            </Space>
+                                        </Button>
+                                    </Form.Item>
+
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Link to='/connexion' style={{ color: '#666' }}>
+                                            <ArrowLeftOutlined /> {getAContent('cmp_vetonest.com_back_to_login') || "Back to Login"}
+                                        </Link>
+                                    </div>
+                                </Form>
+                            </div>
+
+                            <div style={{ textAlign: 'center', marginTop: 24 }}>
+                                <span style={{ color: '#666', marginRight: 8 }}>
+                                    {getAContent('cmp_vetonest.com_5aIWA6DiGq') || "Already have an account?"}
+                                </span>
+                                <Link to='/connexion' className="text-primary">
+                                    {getAContent('cmp_vonetest.com_J50yit0tKU') || "Sign in"}
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <Footer />
+        </>
+    );
 };
 
 export default PasswordForgot;

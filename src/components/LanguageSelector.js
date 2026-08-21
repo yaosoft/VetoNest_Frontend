@@ -14,7 +14,7 @@ const LanguageSelector = ( params ) => {
 		setUser,
 	} = useContext( AuthContext );
 	const { 
-		listLanguages,
+		languageList,
 		getProfile,
 		updateLanguagePreference,
 		defaultLanguageId,
@@ -22,7 +22,14 @@ const LanguageSelector = ( params ) => {
 		languageSetup,
 		languageFlag,
 		selectedLanguageId, 
-		setSelectedLanguageId
+		setSelectedLanguageId,
+		language_french,
+		language_english,
+		language_spanish,
+		language_german,
+		language_italian,
+		language_estonian,
+		getAContent
 	} = useContext( SiteContext );
 
 	// params
@@ -38,13 +45,13 @@ const LanguageSelector = ( params ) => {
 	const handleChangeLanguages = async ( languageId ) => {
 		
 		if( user === null ){
-console.log(languageId);			
+console.log(languageId);		
 			await setSelectedLanguageId( languageId );
 			await languageSetup( languageId );
-			
+
 			return
 		}
-		
+
 		const languagePreferenceData = {
 			userId: 	user.userId,
 			languageId: languageId
@@ -53,45 +60,46 @@ console.log(languageId);
 		if( toPersist === true ){ // persist the laanguage preference
 			const rep = await updateLanguagePreference( languagePreferenceData )
 			if( rep !== true ){
-				message.success( 'Default language updated' );
+				message.success( getAContent( 'cmp_vetonest.com_La48Qm72Rp' ) );
 			}
 			else{
-				message.error( 'Default language not updated' );
+				message.error( "cmp_vetonest.com_La48Qm72Rp" );
 			}
 		}
 		
 
 		await setSelectedLanguageId( languageId ); // update the listbox via context
-		await setSelected( languageId ) 			 // update the listbox
+		// await setSelected( languageId ) 			 // update the listbox
 		
 		await languageSetup( languageId ); // Update flag and user locale
-		user.languageId = languageId; // update user
-		setUser( user );
+
 	}
 	
 	const [ languages, setLanguages ] = useState( [] );
 	const BuildLanguagesList = () => {
 		return (
 			<Select
-				onChange 	= { ( e ) => handleChangeLanguages(e) }
-				value 		= { context ? selectedLanguageId : selected }
+			  onChange={(e) => handleChangeLanguages(e)}
+			  value={context ? selectedLanguageId : selected}
+			  getPopupContainer={(triggerNode) => triggerNode.parentElement}
+			  placement="bottomRight"
 			>
 				{ languages.map( ( option ) => (
 					<Select.Option 
 						key		= { option.id } 
 						value	= { option.id }
 					>
-						{option.name}
+						{ eval( option.tagClass ) }
 					</Select.Option>
 				))}
-          </Select>
-		);
+			</Select>
+		)
 	}
 
 	useEffect( () => {
 		// get all language
 		const getAllLanguage = async() => {
-			const languages = await listLanguages();
+			const languages = await languageList();
 			setLanguages( languages );
 		}
 		getAllLanguage();
@@ -104,13 +112,13 @@ console.log(languageId);
 
 	}, [user] );
 	 
-	 return (
-		<>
+	return (
+		<div className="languageSelector">
 			{ flag === true &&
 				<img src= { languageFlag } className='flag'/> 
 			}
 			<BuildLanguagesList/>
-		</>
+		</div>
 	);
 };
 

@@ -1,332 +1,493 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useNavigate, Link, useLocation  } from 'react-router-dom';
+import React, { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 
+import { SiteContext } from "../../context/site";
+import Header from "../Header";
+import Footer from "../Footer";
+import Title from "../Title";
 
-import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Upload } from 'antd';
-import {
-	RadiusBottomleftOutlined,
-	RadiusBottomrightOutlined,
-	RadiusUpleftOutlined,
-	RadiusUprightOutlined,
-	LoadingOutlined,
-	InboxOutlined, 
-	QuestionCircleOutlined
-} from '@ant-design/icons';
-import { Form, Input, Select } from 'antd';
-import Header from '../Header';
-import Footer from '../Footer';
-import Slider from '../Slider';
-import Contact from '../Contact';
+export default function HomePage() {
+  const {
+    homeTitle,
+    getAContent
+  } = useContext(SiteContext);
 
-import { SiteContext } from '../../context/site';
-import Title from '../Title';
+  const [openFaq, setOpenFaq] = useState(null);
 
-const Home = () => {
-	const navigate = useNavigate();
-	const { 
-		siteName,
-		siteEmail,
-		siteUrl,
-		siteDomain,
-		siteDomainName,
-		defaultLanguageId,
-		defaultLanguage,
-		languageSetup,
-		homeTitle,
-		contactTitle,
-		blogTitle,
-	} = useContext( SiteContext );
-	
-		
-	
-	// Spiner
-	const [ loginSpin, setLoginSpin ] = useState( 'none' );
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
-	const handleClickBtnSignUp = () => {
-		navigate( '/inscription') 
-	}
-	
-	useEffect( () => {
-		// get all language
-		languageSetup( defaultLanguageId );
-	}, [] );
+  const countries = [
+    { code: "fr", name: getAContent("cmp_vetonest.com_Fr23An45Ce") },
+    { code: "be", name: getAContent("cmp_vetonest.com_Be99Lg12Iq") },
+    { code: "it", name: getAContent("cmp_vetonest.com_It77Al44Ie") },
+    { code: "es", name: getAContent("cmp_vetonest.com_Es11Pa55Ne") },
+    { code: "de", name: getAContent("cmp_vetonest.com_De66Al33Ma") },
+  ];
 
-	
-	const [form] = Form.useForm();
-	return (
-		<>
-	<Header />
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		<p>&nbsp;</p>
-		
-		<div 
-			className= 'row backgroundYellow padding10 textAlignCenter myh2 justify-content-center'
-			style={{
-				paddingTop: '3px',
-				paddingBottom: '3px',
-				marginTop: '10px',
-				fontSize: '25px',
-				color: '#000',
-				marginBottom: '10px',
-				marginTop: '20px',
-			}}
-		>
-			<span id='cmp_vetonest.com_y50xzTXzES'>Bienvenue sur Veto Nest</span>
-		</div>
-		<div 
-			className = 'row marginBottom30 justify-content-center' 
-		>
-			<div className='col-md-4'>
-				<Slider />
+  // FAQ Data
+  const faqs = [
+    {
+      question: getAContent("cmp_vetonest.com_Faq1_Question", "Comment fonctionne VetOnest ?"),
+      answer: getAContent("cmp_vetonest.com_Faq1_Answer", "VetOnest met en relation les propriétaires d'animaux avec des vétérinaires qualifiés. Vous pouvez rechercher un vétérinaire, consulter son profil, vérifier ses disponibilités et prendre rendez-vous en ligne, que ce soit en clinique, à domicile ou en téléconsultation.")
+    },
+    {
+      question: getAContent("cmp_vetonest.com_Faq2_Question", "Les vétérinaires sont-ils vérifiés ?"),
+      answer: getAContent("cmp_vetonest.com_Faq2_Answer", "Oui, tous les vétérinaires inscrits sur VetOnest sont soumis à un processus de vérification. Nous vérifions leurs diplômes et identifiants professionnels pour garantir des soins de qualité à votre animal.")
+    },
+    {
+      question: getAContent("cmp_vetonest.com_Faq3_Question", "Puis-je consulter un vétérinaire à distance ?"),
+      answer: getAContent("cmp_vetonest.com_Faq3_Answer", "Absolument ! De nombreux vétérinaires proposent des téléconsultations vidéo. C'est idéal pour les conseils, les suivis ou les situations non urgentes, sans vous déplacer.")
+    },
+    {
+      question: getAContent("cmp_vetonest.com_Faq5_Question", "Puis-je annuler ou modifier un rendez-vous ?"),
+      answer: getAContent("cmp_vetonest.com_Faq5_Answer", "Oui, vous pouvez annuler ou modifier votre rendez-vous directement depuis votre espace client. Veuillez respecter le délai d'annulation indiqué par le vétérinaire (généralement 24h à l'avance).")
+    },
+    {
+      question: getAContent("cmp_vetonest.com_Faq6_Question", "Les vétérinaires se déplacent-ils à domicile ?"),
+      answer: getAContent("cmp_vetonest.com_Faq6_Answer", "Certains vétérinaires proposent des consultations à domicile. Vous pouvez filtrer votre recherche par ce critère et choisir un vétérinaire qui se déplace chez vous.")
+    }
+  ];
+
+  return (
+    <>
+      <div className="sticky-stack">
+        <Header />
+        <Title title={getAContent( 'cmp_vetonest.com_y50xzTXzES' )} />
+      </div>
+
+      <main className="home">
+
+        {/* HERO */}
+        <section className="hero">
+          <div
+            className="hero-bg"
+            style={{ backgroundImage: "url('/img/Home/hero-bg-blur.jpg')" }}
+          />
+          <div className="hero-overlay" />
+
+          <div className="container hero-grid">
+            <div className="hero-text">
+              <div className="heroTitle">
+                {getAContent("cmp_vetonest.com_zDVB9q7a2d")}
+              </div>
+
+              <p className="hero-sub">
+                {getAContent("cmp_vetonest.com_Booking247_Txt")}
+              </p>
+
+              <div className="hero-steps steps">
+                <div className="step">
+                  <span className="step-badge">1</span>
+                  <span>{getAContent("cmp_vetonest.com_Cc44Ac22Ou")}</span>
+                </div>
+                <div className="step">
+                  <span className="step-badge">2</span>
+                  <span>{getAContent("cmp_vetonest.com_Av11An33Im")}</span>
+                </div>
+                <div className="step">
+                  <span className="step-badge">3</span>
+                  <span>{getAContent("cmp_vetonest.com_Cv55Ve11Te")}</span>
+                </div>
+              </div>
+
+              <div className="hero-cta">
+                <Link to="/inscription" className="btn backgroundYellow">
+                  {getAContent("cmp_vetonest.com_Cm22Er00Te")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="hero-image">
+              <img
+                src="/img/Home/hero.jpg"
+                alt={getAContent("cmp_vetonest.com_Cv00Ch44In")}
+              />
+            </div>
+          </div>
+        </section>
+
+		{/* BETA TESTING ANNOUNCEMENT - NAMUR */}
+		<section className="home-search text-center">
+		  <div className="container">
+			<div className="beta-announcement">
+			  <span className="beta-badge">
+				{getAContent("cmp_vetonest.com_BetaBadge")}
+			  </span>
+			  
+			  <div className="namur-highlight">
+				<img 
+				  src="/img/flags/be.svg" 
+				  alt={getAContent("cmp_vetonest.com_BelgiumFlagAlt")}
+				  className="namur-flag"
+				/>
+				<h2 className="namur-title">
+				  {getAContent("cmp_vetonest.com_NamurTitle")}
+				</h2>
+			  </div>
+			  
+			  <p className="beta-message">
+				{getAContent("cmp_vetonest.com_BetaMessage")}
+			  </p>
+			  
+			  <div className="beta-features">
+				<div className="beta-feature">
+				  <span className="feature-icon">✅</span>
+				  <span>{getAContent("cmp_vetonest.com_BetaFeature1")}</span>
+				</div>
+				<div className="beta-feature">
+				  <span className="feature-icon">📱</span>
+				  <span>{getAContent("cmp_vetonest.com_BetaFeature2")}</span>
+				</div>
+				<div className="beta-feature">
+				  <span className="feature-icon">🚀</span>
+				  <span>{getAContent("cmp_vetonest.com_BetaFeature3")}</span>
+				</div>
+			  </div>
+
+			  <div className="vet-cta">
+				<Link to="/inscription" className="btn backgroundYellow">
+				  {getAContent("cmp_vetonest.com_VetCtaButton")}
+				</Link>
+			  </div>
+			  
+			  <p className="beta-note">
+				<small>{getAContent("cmp_vetonest.com_BetaNote")}</small>
+			  </p>
 			</div>
-			<div 
-						className='col-md-4'
-						style={{
-							marginTop: '10px',
-						}}
-					>
-						<div
-							style={{
-								padding: '30px',
-								height: '288px'
-							}}
-							className='backgroundOlive colorBlack borderRadius25'
-						>
-							<div
-								className="smallTitleBlack"
-							>
-								<i className='fa fa-paw marginTop10'></i>&nbsp;
-								<span id="cmp_vetonest.com_BXJ8ERfKvZ">Obtenez un rendez-vous</span>
-							</div>
-							<p></p>
-							<div className="smallBlack18px">
-								<span id="cmp_vetonest.com_MKotGJOfeW">Trouvez un vétérinaire ou établissement veterinaire pour une consultation en ligne ou à domicile.</span>
-							</div>
-							
-							<p></p>
-							<p></p>
-								<button 
-									style={{ border: 'none', height: '45px', backgroundColor:'#ffde59' }}
-									type="button" 
-									className="btn btn-warning borderRadius18 width100per100"
-									onClick = { e => handleClickBtnSignUp( e ) }
-								>
-									&nbsp;&nbsp;
-									<span 
-										id="cmp_vetonest.com_akGLBBj4Qy"
-										style={{ fontSize: '20px', color:'blue' }}
-									>
-										Créer Votre Compte Gratuitement
-									</span>
-									&nbsp;&nbsp;<span><i className="fa fa-arrow-right"></i></span>
-									&nbsp;&nbsp;
-							   </button>
-					   </div>
-					</div>
-					<div 
-						className='col-md-4'
-						style={{
-							marginTop: '10px',
-						}}
-					>
-						<div
-							style={{
-								padding: '30px',
-								height: '288px'
-							}}
-							className='backgroundOlive colorBlack borderRadius25'
-						>
-							<div
-								className="smallTitleBlack"
-							>
-								<i className='fa fa-user-md'></i>&nbsp;
-								<span id='cmp_vetonest.com_ID3p1AsYLZ'>Espace vétérinaire</span>
-							</div>
-							<p></p>
-							<div className="smallBlack18px">
-								<span id='cmp_vetonest.com_ykeRjJbUrW'>Organisez vos consultations et managez vos rendez-vous en toute sécurité sur notre plateforme.</span>
-							</div>	
-							<p></p>
-							<p></p>
-							<button 
-								style={{ border: 'none', height: '45px', backgroundColor: '#ffde59' }} 
-								className="btn btn-warning borderRadius18 width100per100"
-								onClick = { e => handleClickBtnSignUp( e ) }
-							>
-								&nbsp;&nbsp;
-								
-								<span 
-									id="cmp_vetonest.com_A2RSyIKqjD"
-									style={{ fontSize: '20px', color:'blue' }}
-								>
-									Créer Votre Compte Gratuitement
-								</span>
-								&nbsp;&nbsp;<span><i className="fa fa-arrow-right"></i></span>
-								&nbsp;&nbsp;
-						   </button>
-						</div>
-					</div>
-		</div>
-	  <Title title = { homeTitle } />
-	  <span className="homeTitle displayNone" id='cmp_vetonest.com_4SWWu0qB7u'>Des prise de rendez-vous en ligne rapide avec des vétérinaires de confiance</span>
-	  
-	  <div  className="blog" style={{ backgroundImage: 'none' }}>
-         <div className="container">
-            <div className="row">
-               <div className="col-md-4">
-                  <div className="blog_box">
-                     <div 
-						className="blog_room borderRadius25 backgroundOlive"
-					 >
-						<div className="marginBottom10" >
-							<div className="row">
-								<div className="col-md-3">
-									<i style={{ fontSize: "60px", color: "green" }} className="fa fa-calendar backgroundYellow padding10"></i>
-								</div>
-								<div className="col-md-9 paddingLeft20 smallBlack">
-									<div className="marginBottom10">
-										<span className="smallTitleGreen" id="cmp_vetonest.com_RBfWlnWwIx">Des soins vétérinaires, facilement et rapidement</span>
-									</div>
-									<span id="cmp_vetonest.com_vCRQSWdWmq" className="smallBlack14px">Reservez des consultations vidéo ou en presentiel et revevez des rappels pour ne jamain les manquer.</span>
-								</div>
-							</div>
 
-							<div className="row justify-content-center marginTop20">
-								<Link className="read_more" href="#" to="/blog" id="cmp_vetonest.com_LTFugXQBPX"> Read More</Link>
-							</div>
-						</div>
-                     </div>
-                  </div>
-               </div>
-               <div className="col-md-4">
-                  <div className="blog_box">
-                     <div 
-						className="blog_room borderRadius25 backgroundOlive"
-					 >
-						<div className="marginBottom10" >
-							<div className="row">
-								<div className="col-md-3">
-									<i style={{ fontSize: "60px", color: "#0a6e6d" }} className="fa fa-search-minus backgroundYellow padding10"></i>
-								</div>
-								<div className="col-md-9 paddingLeft20 smallBlack">
-									<div className="marginBottom10">
-										<span className="smallTitleGreen" id="cmp_vetonest.com_FDoCpodpkQ">
-											Des spécialisations variées
-										</span>
-									</div>
-									<span id="cmp_vetonest.com_PO9KcsJPJS" className="smallBlack14px">
-										Trouvez rapidement et facilment des vétérinaires avec les critaires et les spécialisations dont vous avez besoin. 
-									</span>
-								</div>
-							</div>
-
-							<div className="row justify-content-center marginTop20">
-								<Link className="read_more cmp_vetonest.com_LTFugXQBPX" href="#" to="/blog"> Read More</Link>
-							</div>
-						</div>
-                     </div>
-                  </div>
-               </div>
-			   <div className="col-md-4">
-                  <div className="blog_box">
-                     <div 
-						className="blog_room borderRadius25 backgroundOlive"
-					 >
-						<div className="marginBottom10" >
-							<div className="row">
-								<div className="col-md-3">
-									<i style={{ fontSize: "60px" }} className="fa fa-comments-o backgroundYellow padding10"></i>
-								</div>
-								<div className="col-md-9 paddingLeft20 smallBlack">
-									<div className="marginBottom10">
-										<span className="smallTitleGreen" id="cmp_vetonest.com_mSKO4iSv3r">
-											Evaluations et avis pour des vétérinaires de confiance
-										</span>
-									</div>
-									 <span className="smallBlack14px" id="cmp_vetonest.com_DZLPDoMdV2">
-										N'hésitez pas à laisser une évaluation ou un commentaire si vous avez été satisfait ou non d'une consultation.
-									</span>
-									 
-								</div>
-							</div>
-
-							<div className="row justify-content-center marginTop20">
-								<Link className="read_more cmp_vetonest.com_LTFugXQBPX" href="#" to="/blog"> Read More</Link>
-							</div>
-						</div>
-                     </div>
-                  </div>
-               </div>
+			<style jsx>{`
+			  .beta-announcement {
+				background: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 100%);
+				border-radius: 32px;
+				padding: 3rem 2rem;
+				box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+			  }
+			  .beta-badge {
+				display: inline-block;
+				background: #ff6b35;
+				color: white;
+				padding: 0.25rem 1rem;
+				border-radius: 50px;
+				font-size: 0.85rem;
+				font-weight: 600;
+				margin-bottom: 1.5rem;
+				letter-spacing: 1px;
+			  }
+			  .namur-highlight {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+			  }
+			  .namur-flag {
+				width: 35px;
+				height: 35px;
+				border-radius: 8px;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+			  }
+			  .namur-title {
+				font-size: 2rem;
+				font-weight: 700;
+				color: #1a3c34;
+				margin: 0;
+			  }
+			  .beta-message {
+				font-size: 1rem;
+				color: #2c3e50;
+				max-width: 600px;
+				margin: 1rem auto;
+				line-height: 1.6;
+			  }
+			  .beta-message strong {
+				color: #ff6b35;
+			  }
+			  .beta-features {
+				display: flex;
+				justify-content: center;
+				gap: 2rem;
+				flex-wrap: wrap;
+				margin: 2rem 0;
+			  }
+			  .beta-feature {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				background: white;
+				padding: 0.5rem 1rem;
+				border-radius: 50px;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+				font-size: 0.95rem;
+			  }
+			  .feature-icon {
+				font-size: 1.2rem;
+			  }
+			  .vet-cta {
+				text-align: center;
+				margin: 0.5rem 0;
+			  }
+			  .vet-btn {
+				background: #1a3c34;
+				color: white;
+				padding: 0.9rem 2rem;
+				border-radius: 50px;
+				font-weight: 600;
+				transition: all 0.3s ease;
+				display: inline-block;
+				text-decoration: none;
+			  }
+			  .vet-btn:hover {
+				background: #ff6b35;
+				transform: translateY(-2px);
+			  }
+			  .beta-note {
+				margin-top: 1.0rem;
+				color: #7f8c8d;
+				text-align: center;
+			  }
+			`}</style>
+		  </div>
+		</section>
+        {/* WHY */}
+        <section className="why">
+          <div className="container grid-2 align-top">
+            <div className="why-text">
+              <div className="customSectionTitle">
+                {getAContent("cmp_vetonest.com_Sm22Ma66Tc")}
+              </div>
+              <p>&nbsp;</p>
+              <p>
+                {getAContent("cmp_vetonest.com_Vn92Qw77Rt")}
+              </p>
+              <p>
+                <br/>
+              </p>
+              <p>
+                {getAContent("cmp_vetonest.com_Gt88Al44Go")}
+              </p>
+              <p>
+                <br/>
+              </p>
+              <div className="hero-cta">
+                <Link to="/vet-listing" className="btn btn-success">
+                  {getAContent("cmp_vetonest.com_GetAppt_Bt")}
+                </Link>
+              </div>
             </div>
-         </div>
-      </div>
-	<Title title = { blogTitle } />
-	 <span className="blogTitle displayNone" >Blog</span>
-	  <div  className="blog" style={{ padding: '0px 6% 0px 6%' }}>
-         <div className="container">
-			<div className="row">
-               <div className="col-md-12">
-                  <div className="titlepage">
-					 <p>&nbsp;</p>
-                     <h2 id='cmp_vetonest.com_8UmzWzhoWs'>Infos utiles</h2>
-                     <p id='cmp_vetonest.com_va7NoAL6ih'>avant la consultation</p>
-                  </div>
-               </div>
+            
+            <div className="image-card">
+              <img
+                src="/img/Home/smart-matching.jpg"
+                alt={getAContent("cmp_vetonest.com_Ti55Pr44Im")}
+                loading="lazy"
+              />
             </div>
-            <div className="row">
-               <div className="col-md-4">
-                  <div className="blog_box">
-                     <div className="blog_img">
-                        <figure><img src="./img/blog/1.jpg" alt="#"/></figure>
-                     </div>
-                     <div className="blog_room">
-                        <h3 id="cmp_vetonest.com_c2jJsvy1m8">Qu'est ce qu'un vétérinaire NAC</h3>
-                        <p id="cmp_vetonest.com_qedCtwT5Oj" style={{ textAlign: "left" }}>Un vétérinaire NAC est un professionnel de la santé animale spécialisé dans les Nouveaux Animaux de Compagnie (NAC). </p>
-						<br/>
-						<p><Link className="read_more cmp_vetonest.com_LTFugXQBPX" href="#" to="/blog"> Read More</Link></p>
-                     </div>
-                  </div>
-               </div>
-               <div className="col-md-4">
-                  <div className="blog_box">
-                     <div className="blog_img">
-                        <figure><img src="./img/blog/2.jpg" alt="#"/></figure>
-                     </div>
-                     <div className="blog_room">
-                        <h3 id="cmp_vetonest.com_0B9rHyfFGb">Pourquoi choisir un veterinaire à domicile</h3>
-                        <p id="cmp_vetonest.com_y2lifRBysc" style={{ textAlign: "left" }}>Le vétérinaire à domicile peut être le vétérinaire traitant habituel de votre chien ou chat, et peut parfois même assurer les urgences. </p>
-						
-						<p><Link className="read_more cmp_vetonest.com_LTFugXQBPX" href="#" to="/import-export"> Read More</Link></p>
-                     </div>
-                  </div>
-               </div>
-               <div className="col-md-4">
-                  <div className="blog_box">
-                     <div className="blog_img">
-                        <figure><img src="./img/blog/3.jpg" alt="#"/></figure>
-                     </div>
-                     <div className="blog_room">
-                        <h3 id="cmp_vetonest.com_9dPtYUzVDa">Motifs de consultation</h3>
-                        <p style={{ textAlign: "left" }} id="cmp_vetonest.com_VxdOZQo0dk">
-						Il est important de consulter un vétérinaire si vous observez des changements dans le comportement, l'appétit, ou l'état de santé général de votre animal. </p>
-						<br/>
-						<p><Link className="read_more cmp_vetonest.com_LTFugXQBPX" href="#" to="/import-export"> Read More</Link></p>
-                     </div>
-                  </div>
-               </div>
+          </div>
+        </section>
+
+        {/* SERVICES */}
+        <section className="services">
+          <div className="container">
+            <div className="customSectionTitle">
+              {getAContent("cmp_vetonest.com_Dc22Co99Ad")}
             </div>
-         </div>
-      </div>
-	<br/>
-	<Title title = { contactTitle } />
-	  <span className="contactTitle displayNone" id="cmp_vetonest.com_SOJVt74LSV" >Contact us</span>
-      <Contact/>
+            <p>&nbsp;</p>
+            <div className="grid-3">
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/Home/online.jpg"
+                    alt={getAContent("cmp_vetonest.com_Ce33Li11Ne")}
+                  />
+                </div>
+                <h3>{getAContent("cmp_vetonest.com_Ce33Li11Ne")}</h3>
+                <p>{getAContent("cmp_vetonest.com_Vc44Ch77Ut")}</p>
+              </div>
 
-			<Footer />
-		</>
-	);
-};
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/Home/clinic.jpg"
+                    alt={getAContent("cmp_vetonest.com_Ce55Cl22In")}
+                  />
+                </div>
+                <h3>{getAContent("cmp_vetonest.com_Ce55Cl22In")}</h3>
+                <p>{getAContent("cmp_vetonest.com_Rv66Pr44Zz")}</p>
+              </div>
 
-export default Home;
+              <div className="card service-card">
+                <div className="image-wrapper">
+                  <img
+                    src="/img/Home/home.jpg"
+                    alt={getAContent("cmp_vetonest.com_Cd77Do11Mi")}
+                  />
+                </div>
+                <h3>{getAContent("cmp_vetonest.com_Cd77Do11Mi")}</h3>
+                <p>{getAContent("cmp_vetonest.com_Uv88Ch22Ez")}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI */}
+        <section className="why">
+          <div className="container grid-2 align-top">
+            <div className="why-text">
+              <div className="customSectionTitle">
+                {getAContent("cmp_vetonest.com_Cs99Sy11As")}
+              </div>
+              <p>&nbsp;</p>
+              <p>
+                {getAContent("cmp_vetonest.com_Fv55Ve66Cl")}
+              </p>
+              <p>
+                <br/>
+              </p>
+              <p>
+                {getAContent("cmp_vetonest.com_Pl88Za22Xm")}
+              </p>
+              <p>
+                <br/>
+              </p>
+              <div className="hero-cta">
+                <Link to="/vet-listing" className="btn btn-success">
+                  {getAContent("cmp_vetonest.com_TalkToVet_Bt")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/Home/ai-chat.jpg"
+                alt={getAContent("cmp_vetonest.com_Av77Ia88Ch")}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* TRUST */}
+        <section className="trust">
+          <div className="container grid-2">
+            <div>
+              <div className="customSectionTitle">
+                {getAContent("cmp_vetonest.com_Dv99Ve11Tr")}
+              </div>
+              <p className="lead">
+                {getAContent("cmp_vetonest.com_Pa11Am22An")} ❤️
+              </p>
+                <p>&nbsp;</p>
+              <ul className="checklist">
+                <li>{getAContent("cmp_vetonest.com_Av55Vi66Qu")}</li>
+                <li>{getAContent("cmp_vetonest.com_Dm77Se88Cu")}</li>
+                <li>{getAContent("cmp_vetonest.com_Vd99Me11St")}</li>
+                <li>{getAContent("cmp_vetonest.com_Rr11Rd22Vz")}</li>
+                <li>{getAContent("cmp_vetonest.com_Vv33Ve44Ex")}</li>
+                <li>{getAContent("cmp_vetonest.com_ClReg33Bt")}</li>
+                <li>{getAContent("cmp_vetonest.com_VtInv44Bt")}</li>
+              </ul>
+            </div>
+
+            <div className="image-card">
+              <img
+                src="/img/Home/vets-trust.jpg"
+                alt={getAContent("cmp_vetonest.com_Ev33Pr44Tr")}
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ SECTION */}
+        <section className="faq-section">
+          <div className="container">
+            <div className="customSectionTitle text-center">
+              {getAContent("cmp_vetonest.com_Faq_Title", "Questions fréquentes")}
+            </div>
+            <p className="section-sub text-center">
+              {getAContent("cmp_vetonest.com_Faq_Subtitle", "Tout ce que vous devez savoir sur VetOnest")}
+            </p>
+            
+            <div className="faq-grid">
+              {faqs.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <div 
+                    className={`faq-question ${openFaq === index ? 'active' : ''}`}
+                    onClick={() => toggleFaq(index)}
+                  >
+                    <span className="faq-icon">{openFaq === index ? '−' : '+'}</span>
+                    <h3>{faq.question}</h3>
+                  </div>
+                  <div className={`faq-answer ${openFaq === index ? 'open' : ''}`}>
+                    <p>{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* APP */}
+		<section className="app">
+		  <div className="container grid-2">
+			<div>
+			
+			
+			
+			<div className="customSectionTitle text-center">
+              {getAContent("cmp_vetonest.com_Vn55Po66Ke")}
+            </div>
+            <p className="section-sub text-center">
+              {getAContent("cmp_vetonest.com_Cv77Ve88Pa")}
+            </p>
+
+			  <div className="app-responsive" style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8f9fa', borderRadius: '12px' }}>
+				<div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
+				<img
+					src="/img/Home/iconLapPhone.jpg"
+					alt={getAContent("cmp_vetonest.com_Am55Mo11Vn")}
+					style={{ width: '150px' }}
+					loading="lazy"
+				  />
+				</div> 
+				<p style={{ fontSize: '0.95rem', color: '#2c3e50', lineHeight: '1.5', margin: 0 }}>
+				  {getAContent("cmp_vetonest.com_AppResponsiveTextVet")}
+				</p>
+			  </div>
+			  <p></p>
+			  <div className="marginTop20">
+                <Link to="/vet-listing" className="btn btn-success">
+                  {getAContent("cmp_vetonest.com_GetAppt_Bt")}
+                </Link>
+              </div>
+			</div>
+
+			<div className="image-card">
+			  <img
+				src="/img/Home/app.jpg"
+				alt={getAContent("cmp_vetonest.com_Am55Mo11Vn")}
+				loading="lazy"
+			  />
+			</div>
+		  </div>
+		</section>
+
+        {/* CTA */}
+        <section className="cta">
+          <div className="container">
+            <h2>
+              {getAContent("cmp_vetonest.com_Om77Me11An")}
+            </h2>
+            <Link to="/inscription" className="btn primary large">
+              {getAContent("cmp_vetonest.com_Cm99Co11Fr")}
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
+  );
+}

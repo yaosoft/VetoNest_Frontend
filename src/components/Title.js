@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useContext } from "react";
 
-import { Form, Input, Select } from 'antd';
-
-
-
 const Title = ( params ) => {
-const title = params.title;
+	const [ title, setTitle ] = useState( '' );
+	
+	useEffect(() => {
+		// Better handling of undefined or null title
+		let newTitle = '';
+		if (params.title && params.title !== "undefined" && params.title !== 'undefined') {
+			newTitle = params.title;
+		}
+		setTitle( newTitle );
+		document.title = newTitle || 'VetoNest';
+	}, [params.title]); // Only depend on title, not the whole params object
 	
 	return (
-		<div className="row marginTop10 marginBottom20 back_re">
-			<div className="col-md-12">
-				<div className="title">
-					<h2 className="textAlignCenter">{ title }</h2>
-				</div>
-			</div>
+		<div className="stickTitle titleStyle">
+			{title}
 		</div>
 	);
 };
 
 export default Title;
- 
 			
 			
 			

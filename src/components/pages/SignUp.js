@@ -4,16 +4,17 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../../context/AuthProvider";
 import { SiteContext } from "../../context/site";
-import { Space, Modal, Spin, Button, notification, message, Popconfirm  } from 'antd';
+import { Space, Modal, Spin, Button, notification, message, Popconfirm, Radio, Alert  } from 'antd';
 import {
 	RadiusBottomleftOutlined,
 	RadiusBottomrightOutlined,
 	RadiusUpleftOutlined,
 	RadiusUprightOutlined,
-	LoadingOutlined
+	LoadingOutlined,
+	ExclamationCircleOutlined,
+	MailOutlined,
+	ArrowLeftOutlined
 } from '@ant-design/icons';
-
-import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import InputCode from "../InputCode";
 
@@ -81,6 +82,7 @@ const SignUp = ( params ) => {
 		signUp_title,			
 		signUp_btnSubmit,
 		signUp_termsUsage,
+		getAContent,
 	}	= useContext( SiteContext );
 
 	const [ loading, setLoading] = useState(false);
@@ -107,6 +109,14 @@ const SignUp = ( params ) => {
 // signUpNameErrorText = 'Your name seems incorect'
 		setSignUpNameError( signUpNameErrorText );
 	}
+
+	const [ready, setReady] = useState(false);
+
+// Rate limiting state for resend code
+const [resendCount, setResendCount] = useState(0);
+const [resendCooldown, setResendCooldown] = useState(0);
+const MAX_RESEND_ATTEMPTS = 3;
+const COOLDOWN_SECONDS = 60;
 
 	// firstname
 	const [ signUpFirstName, setSignUpFirstName ] = useState( '' );
@@ -200,38 +210,23 @@ const SignUp = ( params ) => {
 		console.log(e);
 	};
 
-	const handleChangeSignUpType = ( signUpType ) => {
-
-		const elt01 = document.getElementById( 'signUpType' + signUpType ); // current elt
-		const elt02 = signUpType == 1 ? document.getElementById( 'signUpType' + 2) :   document.getElementById( 'signUpType' + 1 );
-
-		setSignUp_formOption1Error( '' );
-		setSignUp_formOption2Error( '' );
-	
-		if( elt01.checked ){ // chackboxes inverser
-			elt02.checked = false;
-		}
+	const handleChangeSignUpType = ( e ) => {
+		setSignUpType( e.target.value );
+		showModalOptionType();
 		
-		if( elt01.checked == true && signUpType == 1 ){
-			// message.info( signUp_type1 );
-			setSignUpType( 1 );
-			showModalOptionType();
-		}
-		else if( elt01.checked == true && signUpType == 2 ){
-			// message.info( signUp_type2 );
-			setSignUpType( 2 );
-			showModalOptionType();
-		}
-		else if( elt01.checked == false && elt02.checked == false ){
-			setSignUpType( '' );
-			setSignUp_formOption1Error( signUp_formOption1ErrorText );
-			setSignUp_formOption2Error( signUp_formOption2ErrorText );
-		}
+		setTypeError('');
+		form.validateFields();
 	}
 
 	useEffect(() => {
 		form.validateFields();
+		
+		// for the autofill issue
+		const id = setTimeout(() => setReady(true), 50);
+		return () => clearTimeout(id);
+		
 	}, [ signUpType, siteLanguage ]);
+
 
 	// check the form errors
 	const checkFormErrors = async( ) => {
@@ -287,6 +282,70 @@ const SignUp = ( params ) => {
 		return formHasEmpty
 	}
 	
+	// Resend verification code with rate limiting
+	const handleResendCode = async () => {
+		if (!signUpEmail) return;
+
+		// Check if user has exceeded max resend attempts
+		if (resendCount >= MAX_RESEND_ATTEMPTS) {
+			message.error("You have reached the maximum number of code requests. Please try again later.");
+			return;
+		}
+
+		// Check cooldown
+		if (resendCooldown > 0) {
+			message.error(`Please wait ${resendCooldown} seconds before requesting another code.`);
+			return;
+		}
+
+		setDisplayCodeIncorrect('none');
+		setDisplayCodeCorrect('none');
+		
+		// Increment resend count
+		setResendCount(prev => prev + 1);
+		
+		// Start cooldown
+		setResendCooldown(COOLDOWN_SECONDS);
+		const interval = setInterval(() => {
+			setResendCooldown(prev => {
+				if (prev <= 1) {
+					clearInterval(interval);
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+		
+		// Generate new code
+		const genCode = await generateRandomDigits(maxCodeLength);
+		setCode(genCode);
+
+		// Send new verification email
+		const domainName = signUpEmail.split('@')[1];
+		const subject = signUp_verifyEmailSubjet + siteName;
+		
+		const sendEmailData = {
+			to_email: signUpEmail,
+			to_domain: domainName,
+			subject: subject,
+			userName: signUpName,
+			siteName: siteName,
+			siteDomain: siteDomain,
+			siteEmail: siteEmail,
+			siteUrl: siteUrl,
+			code: insertSpaceAtPosition(genCode, 3),
+			emailTemplate: 'email_verification'
+		};
+
+		const emailSent = await sendEmail(sendEmailData);
+		
+		if (emailSent) {
+			message.success("Verification code resent!");
+		} else {
+			message.error("Failed to resend code. Please try again.");
+		}
+	};
+	
 	// sign up
 	const [ code, setCode ] = useState( '' );
 	const [ formError01, setFormError01 ] = useState( 'none' );
@@ -305,8 +364,11 @@ const SignUp = ( params ) => {
 			setSignUp_formOption1Error( signUp_formOption1ErrorText );
 			setSignUp_formOption2Error( signUp_formOption2ErrorText );
 			
-			message.error( signUp_selectTypeError );
+			message.error( signUp_selectTypeError ); 
 // message.error( 'Are you a pet\'s owner or a veto? Please select.' );
+			setTypeError( getAContent( 'cmp_vetonest.com_Qm84Lp72Xs' ) );
+			form.validateFields();
+			
 			setSignUpSpin( 'none' );
 			setSendingDisabled( false );
 			return	
@@ -341,13 +403,26 @@ console.log( 'signUpType: ' + signUpType );
 		}
 
 		const check = await checkEmail( checkEmailData );
-		if( check ){
-			setFormError02( 'block' );	// display form error
-			message.error( showAFormError( 'formError02' ) );	// display ant error
-			document.getElementById( 'signUpEmailInput' ).focus();
-			setSignUpSpin( 'none' );
-			setSendingDisabled( false );
-			return
+		// Check the actual response structure
+		if (check && check.available === true) {
+			// This means email is available - NO ERROR
+			console.log('Email is available');
+		} else if (check && check.exists === true) {
+			// This means email exists - SHOW ERROR
+			setFormError02('block');
+			message.error(showAFormError('formError02'));
+			document.getElementById('signUpEmailInput').focus();
+			setSignUpSpin('none');
+			setSendingDisabled(false);
+			return;
+		} else if (check === true) {
+			// Old logic - email exists
+			setFormError02('block');
+			message.error(showAFormError('formError02'));
+			document.getElementById('signUpEmailInput').focus();
+			setSignUpSpin('none');
+			setSendingDisabled(false);
+			return;
 		}
 
 		// email verification
@@ -386,7 +461,7 @@ console.log( 'signUpType: ' + signUpType );
 			setSendingDisabled( false );
 			return;
 		}
-// console.log( 'Check email', rep );
+console.log( 'Check email', rep );
 		setSignUpSpin( 'none' );
 		if( emailVerificationResult === true ) // email account already checked
 			await signUp( signUpData )
@@ -405,7 +480,7 @@ console.log( 'signUpType: ' + signUpType );
 		setFormError01( 'none' );
 		setFormError02( 'none' );
 	}
-	
+
 	// signup
 	const signUpData = {
 		nom: 			signUpName.trim(),
@@ -418,30 +493,30 @@ console.log( 'signUpType: ' + signUpType );
 
 
 	const navigate = useNavigate();
+	
 	const modalClosed = async () => {
 		if( emailVerificationResult === false ){
 			setSendingDisabled( false );
 			return
 		}
-//setSignUpFirstNameError( "signUpFirstNameErrorText" );
 
-		
 		const rep = await signUp( signUpData );
 
-// console.log( 'signUp rep: ' + rep );
 		setSignUpSpin( 'none' );
 		setSendingDisabled( false );
+		
 		if( rep === false ){
-			message.error( signUp_accountCreationFails )
+			message.error( signUp_accountCreationFails );
 		}
 		else{
 			message.success( signUp_accountCreationSuccess );
 			
-			navigate( '/connexion' )
+			// Redirect to login page after successful account creation
+			navigate( '/connexion' );
 		}
 	}
 
-	// modal
+	// verification code modal
 	const [ isModalOpen, setIsModalOpen ] = useState(false);
 	const [ isModalOptionTypeOpen, setIsModalOptionTypeOpen ] = useState(false);
 	
@@ -456,7 +531,7 @@ console.log( 'signUpType: ' + signUpType );
 		if( countLetters > maxCodeLength )
 			return
 
-	setVerificationCode( typedCode );
+		setVerificationCode( typedCode );
 // console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
 		if( countLetters == maxCodeLength ){
 			if( code != typedCode ){
@@ -477,21 +552,35 @@ console.log( 'signUpType: ' + signUpType );
 		
 	}
 
-	const handleCompletedCode = ( typedCode ) => {
+	const handleCompletedCode = async ( typedCode ) => {
 		
 		if( code != typedCode ){
-				// message.error( { signUp_codeIncorrect } );
-// message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
+			setDisplayCodeIncorrect( 'block' );
+			setEmailVerificationResult( false );
 		}
 		else{
 			message.success( signUp_codeCorrect );
-// message.success( 'Your code is correct' );
 			setDisplayCodeIncorrect( 'none' );
 			setEmailVerificationResult( true );
 			setDisplayCodeCorrect( 'block' );
-			setTimeout( setIsModalOpen, 2000, false );
+			
+			// Create the account after successful verification
+			setSignUpSpin('block');
+			const rep = await signUp(signUpData);
+			setSignUpSpin('none');
+			
+			if( rep === false ){
+				message.error( signUp_accountCreationFails );
+			}
+			else{
+				message.success( signUp_accountCreationSuccess );
+				
+				// Close modal and redirect to login page
+				setTimeout(() => {
+					setIsModalOpen(false);
+					navigate('/connexion');
+				}, 1500);
+			}
 		}
 	}
 	
@@ -514,174 +603,273 @@ console.log( 'signUpType: ' + signUpType );
 		setIsModalOptionTypeOpen(false);
 	};
 	const modalOptionTypeHandleCancel = () => {
-		document.getElementById( 'signUpType1' ).checked = false;
-		document.getElementById( 'signUpType2' ).checked = false;
 		setSignUpType( '' );
+		form.setFieldsValue({ AccountType: null });
 		setIsModalOptionTypeOpen(false); // close modal 
 	}
 	const modalOptionTypeClosed = () => {
 		console.log( 'modalClosed' );
 	}
+
+	// typee
+	const [ type, setType ] = useState( '' ); // 1 for male, 2 for female
+	const [ typeError, setTypeError ] 	= useState( '' );
 	
+	const handleChangeType = (e) => {
+		const typeId = e.target.value;
+		setType( typeId );
+		setTypeError( '' );
+	}
+
 	 // form
 	 const [form] = Form.useForm();
+	 const location = useLocation();
 	 
 	 return (
 		<>
-
+			{ /* Modal account type confirmatonion */ }
 			<Modal
 				title={
-				  <>
-					<ExclamationCircleOutlined style={{ marginRight: 8, color: '#FFDE59' }} /> 
-					<span>{ signUpType == 1 ? signUp_popConfirmPetTitle : signUp_popConfirmVetTitle }</span> 
-				  </>
+					<p style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
+						<span
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 22,
+								height: 22,
+								borderRadius: '50%',
+								backgroundColor: '#FFDE59',
+								marginRight: 8,
+							}}
+						>
+						{signUpType == 1
+						? <i
+								className="fa fa-paw"
+								style={{
+									fontSize: 14,
+									color: '#000',
+								}}
+							/>
+						:
+						<i
+								className="fa fa-user-md"
+								style={{
+									fontSize: 14,
+									color: '#000',
+								}}
+							/>
+						}
+						</span>
+						<span>
+							{signUpType == 1
+								? signUp_popConfirmPetTitle
+								: signUp_popConfirmVetTitle}
+						</span>
+					</p>
 				}
-				closable	= {{ 'aria-label': 'Custom Close Button' }}
-				open		= { isModalOptionTypeOpen }
-				onOk		= { modalOptionTypeHandleOk }
-				onCancel	= { () => modalOptionTypeHandleCancel( false ) }
-				afterClose	= { modalOptionTypeClosed }
-				okText		= { signUp_popConfirmYes }
-				cancelText	= { signUp_popConfirmDeleteBtn }
+				closable={{ 'aria-label': 'Custom Close Button' }}
+				open={isModalOptionTypeOpen}
+				onOk={modalOptionTypeHandleOk}
+				onCancel={() => modalOptionTypeHandleCancel(false)}
+				afterClose={modalOptionTypeClosed}
+				okText={signUp_popConfirmYes}
+				cancelText={signUp_popConfirmDeleteBtn}
 			>
-				<>
-				{ signUpType == 1 ? signUp_popConfirmPetDescription : signUp_popConfirmVetDescription
-				}
-				</>
+				{signUpType == 1
+					? signUp_popConfirmPetDescription
+					: signUp_popConfirmVetDescription}
 			</Modal>
 			
+			{ /* Modal signup code verification */ }
+			{/* Modal signup code verification - UPDATED STYLE */}
 			<Modal
-				title			= { signUp_codeTitle }
-				closable		= {{ 'aria-label': 'Custom Close Button' }}
-				open			= { isModalOpen }
-				onOk			= { console.log( 'ok' ) }
-				onCancel		= { handleCancel }
-				afterClose		= { modalClosed }
-				footer			= { null }
-				maskClosable	= { false } // This prevents closing on mask click
+				open={isModalOpen}
+				onCancel={() => setIsModalOpen(false)}
+				footer={null}
+				width={450}
+				maskClosable={false}
+				closable={true}
+				centered
+				styles={{
+					body: {
+						padding: '24px',
+						background: 'transparent'
+					},
+					content: {
+						background: '#fff',
+						borderRadius: '16px',
+						boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+					}
+				}}
 			>
-	<ExclamationCircleOutlined />
-    <div className="App">
-		<span>{ signUp_codeIntro } </span>&nbsp;
-		<span>{ signUpEmail }</span>
-      <InputCode
-        length={6}
-        label={ signUp_codeLabel }
-		// label="Type your code"
-        loading={loading}
-        onComplete={code => {
-          setLoading(true);
-          setTimeout(() => setLoading(false), 10000);
-		  handleCompletedCode( code )
-        }}
-      />
-	<div className = "row" >
-		<span className='text text-success' style={{display: displayCodeCorrect }} >{ signUp_codeCorrect }</span>&nbsp;
-		<span className='text text-danger' style={{display: displayCodeIncorrect }} >{ signUp_codeIncorrect }</span>&nbsp;
-		<span className='text text-info' >{ signUp_codeResend }</span>
-	</div>
-	</div>		
-					<br/><br/>
+				<div style={{ textAlign: 'center' }}>
+					<div style={{
+						width: 56,
+						height: 56,
+						borderRadius: '50%',
+						backgroundColor: '#FFDE59',
+						display: 'inline-flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						marginBottom: 16
+					}}>
+						<MailOutlined style={{ fontSize: 28, color: '#000' }} />
+					</div>
+					
+					<h3 style={{ margin: '0 0 8px 0', fontSize: 20, fontWeight: 600 }}>
+						{signUp_codeTitle || "Email Verification"}
+					</h3>
+					
+					<p style={{ margin: '0 0 24px 0', color: '#666', fontSize: 14 }}>
+						{signUp_codeIntro || "We've sent a verification code to"}
+						<br />
+						<strong style={{ color: '#000', fontSize: 15 }}>{signUpEmail}</strong>
+					</p>
+
+					<InputCode
+						length={6}
+						label={signUp_codeLabel || "Enter verification code"}
+						loading={loading}
+						onComplete={handleCompletedCode}
+						autoFocus
+					/>
+
+					{displayCodeCorrect === 'block' && (
+						<Alert
+							message={signUp_codeCorrect || "Code verified successfully!"}
+							type="success"
+							showIcon
+							style={{ marginTop: 16, textAlign: 'left' }}
+						/>
+					)}
+					
+					{displayCodeIncorrect === 'block' && (
+						<Alert
+							message={signUp_codeIncorrect || "Invalid verification code"}
+							description="Please check your code and try again."
+							type="error"
+							showIcon
+							style={{ marginTop: 16, textAlign: 'left' }}
+						/>
+					)}
+					
+					<div style={{ marginTop: 24 }}>
+						<span style={{ color: '#666', marginRight: 8 }}>
+							{signUp_codeResend || "Didn't receive the code?"}
+						</span>
+						 <Button
+							type="default"
+							htmlType="submit"
+							block
+							className="login-form__btn rounded10"
+							onClick={handleClickRegistration}
+							disabled={sendingDisabled}
+							style={{
+								height: '45px',
+								backgroundColor: '#000000',
+								borderColor: '#000000',
+								color: '#ffffff'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.backgroundColor = '#333333';
+								e.currentTarget.style.borderColor = '#333333';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.backgroundColor = '#000000';
+								e.currentTarget.style.borderColor = '#000000';
+							}}
+						>
+							<Space>
+								{signUpSpin === 'block' && (
+									<Spin
+										indicator={
+											<LoadingOutlined
+												style={{
+													fontSize: 20,
+													color: '#ffffff',
+												}}
+												spin
+											/>
+										}
+									/>
+								)}
+								{signUp_btnSubmit}
+							</Space>
+						</Button>
+					</div>
+				</div>
 			</Modal>
 		
-		<Header />
-			
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-			<p>&nbsp;</p>
-            <Title title = { signUp_title } />
+		  <div className="sticky-stack">
+			<Header />
+			<Title title={getAContent( 'cmp_vetonest.com_bL1MO9LnVv' )} />
+		  </div>
+           
 			<div className="login-form-bg h-100">
 				<div className="container h-100">
 					<div className="row justify-content-center h-100">
 						<div className="col-xl-6">
 							<div className="form-input-content">
+								<Form
+									form={form}
+									key={location.pathname}
+									layout="vertical"
+								>
+										<div className="">
+												<Form.Item
+													label={getAContent('cmp_vetonest.com_Ra83Km91Qw')}
+													name="AccountType"
+													rules={[
+														{
+															message: typeError,
+															validator: (value) => {
+																if (typeError) return Promise.reject(typeError);
+																return Promise.resolve();
+															},
+														},
+													]}
+												>
+													<Radio.Group
+														className="w-100"
+													>
+														<div className="row g-2">
+															<div className="col-6">
+																<div className="radio-tile backgroundYellow rounded10 height40 alignheckbox01 ">
+																	<Radio 
+																		name="animal"
+																		value={1} 
+																		className="checkbox-like-radio"
+																		onChange={ (e) => handleChangeSignUpType( e ) }
+																	>
+																		<i className="fa fa-paw"></i>&nbsp;
+																		{getAContent('cmp_vetonest.com_6avWG2reFU')}
+																	</Radio>
+																</div>
+															</div>
 
-										 <Form 
-											className=""
-											form = {form}
-										 >
-										<div className="row">
-											<div className="col-6">
-												<Form.Item
-													className = "backgroundYellow borderRadius18 height40"
-													name  = "SignUpType1"
-													rules = {[
-														{
-															message: signUp_formOption1Error,
-															validator: ( value ) => {
-																if ( signUpType != 1 || signUpType != 2  ) {
-																	return Promise.reject( signUp_formOption1Error );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
-													]}
-												>
-													<div className='row'>
-														<div className='col-8 marginLeft20'>
-															<i className='fa fa-paw marginTop10'></i> <span id = "cmp_vetonest.com_6avWG2reFU"			className ="signUp_formOption1"			>
-																I have a pet
-															</span>
+															<div className="col-6">
+																<div className="radio-tile backgroundYellow rounded10 height40 alignheckbox01 ">
+																	<Radio 
+																		name="veterinaire"
+																		value={2} 
+																		className="checkbox-like-radio"
+																		onChange={ (e) => handleChangeSignUpType( e ) }
+																	>
+																		<i className="fa fa-user-md"></i>&nbsp;
+																		{getAContent('cmp_vetonest.com_KqP3TSXZo3')}
+																	</Radio>
+																</div>
+															</div>
 														</div>
-														<div className='col-3'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="signUpTypeUser"
-																id="signUpType1"
-																value={ 1 }
-																onChange = { e => handleChangeSignUpType(1) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-													</div>
+													</Radio.Group>
+
 												</Form.Item>
-											</div>
-											<div className="col-6">
-												<Form.Item
-													className = "backgroundYellow borderRadius18 height40"
-													name  = "SignUpType2"
-													rules = {[
-														{
-															message: signUp_formOption2Error,
-															validator: ( value ) => {
-																if ( signUpType || 1 && signUpType != 2 ) {
-																	return Promise.reject( signUp_formOption2Error );
-																} 
-																else {
-																	return Promise.resolve();
-																}
-															}
-														}
-													]}
-												>
-													<div className='row'>
-														<div className='col-4'>
-															<Input
-																className='width15 height15 marginTop10'
-																type="checkbox" 
-																name="signUpTypeVeto"
-																id="signUpType2"
-																value={ 2 }
-																onChange = { e => handleChangeSignUpType(2) }
-																style={{ outline: 'none' }}
-															 />
-														</div>
-														<div className='col-8 marginTop10'>
-															<i className='fa fa-user-md'></i> <span id = "cmp_vetonest.com_KqP3TSXZo3"			className ="signUp_formOption2"			>
-																I'm a vet
-															</span>
-														</div>
-													</div>
-												</Form.Item>
-											</div>
 										</div>
 										<div className="row">
 											<div className="col-6">
 												<Form.Item
+													label= { getAContent( 'cmp_vetonest.com_wc4hVvXB3N' ) }
 													name  = "signUpName"
 													rules = {[
 														{
@@ -700,7 +888,7 @@ console.log( 'signUpType: ' + signUpType );
 												>
 													<Input
 														id="signUpNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 														placeholder={ signUp_namePlaceholder }
 														type="text" 
 														name="signUpName"
@@ -713,6 +901,7 @@ console.log( 'signUpType: ' + signUpType );
 											<div className="col-6">
 												<Form.Item
 													name  = "signUpFirstName"
+													label = { getAContent( 'cmp_vetonest.com_03jgEtJiVa' ) }
 													rules = {[
 														{
 															message: signUpFirstNameError,
@@ -730,7 +919,7 @@ console.log( 'signUpType: ' + signUpType );
 												>
 													<Input 
 														id="signUpFirstNameInput"
-														className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
+														className="backgroundYellow  rounded10 width100per100 borderNone height45" 
 														placeholder={ signUp_firstNamePlaceholder }
 														type="text" 
 														name="signUpFirstName"
@@ -742,96 +931,86 @@ console.log( 'signUpType: ' + signUpType );
 										</div>
 										<div className="form-group">
 											<Form.Item
-												name  = "signUpEmail"
-												rules = {[
+												label={getAContent('cmp_vetonest.com_Er51Nm92Qa')}
+												name="signInEmail"
+												rules={[
 													{
 														message: signUpEmailError,
-														validator: ( value ) => {
-															if ( signUpEmailError ) {
-																return Promise.reject( signUpEmailError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
+														validator: (value) => {
+															if (signUpEmailError) return Promise.reject(signUpEmailError);
+															return Promise.resolve();
+														},
+													},
 												]}
-												initialValue  = ''
 											>
-
-												<Input 
+												<Input
 													id="signUpEmailInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_emailPlaceholder }
-													type="text" 
-													name="signUpmail"
-													value={ signUpEmail }
-													onChange = { e => handleChangeSignUpEmail(e)}
-													
-												/>
+													readOnly={!ready}
+													name="login_email_fake"
+													autoComplete="username"
+													className="backgroundYellow rounded10 width100per100 borderNone height45"
+													placeholder= { getAContent ( 'cmp_vetonest.com_Xq92La74Pm' ) } 
+													onChange = { e => handleChangeSignUpEmail( e ) }
+												/> 
 											</Form.Item>
 											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "password"
-												rules = {[
-													{
-														message: signUpPasswordError,
-														validator: ( value ) => {
-															if ( signUpPasswordError ) {
-																return Promise.reject( signUpPasswordError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												/* initialValue  = '' */
-											>
-												<Input 
-													id="signUpPasswordInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordPlaceholder }
-													type="password" 
-													name="password"
-													value={ signUpPassword }
-													onChange = { e => handleChangeSignUpPassword(e)}
-													
-												/>
-											</Form.Item>
+											<div className="row">
+												<div className="col-6">
+													<Form.Item
+														label={getAContent('cmp_vetonest.com_LXBYsFPl1b')}
+														name="password"
+														rules={[
+															{
+																message: signUpPasswordError,
+																validator: () => {
+																	if (signUpPasswordError) {
+																		return Promise.reject(signUpPasswordError);
+																	}
+																	return Promise.resolve();
+																},
+															},
+														]}
+													>
+														<Input.Password
+															id="signUpPasswordInput"
+															readOnly={!ready}
+															name="login_password_fake"
+															autoComplete="new-password"
+															className="backgroundYellow rounded10 width100per100 borderNone height45"
+															placeholder={getAContent('cmp_vetonest.com_Kp83Wd61Lt')}
+															onChange={(e) => handleChangeSignUpPassword(e)}
+														/>
+													</Form.Item>
+												</div>
+
+												<div className="col-6">
+													<Form.Item
+														name="passwordRepeat"
+														label={getAContent('cmp_vetonest.com_Tp72Lm84Qs')}
+														rules={[
+															{
+																message: signUpPasswordRepeatError,
+																validator: () => {
+																	if (signUpPasswordRepeatError) {
+																		return Promise.reject(signUpPasswordRepeatError);
+																	}
+																	return Promise.resolve();
+																},
+															},
+														]}
+													>
+														<Input.Password
+															id="signUpPasswordRepeatInput"
+															className="backgroundYellow rounded10 width100per100 borderNone height45"
+															placeholder={getAContent('cmp_vetonest.com_Bm91Qx63Kr')}
+															name="passwordRepeat"
+															value={signUpPasswordRepeat}
+															onChange={(e) => handleChangeSignUpPasswordRepeat(e)}
+														/>
+													</Form.Item>
+												</div>
 											</div>
-											<div className="form-group">
-											<Form.Item
-												name  = "passwordRepeat"
-												rules = {[
-													{
-														message: signUpPasswordRepeatError,
-														validator: ( value ) => {
-															if ( signUpPasswordRepeatError ) {
-																return Promise.reject( signUpPasswordRepeatError );
-															} 
-															else {
-																return Promise.resolve();
-															}
-														}
-													}
-												]}
-												initialValue  = ''
-											>
-												<Input 
-													id="signUpPasswordRepeatInput"
-													className="backgroundYellow  borderRadius18 width100per100 borderNone height40" 
-													placeholder={ signUp_passwordRepeatPlaceholder }
-													
-													type="password" 
-													name="passwordRepeat"
-													value={ signUpPasswordRepeat }
-													onChange = { e => handleChangeSignUpPasswordRepeat(e)}
-												/>
-												
-											</Form.Item>
-											</div>
+
 									<>
 									
 										<div style={{ display: formError01 }} className="row formError formError01">
@@ -860,38 +1039,59 @@ console.log( 'signUpType: ' + signUpType );
 											</span>
 										</div>
 									</>
-											<button 
-												className	= "btn login-form__btn submit w-100 borderRadius18 backgroundGreen colorBlack sendBtn sendBtnHoverBlack"
-												onClick	= {handleClickRegistration}
-												disabled = { sendingDisabled }
-											>
-											
-											<Space>
-												<Spin
-													indicator={
-														<LoadingOutlined
-															style={{
-																fontSize: 		20,
-																marginRight: 	'10px',
-																display:		signUpSpin,
-																color: 			'wheat',
-															}}
-															spin
-														/>
-													}
-												/>
-											</Space>
-												{ signUp_btnSubmit }
-											</button> 
+											<Form.Item style={{ marginTop: 24 }}>
+												<Button
+													type="primary"
+													htmlType="submit"
+													block
+													size="large"
+													className="login-form__btn rounded10"
+													onClick={handleClickRegistration}
+													disabled={sendingDisabled}
+													style={{
+														height: '45px',
+														backgroundColor: '#000000',
+														borderColor: '#000000',
+														color: '#ffffff'
+													}}
+													onMouseEnter={(e) => {
+														e.currentTarget.style.backgroundColor = '#333333';
+														e.currentTarget.style.borderColor = '#333333';
+													}}
+													onMouseLeave={(e) => {
+														e.currentTarget.style.backgroundColor = '#000000';
+														e.currentTarget.style.borderColor = '#000000';
+													}}
+												>
+													<Space>
+														{signUpSpin === 'block' && (
+															<Spin
+																indicator={
+																	<LoadingOutlined
+																		style={{
+																			fontSize: 20,
+																			color: '#ffffff',
+																		}}
+																		spin
+																	/>
+																}
+															/>
+														)}
+														{signUp_btnSubmit}
+													</Space>
+												</Button>
+											</Form.Item>
 											<div className='row'>
 												<div className='col-md-6 '>
-													<Link to='/connexion' className="text-primary">{ signUp_termsUsage }</Link>
+													<Link to='/vet-usage' className="text-primary">{ signUp_termsUsage }</Link>
 												</div>
 												<div className='col-md-6 textAlignRight'>
 													<span id="cmp_vetonest.com_5aIWA6DiGq">Already have an account?</span>&nbsp;<Link to='/connexion' className="cmp_vetonest.com_adWeBARABI text-primary">connexion</Link>
 												</div>
 											</div>
-									<div className="displayNone">
+									
+								</Form>
+								<div className="displayNone">
 											<span 
 												id = "cmp_vetonest.com_2Mtv5nj9JA"
 												className ="signUp_nameErrorText" 
@@ -901,7 +1101,7 @@ console.log( 'signUpType: ' + signUpType );
 											<span 
 												id = "cmp_vetonest.com_P5crAMBBiW"
 												className ="signUp_firstNameErrorText" 
-											>signUp_firstNameErrorText
+											>
 												Your first name seems incorect
 											</span>
 											<span 
@@ -1113,7 +1313,6 @@ console.log( 'signUpType: ' + signUpType );
 												Terms of Use
 											</span>
 										</div>
-								</Form>
 							</div>
 						</div>							
 					</div>
