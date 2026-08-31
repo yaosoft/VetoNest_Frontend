@@ -1907,8 +1907,9 @@ const ModalProfile = ( params ) => {
 				setSendingDisabled( false );
 				return
 			}
+			// No userId: the server changes the signed-in user's own password and
+			// ignores any account id a caller supplies.
 			const pwResetData = {
-				userId: 	    userId,
 				password: 		pwResetPassword,
 			}
 			const resp = await updatePassword( pwResetData );

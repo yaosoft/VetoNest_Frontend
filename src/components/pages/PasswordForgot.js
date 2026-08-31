@@ -17,12 +17,11 @@ const PasswordForgot = () => {
         siteEmail,
         siteUrl,
         siteDomain,
-        generateRandomDigits,
-        sendEmail,
-        checkEmail,
+        requestPasswordReset,
+        confirmPasswordReset,
+        setPasswordResetToken,
         setVerificationCode,
         setVerificationUserId,
-        insertSpaceAtPosition,
         getAContent,
         siteLocale
     } = useContext(SiteContext);
@@ -45,8 +44,6 @@ const PasswordForgot = () => {
     
     // Form data
     const [email, setEmail] = useState('');
-    const [userId, setUserId] = useState(null);
-    const [generatedCode, setGeneratedCode] = useState('');
     const [emailVerificationResult, setEmailVerificationResult] = useState(false);
     
     // Error states
@@ -69,6 +66,36 @@ const PasswordForgot = () => {
         setFormError(null);
     };
 
+    // Ask the server to mail a reset code. The code is generated and checked
+    // server-side, so nothing here ever knows it. Returns true when the request
+    // was accepted — which it is even for an unregistered address, so that this
+    // screen cannot be used to discover who has an account.
+    const sendResetCode = async (address) => {
+        const isFrench = siteLocale?.startsWith('fr');
+
+        const rep = await requestPasswordReset({
+            email: address,
+            subject: isFrench
+                ? `Réinitialisez votre mot de passe - ${siteName}`
+                : `Reset Your Password - ${siteName}`,
+            siteName: siteName,
+            siteDomain: siteDomain,
+            siteEmail: siteEmail,
+            siteUrl: siteUrl,
+            siteLocale: siteLocale,
+        });
+
+        if (rep && rep.success) return true;
+
+        if (rep && rep.status === 429)
+            message.error(getAContent('cmp_vetonest.com_code_resend_limit_reached')
+                || "Too many requests. Please try again later.");
+        else
+            message.error(getAContent('cmp_vetonest.com_email_send_error') || "Failed to send email");
+
+        return false;
+    };
+
     // Handle email submission
     const handleSubmit = async (values) => {
         clearErrors();
@@ -76,62 +103,12 @@ const PasswordForgot = () => {
         setSendingDisabled(true);
 
         try {
-            // Check if email exists
-            const checkEmailData = { email: values.email };
-            const id = await checkEmail(checkEmailData);
-
-            if (!id) {
-                setFormError({
-                    message: getAContent('cmp_vetonest.com_email_not_found') || "Email not found",
-                    description: getAContent('cmp_vetonest.com_email_not_found_details') || "No account exists with this email address.",
-                    type: 'error'
-                });
-                setLoading(false);
-                setSendingDisabled(false);
-                return;
-            }
-
-            setUserId(id);
+            // No "does this address exist?" check any more: it told anyone who
+            // asked which addresses have accounts. The server answers the same
+            // way either way and only mails a code if the account is real.
             setEmail(values.email);
 
-            // Generate verification code
-            const genCode = await generateRandomDigits(6);
-            setGeneratedCode(genCode);
-
-            // Determine if French (using same logic as ConsultationBooking.js)
-            const isFrench = siteLocale?.startsWith('fr');
-            
-            // Localized subject
-            const subject = isFrench
-                ? `Réinitialisez votre mot de passe - ${siteName}`
-                : `Reset Your Password - ${siteName}`;
-
-            // Send verification email
-            const domainName = values.email.split('@')[1];
-            
-            const sendEmailData = {
-                to_email: values.email,
-                to_domain: domainName,
-                subject: subject,
-                userName: '',
-                siteName: siteName,
-                siteDomain: siteDomain,
-                siteEmail: siteEmail,
-                siteUrl: siteUrl,
-                code: insertSpaceAtPosition(genCode, 3),
-                emailTemplate: 'password_forgot',
-                siteLocale: siteLocale,  // Pass the locale to template (same as consultation_request)
-                timezone: 'Europe/Paris', // Default timezone
-            };
-
-            const emailSent = await sendEmail(sendEmailData);
-
-            if (!emailSent) {
-                setFormError({
-                    message: getAContent('cmp_vetonest.com_email_send_error') || "Failed to send email",
-                    description: getAContent('cmp_vetonest.com_email_send_error_details') || "Please check your network connection and try again.",
-                    type: 'error'
-                });
+            if (!(await sendResetCode(values.email))) {
                 setLoading(false);
                 setSendingDisabled(false);
                 return;
@@ -153,13 +130,22 @@ const PasswordForgot = () => {
         }
     };
 
-    // Handle code verification
+    // Handle code verification. The code lives only on the server and in the
+    // user's mailbox, so this is the only place it can be checked.
     const handleCodeComplete = async (code) => {
-        if (generatedCode !== code) {
+        const check = await confirmPasswordReset({ email: email, code: code });
+
+        if (!check || !check.success) {
             setDisplayCodeIncorrect(true);
             setDisplayCodeCorrect(false);
             setEmailVerificationResult(false);
-            message.error(getAContent('cmp_vetonest.com_code_incorrect') || "Invalid verification code");
+
+            if (check && check.status === 429)
+                message.error(getAContent('cmp_vetonest.com_code_resend_limit_reached')
+                    || "Too many attempts. Please request a new code.");
+            else
+                message.error(getAContent('cmp_vetonest.com_code_incorrect') || "Invalid verification code");
+
             return;
         }
 
@@ -168,12 +154,13 @@ const PasswordForgot = () => {
         setEmailVerificationResult(true);
         message.success(getAContent('cmp_vetonest.com_code_correct') || "Code verified successfully!");
 
-        // Close modal and navigate to reset page
+        // The token is what authorises the change. It goes through context
+        // rather than the URL so it stays out of history and Referer headers.
+        setPasswordResetToken(check.resetToken);
+
         setTimeout(() => {
             setIsModalOpen(false);
-            setVerificationCode(generatedCode);
-            setVerificationUserId(userId);
-            navigate(`/mot-de-passe-oublie/reset/${generatedCode}/${userId}`);
+            navigate('/mot-de-passe-oublie/reset');
         }, 1500);
     };
 
@@ -217,38 +204,8 @@ const PasswordForgot = () => {
             });
         }, 1000);
         
-        const genCode = await generateRandomDigits(6);
-        setGeneratedCode(genCode);
-
-        const isFrench = siteLocale?.startsWith('fr');
-        const subject = isFrench
-            ? `Réinitialisez votre mot de passe - ${siteName}`
-            : `Reset Your Password - ${siteName}`;
-        
-        const domainName = email.split('@')[1];
-        
-        const sendEmailData = {
-            to_email: email,
-            to_domain: domainName,
-            subject: subject,
-            userName: '',
-            siteName: siteName,
-            siteDomain: siteDomain,
-            siteEmail: siteEmail,
-            siteUrl: siteUrl,
-            code: insertSpaceAtPosition(genCode, 3),
-            emailTemplate: 'password_forgot',
-            siteLocale: siteLocale,  // Pass the locale to template
-            timezone: 'Europe/Paris',
-        };
-
-        const emailSent = await sendEmail(sendEmailData);
-        
-        if (emailSent) {
+        if (await sendResetCode(email))
             message.success(getAContent('cmp_vetonest.com_code_resent') || "Verification code resent!");
-        } else {
-            message.error(getAContent('cmp_vetonest.com_code_resend_failed') || "Failed to resend code. Please try again.");
-        }
     };
 
     return (

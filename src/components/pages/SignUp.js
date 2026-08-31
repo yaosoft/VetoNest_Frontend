@@ -16,6 +16,8 @@ import {
 	ArrowLeftOutlined
 } from '@ant-design/icons';
 
+import ReCAPTCHA from "react-google-recaptcha";
+
 import InputCode from "../InputCode";
 
 import  "./inputCode.css";
@@ -38,11 +40,10 @@ const SignUp = ( params ) => {
 		siteDomain,
 		siteDomainName,
 		siteLanguage,
-		generateRandomDigits,
-		insertSpaceAtPosition,
 		signUp, 
 		checkEmail, 
-		sendEmail,
+		requestEmailVerification,
+		confirmEmailVerification,
 		signUp_nameErrorText,
 		signUp_firstNameErrorText,
 		signUp_emailErrorText,
@@ -111,6 +112,17 @@ const SignUp = ( params ) => {
 	}
 
 	const [ready, setReady] = useState(false);
+
+	// reCAPTCHA. Without a site key the widget is not rendered and the server
+	// (which is the side that actually decides) logs that checks are disabled.
+	const recaptchaRef = React.useRef(null);
+	const recaptchaSiteKey = process.env.REACT_APP_RECAPTCHA_SITE_KEY || '';
+	const [recaptchaToken, setRecaptchaToken] = useState('');
+
+	// Returned by the server once the mailed code has been confirmed; user/create
+	// refuses to create the account without it.
+	const [verificationToken, setVerificationToken] = useState('');
+	const [codeChecking, setCodeChecking] = useState(false);
 
 // Rate limiting state for resend code
 const [resendCount, setResendCount] = useState(0);
@@ -282,6 +294,39 @@ const COOLDOWN_SECONDS = 60;
 		return formHasEmpty
 	}
 	
+	// Ask the server for a verification code. The code is generated and stored
+	// server-side and only ever reaches the user's mailbox, so nothing here knows
+	// what it is. Returns true when the mail was accepted.
+	const sendVerificationCode = async () => {
+		const rep = await requestEmailVerification({
+			email: signUpEmail,
+			userName: signUpName,
+			subject: signUp_verifyEmailSubjet + siteName,
+			siteName: siteName,
+			siteDomain: siteDomain,
+			siteEmail: siteEmail,
+			siteUrl: siteUrl,
+			siteLocale: siteLanguage,
+			recaptchaToken: recaptchaToken,
+		});
+
+		// A used token cannot be replayed, so clear the widget either way.
+		recaptchaRef.current?.reset();
+		setRecaptchaToken('');
+
+		if (rep && rep.success)
+			return true;
+
+		if (rep && rep.status === 429)
+			message.error("Too many code requests. Please try again later.");
+		else if (rep && rep.status === 403)
+			message.error("Captcha verification failed. Please try again.");
+		else
+			message.error(signUp_accountCreationFails);
+
+		return false;
+	}
+
 	// Resend verification code with rate limiting
 	const handleResendCode = async () => {
 		if (!signUpEmail) return;
@@ -316,38 +361,11 @@ const COOLDOWN_SECONDS = 60;
 			});
 		}, 1000);
 		
-		// Generate new code
-		const genCode = await generateRandomDigits(maxCodeLength);
-		setCode(genCode);
-
-		// Send new verification email
-		const domainName = signUpEmail.split('@')[1];
-		const subject = signUp_verifyEmailSubjet + siteName;
-		
-		const sendEmailData = {
-			to_email: signUpEmail,
-			to_domain: domainName,
-			subject: subject,
-			userName: signUpName,
-			siteName: siteName,
-			siteDomain: siteDomain,
-			siteEmail: siteEmail,
-			siteUrl: siteUrl,
-			code: insertSpaceAtPosition(genCode, 3),
-			emailTemplate: 'email_verification'
-		};
-
-		const emailSent = await sendEmail(sendEmailData);
-		
-		if (emailSent) {
+		if (await sendVerificationCode())
 			message.success("Verification code resent!");
-		} else {
-			message.error("Failed to resend code. Please try again.");
-		}
 	};
 	
 	// sign up
-	const [ code, setCode ] = useState( '' );
 	const [ formError01, setFormError01 ] = useState( 'none' );
 	const [ formError02, setFormError02 ] = useState( 'none' );
 	const handleClickRegistration = async ( event ) => {
@@ -428,45 +446,23 @@ console.log( 'signUpType: ' + signUpType );
 		// email verification
 		// setOpenModalEmailValidate( true );
 
-		const genCode = await generateRandomDigits( maxCodeLength );
-		setCode( genCode );
-// console.log( 'genCode: ' + genCode );
-		const domainName 	= signUpEmail.split( '@' )[1];
-		const subject 		= signUp_verifyEmailSubjet + siteName;
-// const subject 		= 'Verify your email address for ' + siteName;
-		const UserName 		= signUpName;
-		const code 			= genCode;
-		
-		const sendEmailData = {
-			to_email 		: signUpEmail,
-			to_domain		: domainName,
-			subject			: subject,
-			userName    	: signUpName,
-			siteName    	: siteName,
-			siteDomain  	: siteDomain,
-			siteEmail		: siteEmail,
-			siteUrl     	: siteUrl,
-			code  			: insertSpaceAtPosition ( genCode, 3 ),
-			emailTemplate	: 'email_verification'
-		}
-// console.log( 'sendEmailData', sendEmailData );
-
-		const rep = await sendEmail( sendEmailData );	// send the code by email
-		
-		if( rep === false ){ // email address not found
-			setFormError01( 'block' );	// display form error
-			message.error( showAFormError( 'formError01' ) );	// display ant error
+		if( recaptchaSiteKey && !recaptchaToken ){
+			message.error( "Please complete the captcha before continuing." );
 			setSignUpSpin( 'none' );
-			document.getElementById( 'signUpEmailInput' ).focus();
 			setSendingDisabled( false );
 			return;
 		}
-console.log( 'Check email', rep );
+
+		const codeSent = await sendVerificationCode();
+
+		if( !codeSent ){
+			setSignUpSpin( 'none' );
+			setSendingDisabled( false );
+			return;
+		}
+
 		setSignUpSpin( 'none' );
-		if( emailVerificationResult === true ) // email account already checked
-			await signUp( signUpData )
-		else									// check email account
-			setIsModalOpen(true);
+		setIsModalOpen( true );	// ask for the code that was just mailed
 	}
 
 	// display a form error
@@ -500,12 +496,12 @@ console.log( 'Check email', rep );
 			return
 		}
 
-		const rep = await signUp( signUpData );
+		const rep = await signUp( { ...signUpData, verificationToken } );
 
 		setSignUpSpin( 'none' );
 		setSendingDisabled( false );
 		
-		if( rep === false ){
+		if( !rep ){
 			message.error( signUp_accountCreationFails );
 		}
 		else{
@@ -532,56 +528,66 @@ console.log( 'Check email', rep );
 			return
 
 		setVerificationCode( typedCode );
-// console.log( 'verificationCode - typedCode: ' + verificationCode + ' = ' + typedCode );
-		if( countLetters == maxCodeLength ){
-			if( code != typedCode ){
-				message.error( 'Your code is not correct. Try again.' );
-				setDisplayCodeIncorrect( 'block' );
-				setEmailVerificationResult( false );
-			}
-			else{
-				message.success( 'Your code is correct' );
-				setEmailVerificationResult( true );
-				setDisplayCodeCorrect( 'block' );
-				setTimeout( setIsModalOpen, 2000, false );
-			}
-		}
-		else {
+
+		// Only the server knows the code, so a full-length entry is handed to
+		// handleCompletedCode to be checked there.
+		if( countLetters == maxCodeLength )
+			handleCompletedCode( typedCode );
+		else
 			setDisplayCodeIncorrect( 'none' );
-		}
-		
 	}
 
 	const handleCompletedCode = async ( typedCode ) => {
-		
-		if( code != typedCode ){
+		if( codeChecking )
+			return;
+
+		setCodeChecking( true );
+
+		// The server holds the code; this is the only place it is checked.
+		const check = await confirmEmailVerification( {
+			email: signUpEmail,
+			code: typedCode,
+		} );
+
+		if( !check || !check.success ){
+			setCodeChecking( false );
+			setDisplayCodeCorrect( 'none' );
 			setDisplayCodeIncorrect( 'block' );
 			setEmailVerificationResult( false );
+
+			if( check && check.status === 429 )
+				message.error( "Too many attempts. Please request a new code." );
+			else
+				message.error( signUp_codeIncorrect );
+
+			return;
 		}
-		else{
-			message.success( signUp_codeCorrect );
-			setDisplayCodeIncorrect( 'none' );
-			setEmailVerificationResult( true );
-			setDisplayCodeCorrect( 'block' );
-			
-			// Create the account after successful verification
-			setSignUpSpin('block');
-			const rep = await signUp(signUpData);
-			setSignUpSpin('none');
-			
-			if( rep === false ){
-				message.error( signUp_accountCreationFails );
-			}
-			else{
-				message.success( signUp_accountCreationSuccess );
-				
-				// Close modal and redirect to login page
-				setTimeout(() => {
-					setIsModalOpen(false);
-					navigate('/connexion');
-				}, 1500);
-			}
+
+		message.success( signUp_codeCorrect );
+		setDisplayCodeIncorrect( 'none' );
+		setEmailVerificationResult( true );
+		setDisplayCodeCorrect( 'block' );
+		setVerificationToken( check.verificationToken );
+
+		// Create the account. The token is passed straight from the response
+		// because the state set just above is not visible in this closure yet.
+		setSignUpSpin( 'block' );
+		const rep = await signUp( { ...signUpData, verificationToken: check.verificationToken } );
+		setSignUpSpin( 'none' );
+		setCodeChecking( false );
+
+		if( !rep ){
+			message.error( signUp_accountCreationFails );
+			return;
 		}
+
+		message.success( signUp_accountCreationSuccess );
+
+		// Close modal and redirect to login page
+		setTimeout( () => {
+			setIsModalOpen( false );
+			navigate( '/connexion' );
+		}, 1500 );
 	}
 	
 	// email code check modal
@@ -747,7 +753,6 @@ console.log( 'Check email', rep );
 					{displayCodeIncorrect === 'block' && (
 						<Alert
 							message={signUp_codeIncorrect || "Invalid verification code"}
-							description="Please check your code and try again."
 							type="error"
 							showIcon
 							style={{ marginTop: 16, textAlign: 'left' }}
@@ -756,7 +761,7 @@ console.log( 'Check email', rep );
 					
 					<div style={{ marginTop: 24 }}>
 						<span style={{ color: '#666', marginRight: 8 }}>
-							{signUp_codeResend || "Didn't receive the code?"}
+							{getAContent( 'cmp_vetonest.com_bDwPuqPxdf' ) || signUp_codeResend}
 						</span>
 						 <Button
 							type="default"
@@ -1039,6 +1044,18 @@ console.log( 'Check email', rep );
 											</span>
 										</div>
 									</>
+											{ recaptchaSiteKey && (
+												<Form.Item style={{ marginTop: 24 }}>
+													<ReCAPTCHA
+														ref={ recaptchaRef }
+														sitekey={ recaptchaSiteKey }
+														hl={ siteLanguage }
+														onChange={ ( token ) => setRecaptchaToken( token || '' ) }
+														onExpired={ () => setRecaptchaToken( '' ) }
+													/>
+												</Form.Item>
+											) }
+
 											<Form.Item style={{ marginTop: 24 }}>
 												<Button
 													type="primary"

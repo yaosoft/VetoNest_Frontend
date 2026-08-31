@@ -81,6 +81,11 @@ const AllRoutes = {
 		},
 		{	// password forgot | reset
 			element:  <PasswordForgotReset />,
+			path: '/mot-de-passe-oublie/reset',
+		},
+		{	// password forgot | reset (legacy links, which no longer carry anything
+			// the server trusts; the page falls back to asking for a new code)
+			element:  <PasswordForgotReset />,
 			path: '/mot-de-passe-oublie/reset/:code/:userId',
 		},
 		{	// etablissement
