@@ -134,3 +134,14 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Compiled output - 42MB, rebuilt from source, never belongs in the repo
+/build
+
+# Working screenshot that shows the server's directory listing, including
+# unrelated client projects. Keep it local.
+/docs/build.jpg
+
+# Windows NTFS alternate-data-stream artifacts, created when files are copied
+# from a Windows filesystem. Never useful in the repo.
+*:Zone.Identifier

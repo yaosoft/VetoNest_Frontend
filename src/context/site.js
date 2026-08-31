@@ -45,7 +45,12 @@ export const SiteProvider = ({ children }) => {
 		if (response.status != 200) {
 			const errorText = await response.text();
 			console.error('API Error:', response.status, errorText);
-			throw new Error(`API returned status ${response.status}`);
+			const apiError = new Error(`API returned status ${response.status}`);
+			// Callers need the code itself to tell "throttled" (429) apart from
+			// "rejected" (400/403) and show the right message.
+			apiError.status = response.status;
+			apiError.body = errorText;
+			throw apiError;
 		}
 		
 		return response.json();
@@ -176,6 +181,81 @@ export const SiteProvider = ({ children }) => {
 		return rep;
 	}
 
+	// Ask the server to mail a signup verification code. The code is generated
+	// and stored server-side; nothing about it comes back in the response.
+	// Resolves to { success, verificationId, expiresIn } or { success: false, status }.
+	const requestEmailVerification = async ( verificationData ) => {
+		const url = base_api_url + 'verification/request';
+		setSpiner( 'block' );
+		try {
+			return await fetchData( url, verificationData, 'POST' );
+		}
+		catch ( error ) {
+			console.error( 'Error requesting verification code:', error );
+			return { success: false, status: error.status ?? null };
+		}
+		finally {
+			setSpiner( 'none' );
+		}
+	}
+
+	// Exchange a mailed code for the token that user/create requires.
+	// Resolves to { success, verificationToken } or { success: false, status }.
+	const confirmEmailVerification = async ( confirmData ) => {
+		const url = base_api_url + 'verification/confirm';
+		setSpiner( 'block' );
+		try {
+			return await fetchData( url, confirmData, 'POST' );
+		}
+		catch ( error ) {
+			console.error( 'Error confirming verification code:', error );
+			return { success: false, status: error.status ?? null };
+		}
+		finally {
+			setSpiner( 'none' );
+		}
+	}
+
+	// Password reset: ask the server to mail a code. Resolves the same way whether
+	// or not the address is registered, so nothing here can be used to discover
+	// which addresses have accounts.
+	const requestPasswordReset = async ( resetData ) => {
+		const url = base_api_url + 'password/reset/request';
+		setSpiner( 'block' );
+		try {
+			return await fetchData( url, resetData, 'POST' );
+		}
+		catch ( error ) {
+			console.error( 'Error requesting password reset:', error );
+			return { success: false, status: error.status ?? null };
+		}
+		finally {
+			setSpiner( 'none' );
+		}
+	}
+
+	// Exchange a mailed reset code for the single-use token that
+	// user/password/save requires. Resolves to { success, resetToken }.
+	const confirmPasswordReset = async ( confirmData ) => {
+		const url = base_api_url + 'password/reset/confirm';
+		setSpiner( 'block' );
+		try {
+			return await fetchData( url, confirmData, 'POST' );
+		}
+		catch ( error ) {
+			console.error( 'Error confirming password reset:', error );
+			return { success: false, status: error.status ?? null };
+		}
+		finally {
+			setSpiner( 'none' );
+		}
+	}
+
+	// Held only for the hop from the code screen to the new-password screen.
+	// Deliberately not persisted: a reset token is a credential, and it should
+	// not survive a closed tab or sit in localStorage.
+	const [ passwordResetToken, setPasswordResetToken ] = useState( '' );
+
 	// update email address
 	const updateEmail = async ( emailData ) => {
 		const url	= base_api_url + 'user/update/email';
@@ -244,14 +324,22 @@ export const SiteProvider = ({ children }) => {
 
 
 	// update password
+	// Change a password. The server accepts this only with a valid reset token or
+	// from the signed-in owner of the account, so a rejection is expected and has
+	// to be reported rather than thrown.
 	const updatePassword = async ( updatePasswordData ) => {
 		const url		= base_api_url + 'user/password/save';
-		const data 		= updatePasswordData;
-		const method 	= 'POST';
 		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
-		setSpiner( 'none' );
-		return rep;
+		try {
+			return await fetchData( url, updatePasswordData, 'POST' );
+		}
+		catch ( error ) {
+			console.error( 'Error updating password:', error );
+			return { success: false, status: error.status ?? null };
+		}
+		finally {
+			setSpiner( 'none' );
+		}
 	}
 
 	// update default language
@@ -2290,6 +2378,12 @@ const saveComment = async (commentData) => {
 				checkEmail,
 				insertSpaceAtPosition,
 				sendEmail,
+				requestEmailVerification,
+				confirmEmailVerification,
+				requestPasswordReset,
+				confirmPasswordReset,
+				passwordResetToken,
+				setPasswordResetToken,
 				userPaymentMethods, 
 				setUserPaymentMethods,
 				getReferrer,
