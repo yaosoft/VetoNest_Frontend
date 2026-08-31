@@ -501,8 +501,18 @@ const Profile = (params) => {
 			return date.toLocaleDateString(locale, { month: 'short' });
 		}
 
-		return timeslot.map((slot, index) => {
-			const dayName = getLocalizedDayName(index);
+		// Monday first: the API numbers days 0=Sunday..6=Saturday, so shifting by
+		// six and wrapping puts Monday at 0 and Sunday last.
+		const mondayFirst = (dayNumber) => (Number(dayNumber) + 6) % 7;
+
+		const orderedSlots = [...timeslot].sort(
+			(a, b) => mondayFirst(a.dayNumber) - mondayFirst(b.dayNumber)
+		);
+
+		return orderedSlots.map((slot, index) => {
+			// Label from the slot's own day, not its position: the two only agreed
+			// while the list happened to arrive in Sunday-first order.
+			const dayName = getLocalizedDayName(Number(slot.dayNumber));
 			let displayValue;
 
 			if (slot.opened) {
@@ -533,7 +543,10 @@ const Profile = (params) => {
 							endTime: slot.opened ? slot.endTime.date : '',
 							opened: slot.opened ? slot.opened : '',
 							day: dayName,
-							dayId: index,
+							// The real day of the week, not the row position: the modal sends
+							// this straight back as dayNumber, so an index would write to the
+							// wrong day now that the list is ordered from Monday.
+							dayId: Number(slot.dayNumber),
 							timeSlotId: slot.timeSlotId,
 							type: getFieldName(slot.type) == 'Hollydays' ? '' : 2,
 						}}

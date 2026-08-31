@@ -529,11 +529,18 @@ const VetProfile = () => {
 			return `${startTime} – ${endTime} (${tzLocation})`;
 		};
 
-		const getDayName = (index) => {
-			// vetTimeslot is already in Sunday-first order (0=Sunday, 6=Saturday)
-			const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-			return dayMap[index];
+		// dayNumber is 0=Sunday..6=Saturday, matching Date.getDay(). Resolve the
+		// label from that rather than from the row's position: the API returns an
+		// object keyed by day, so position and day are not the same thing.
+		const getDayName = (dayNumber) => {
+			const date = new Date();
+			const diff = (date.getDay() - Number(dayNumber) + 7) % 7;
+			date.setDate(date.getDate() - diff);
+			return date.toLocaleDateString(siteLocale || 'en', { weekday: 'long' });
 		};
+
+		// Monday first, Sunday last.
+		const mondayFirst = (dayNumber) => (Number(dayNumber) + 6) % 7;
 
 		// Get the next date for a given weekday (0=Sunday, 1=Monday, etc.)
 		// Rule: use THIS week's occurrence if it hasn't passed yet (today counts as "not passed"),
@@ -597,8 +604,13 @@ const VetProfile = () => {
 			return '';
 		};
 
-		return vetTimeslot.map((slot, index) => {
-			const dayName = getDayName(index);
+		const orderedSlots = [...vetTimeslot].sort(
+			(a, b) => mondayFirst(a.dayNumber) - mondayFirst(b.dayNumber)
+		);
+
+		return orderedSlots.map((slot, index) => {
+			const dayNumber = Number(slot.dayNumber);
+			const dayName = getDayName(dayNumber);
 			let displayValue;
 
 			if (slot.opened) {
@@ -627,11 +639,11 @@ const VetProfile = () => {
 							endTime: slot.opened ? slot.endTime.date : '',
 							opened: slot.opened || false,
 							day: dayName,
-							dayId: index,
+							dayId: dayNumber,
 							timeSlotId: slot.timeSlotId,
 							type: slot.opened ? 4 : 0,
 							goToLink: "#",
-							onClick: slot.opened ? () => handleGetAppointmentFromSlot(index) : undefined,
+							onClick: slot.opened ? () => handleGetAppointmentFromSlot(dayNumber) : undefined,
 						}}
 					/>
 				</div>
