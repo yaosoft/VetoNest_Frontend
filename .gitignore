@@ -141,3 +141,7 @@ dist
 # Working screenshot that shows the server's directory listing, including
 # unrelated client projects. Keep it local.
 /docs/build.jpg
+
+# Windows NTFS alternate-data-stream artifacts, created when files are copied
+# from a Windows filesystem. Never useful in the repo.
+*:Zone.Identifier
