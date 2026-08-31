@@ -9,9 +9,11 @@ import Footer from '../Footer';
 import Title from '../Title';
 
 const PasswordForgotReset = () => {
+    // The code and userId that used to arrive in the URL decided nothing: the
+    // server never saw them. Authorisation is the reset token instead.
     const { code, userId } = useParams();
     const { isValidPassword } = useContext(AuthContext);
-    const { getAContent, siteLocale, updatePassword } = useContext(SiteContext);
+    const { getAContent, siteLocale, updatePassword, passwordResetToken, setPasswordResetToken } = useContext(SiteContext);
     
     const [loading, setLoading] = useState(false);
     const [sendingDisabled, setSendingDisabled] = useState(false);
@@ -62,17 +64,15 @@ const PasswordForgotReset = () => {
         setSendingDisabled(true);
         
         try {
-            // Prepare data for updatePassword
-            const pwResetData = {
-                userId: userId,
+            // The token identifies the account; there is nothing here for a
+            // caller to point at someone else's.
+            const result = await updatePassword({
                 password: values.newPassword,
-            };
-            
-            // Call the existing updatePassword function from SiteContext
-            const result = await updatePassword(pwResetData);
-            
-            // Check if update was successful
-            if (result && result !== false) {
+                resetToken: passwordResetToken,
+            });
+
+            if (result && result.success) {
+                setPasswordResetToken('');
                 setResetSuccess(true);
                 message.success(
                     isFrench 
