@@ -352,8 +352,24 @@ console.log( '>>>>>>>>>>>>>>>>>>>>>> popularCities', popularCities );
     handleCityClick(cityName);
   };
 
-  // Submit search
-  const onSubmit = () => navigate('/vet-listing');
+  // Submit search.
+  // Previously this navigated to a bare `/vet-listing`, dropping whatever the
+  // user had typed, so VetListing fell back to showing every vet/clinic
+  // regardless of the city entered. Build the same query string the
+  // autocomplete select handlers use so the typed value is actually applied.
+  const onSubmit = () => {
+    const city = locationInput?.trim();
+    if (city) {
+      navigate(`/vet-listing?searchName=location&searchValue=${encodeURIComponent(city)}`);
+      return;
+    }
+    const name = veto?.trim();
+    if (name) {
+      navigate(`/vet-listing?searchName=name&searchValue=${encodeURIComponent(name)}`);
+      return;
+    }
+    navigate('/vet-listing');
+  };
 
   return (
     <div className="search-wrapper">
