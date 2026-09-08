@@ -145,3 +145,12 @@ dist
 # Windows NTFS alternate-data-stream artifacts, created when files are copied
 # from a Windows filesystem. Never useful in the repo.
 *:Zone.Identifier
+
+# SSH keys / deploy keys. A private key was committed here by mistake and has
+# been removed; never commit key material to the repo again.
+/VetoNest
+/VetoNest.pub
+*.pem
+id_rsa
+id_ed25519
+id_ed25519.pub
