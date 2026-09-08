@@ -414,44 +414,79 @@ const VetProfile = () => {
 				return;
 			}
 			
-			const vetDataResult = await getAVetoProfile(vetIdParam);
+			// These endpoints are independent of one another. Previously they were
+			// awaited one-by-one, so the page waited for the sum of every request
+			// (~8 sequential round-trips). Firing them together collapses that to
+			// roughly a single round-trip without changing any of the resulting
+			// state. Each call keeps its own error handling so one failure cannot
+			// blank out the rest of the profile.
+			const [
+				vetDataResult,
+				clinicInfo,
+				ratingData,
+				,
+				timeslot,
+				hollydays,
+				absences,
+				lieux,
+			] = await Promise.all([
+				getAVetoProfile(vetIdParam).catch((error) => {
+					console.error('Error fetching vet profile:', error);
+					return null;
+				}),
+				getVetoCliniqueInfo(vetIdParam).catch((error) => {
+					console.error('Error fetching clinic info:', error);
+					return null;
+				}),
+				getVetRating(vetIdParam).catch((error) => {
+					console.error('Error fetching rating:', error);
+					return null;
+				}),
+				fetchVetComments(vetIdParam).catch((error) => {
+					console.error('Error fetching comments:', error);
+					return null;
+				}),
+				getTimeslot(vetIdParam).catch((error) => {
+					console.error('Error fetching timeslot:', error);
+					return {};
+				}),
+				getHollydays(vetIdParam).catch((error) => {
+					console.error('Error fetching holidays:', error);
+					return [];
+				}),
+				getAbsences(vetIdParam).catch((error) => {
+					console.error('Error fetching absences:', error);
+					return [];
+				}),
+				getAVetoLieux({ profileVetoId: vetIdParam }).catch((error) => {
+					console.error('Error fetching lieux:', error);
+					return [];
+				}),
+			]);
+
 			if (vetDataResult && !vetDataResult.error) {
 				setVetData(vetDataResult);
 				setTitle((translations.profileOf || 'Profile of') + ' ' + (vetDataResult.nom || ''));
 			}
-			
-			// Fetch clinic info for this vet
-			const clinicInfo = await getVetoCliniqueInfo(vetIdParam);
+
 			if (clinicInfo && clinicInfo.etablissementId) {
 				setVetoCliniqueInfo(clinicInfo);
 			}
-			
-			try {
-				const ratingData = await getVetRating(vetIdParam);
-				if (ratingData && ratingData.success) {
-					setVetRating(ratingData.averageRating || 0);
-					setRatingCount(ratingData.ratingCount || 0);
-				}
-			} catch (error) {
-				console.error('Error fetching rating:', error);
+
+			if (ratingData && ratingData.success) {
+				setVetRating(ratingData.averageRating || 0);
+				setRatingCount(ratingData.ratingCount || 0);
 			}
-			
-			await fetchVetComments(vetIdParam);
-			
-			const timeslot = await getTimeslot(vetIdParam);
+
 			// CRITICAL FIX: Use Object.values() instead of Object.entries()
 			// The API returns an object with keys 0-6 (0=Sunday, 6=Saturday)
 			// Object.values() gives us the day objects in the correct order
 			const timeslotArray = Object.values(timeslot || {});
 			setVetTimeslot(timeslotArray);
-			
-			const hollydays = await getHollydays(vetIdParam);
+
 			setVetHollyday(hollydays || []);
-			
-			const absences = await getAbsences(vetIdParam);
+
 			setAbsences(absences || []);
-			
-			const lieux = await getAVetoLieux({ profileVetoId: vetIdParam });
 
 			const allLocationsFromVetData = vetDataResult?.allLocations || [];
 			let mergedLieux = lieux && lieux.length > 0 ? lieux : [];
