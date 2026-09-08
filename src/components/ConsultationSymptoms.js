@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { SiteContext } from "../context/site";
-import moment from "moment";
+import dayjs from "dayjs";
 import { Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 const ConsultationSymptoms = (params) => {
@@ -46,7 +46,7 @@ const ConsultationSymptoms = (params) => {
   const [complaintOpen, setComplaintOpen] = useState(false);
   const [aiData, setAiData]               = useState(persistedAiData);
 
-  const calculateAge = (birthdate) => moment().diff(moment(birthdate), 'years');
+  const calculateAge = (birthdate) => dayjs().diff(dayjs(birthdate), 'year');
 
   const FALLBACK_ESPECE_IDS = [998, 999];
   const FALLBACK_RACE_IDS   = [9998, 9999];
