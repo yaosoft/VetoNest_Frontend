@@ -37,9 +37,10 @@ export const AuthProvider = ({ children }) => {
 
 	}
 
-	// Backend url 
-	const base_api_url		= 'http://localhost/VetoNest/public/index.php/api/'; // dev
-	// const base_api_url	= 'https://backend.vetonest.com/api/' // prod 
+	// Backend url comes from environment variables (.env.development / .env.production).
+	// The fallback keeps production behaviour identical if REACT_APP_API_BASE_URL
+	// is missing at build time.
+	const base_api_url		= process.env.REACT_APP_API_BASE_URL || 'https://backend.vetonest.com/api/';
 
 	// user
 	const [ user, setUser ] = useState( JSON.parse( localStorage.getItem( 'user' ) ) );

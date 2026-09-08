@@ -86,14 +86,14 @@ export const SiteProvider = ({ children }) => {
 	// User Id
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
-	// Backend api url 
-	// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
-	// const base_api_url = '/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
+	// Backend URLs come from environment variables (.env.development / .env.production).
+	// The fallbacks keep production behaviour identical to the previous hardcoded
+	// values if REACT_APP_* vars are missing at build time.
+	// Backend api url
+	const base_api_url = process.env.REACT_APP_API_BASE_URL || 'https://backend.vetonest.com/api/';
 
-	// Backend public url 
-	// const base_url = 'http://localhost/VetoNest/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	// Backend public url
+	const base_url = process.env.REACT_APP_BASE_URL || 'https://backend.vetonest.com/';
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
