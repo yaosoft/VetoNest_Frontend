@@ -46,13 +46,19 @@ const ListingPage = () => {
   const location = useLocation();
 
   // ── Fetch vets on mount if not already loaded ────────────────────────────
+  // Loading ends once the request settles, even with no results, so an
+  // empty list shows the "no results" state instead of a skeleton forever.
   useEffect(() => {
-    const a = async() => {
-      const vetos = await getVetos();
-      setVetos(vetos);
-    };
-    if (!vetos.length) a();
-  }, [vetos, getVetos, setVetos]);
+    if (vetos.length) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    getVetos()
+      .then((list) => { if (!cancelled) setVetos(Array.isArray(list) ? list : []); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [vetos.length, getVetos, setVetos]);
 
   const photoDefaultSrc = '/img/user/1.jpg';
   const etablissementPhotoDefaultSrc = '/img/etablissement/1.jpg';
