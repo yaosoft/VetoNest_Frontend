@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import { createContext, useState, useEffect, useContext } from 'react'
+import { API_CONFIG } from '../config/api';
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 import {
 	RadiusBottomleftOutlined,
@@ -46,9 +47,8 @@ export const LanguagesProvider = ({ children }) => {
 		
 	}
 
-	// Backend url 
-	const base_api_url		= 'http://localhost/vetonest_backend/public/index.php/api/'; // dev
-	// const base_api_url	= 'https://backend.vetonest.com/api/'// prod 
+	// Backend url — see src/config/api.js for the fallback and how staging/production builds differ.
+	const base_api_url		= API_CONFIG.base_api_url;
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );

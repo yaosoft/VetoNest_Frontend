@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import { createContext, useState, useEffect, useContext, useCallback, useRef  } from 'react'
 
+import { API_CONFIG } from '../config/api';
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 import {
 	RadiusBottomleftOutlined,
@@ -86,14 +87,10 @@ export const SiteProvider = ({ children }) => {
 	// User Id
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
-	// Backend api url 
-	// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
-	// const base_api_url = '/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
-
-	// Backend public url 
-	// const base_url = 'http://localhost/VetoNest/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	// Backend api url — picked at build time via REACT_APP_API_URL / REACT_APP_BASE_URL,
+	// see src/config/api.js for the fallback and how staging/production builds differ.
+	const base_api_url = API_CONFIG.base_api_url;
+	const base_url = API_CONFIG.base_url;
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );

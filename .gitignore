@@ -137,6 +137,7 @@ dist
 
 # Compiled output - 42MB, rebuilt from source, never belongs in the repo
 /build
+/build-staging
 
 # Local working notes, screenshots and scratch SQL. Some of these show the
 # server's directory listing, including unrelated client projects. The whole
