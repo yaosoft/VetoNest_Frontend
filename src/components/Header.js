@@ -134,7 +134,16 @@ const Header = () => {
 				const data = {
 					userId: user.userId,
 				}
-				const resp = await getLanguagePreference ( data );
+				// A failed lookup (network error, stale/invalid cached user object,
+				// backend hiccup) must not abort content loading for the whole
+				// page — fall back to the current language exactly like a null
+				// response already does below.
+				let resp = null;
+				try {
+					resp = await getLanguagePreference ( data );
+				} catch ( err ) {
+					console.error( 'getLanguagePreference failed, falling back:', err );
+				}
 				if( resp !== null ) {
 					setSelectedLanguageId( resp.id );
 					await languageSetup( resp.id );
