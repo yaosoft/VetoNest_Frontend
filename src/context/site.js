@@ -436,22 +436,30 @@ export const SiteProvider = ({ children }) => {
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
-		const languages = await languageList();
-		const language = await languages.filter( e => e.id == languageId )[0];
-		const languageCode = language ? language.languageCode : defaultLanguageCode;
-		const flag = '/img/flags/' + languageCode + '.svg';
-		setLanguageFlag( flag );
-		setSiteLanguage( languageCode );
+		try {
+			const languages = await languageList();
+			const language = await languages.filter( e => e.id == languageId )[0];
+			const languageCode = language ? language.languageCode : defaultLanguageCode;
+			const flag = '/img/flags/' + languageCode + '.svg';
+			setLanguageFlag( flag );
+			setSiteLanguage( languageCode );
 
-		// ── Language code → correct BCP 47 locale ────────────────────────────
-		setSiteLocale( toSiteLocale( languageCode ) );
+			// ── Language code → correct BCP 47 locale ────────────────────────────
+			setSiteLocale( toSiteLocale( languageCode ) );
 
-		// get content
-		const siteContentData = {
-			siteLanguage: languageCode,
+			// get content
+			const siteContentData = {
+				siteLanguage: languageCode,
+			}
+			const siteContent = await getSiteContent( siteContentData );
+			setSiteContent( siteContent );
+		} catch ( err ) {
+			// A transient failure here (network hiccup, a truncated CMS response -
+			// getSiteContent already retries once before this is reached) must not
+			// wipe out whatever content is already on screen. Log it and leave the
+			// existing siteContent/flag/locale alone rather than blanking the page.
+			console.error( 'languageSetup failed for languageId', languageId, err );
 		}
-		const siteContent = await getSiteContent( siteContentData );
-		setSiteContent( siteContent );
 	}
 
 	const getLanguagePreference = async ( userData ) => {
@@ -501,18 +509,29 @@ export const SiteProvider = ({ children }) => {
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
-		
+
 		const url	= base_cmp_Url + 'tag_content/list/?domain=' + siteDomainName + '&languageCode=' + siteLanguage;
 
 		const data		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
 
-// console.log( 'getSiteContent', rep );
-
-		setSpiner( 'none' );
-		return rep;
+		// This response can run several hundred KB for a fully-translated
+		// language (French especially). A transient network hiccup can
+		// truncate it mid-transfer - observed directly while debugging a
+		// content-loading bug - which fetchData surfaces as a thrown error
+		// (non-200, or a JSON parse failure on the truncated body). One retry
+		// covers that without needing every caller of languageSetup to know.
+		try {
+			try {
+				return await fetchData( url, data, method );
+			} catch ( err ) {
+				console.warn( 'getSiteContent failed once, retrying:', err );
+				return await fetchData( url, data, method );
+			}
+		} finally {
+			setSpiner( 'none' );
+		}
 	}
 
 	// Get a content from site siteContent.
