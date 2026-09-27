@@ -9,6 +9,7 @@ import {
 import { Button, Spin, Alert, Space, Divider } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, LockOutlined } from '@ant-design/icons';
 import { SiteContext } from '../context/site';
+import { PAYMENTS_ENABLED } from '../config/api';
 import StripeIcon from './icons/StripeIcon';
 
 // ── Initialize Stripe ──────────────────────────────────────────────────────
@@ -334,6 +335,18 @@ const PaymentModal = ({
 }) => {
   const { siteLocale } = useContext(SiteContext);
   const [stripeError, setStripeError] = useState(null);
+
+  // Payments are switched off for now — see src/config/api.js. This component
+  // isn't currently wired into any live page, but guard here too in case it's
+  // ever reconnected without remembering to check the flag at the call site.
+  if (!PAYMENTS_ENABLED) {
+    return (
+      <ErrorState
+        error="Payments are currently unavailable."
+        onRetry={onCancel}
+      />
+    );
+  }
 
   // ─── Get Stripe locale ──────────────────────────────────────────────────
   const stripeLocale = getStripeLocale(siteLocale);

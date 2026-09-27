@@ -11,3 +11,9 @@ export const API_CONFIG = {
   base_api_url: process.env.REACT_APP_API_URL || 'http://localhost/VetoNest/public/index.php/api/',
   base_url: process.env.REACT_APP_BASE_URL || 'http://localhost/VetoNest/public/',
 };
+
+// Payments are switched off for now (production decision, not a technical
+// limitation) — see .env.production and package.json's "build:staging" script
+// for how each build sets this. Defaults to true so nothing else silently
+// disables payments if this var is ever left unset somewhere.
+export const PAYMENTS_ENABLED = process.env.REACT_APP_PAYMENTS_ENABLED !== 'false';
