@@ -16,7 +16,10 @@ const AdminRouteGuard = ({ children }) => {
             const adminData = localStorage.getItem('admin_data');
             const storedAdminData = adminData ? JSON.parse(adminData) : null;
             
-            if (isAdminLoggedIn === 'true' && storedAdminData && storedAdminData.profileTypeId === 3) {
+            // Only a UI gate - the backend checks storedAdminData.token on every
+            // admin API call. Sessions from before tokens existed have none and
+            // must log in again.
+            if (isAdminLoggedIn === 'true' && storedAdminData && storedAdminData.profileTypeId === 3 && storedAdminData.token) {
                 setIsAdmin(true);
             } else {
                 localStorage.removeItem('admin_logged_in');

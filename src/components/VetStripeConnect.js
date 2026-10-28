@@ -4,6 +4,7 @@ import { Button, Spin, Alert, Modal, message, Tag } from 'antd';
 import { CheckCircleOutlined, WarningOutlined, CheckOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { SiteContext } from '../context/site';
 import { AuthContext } from '../context/AuthProvider';
+import { PAYMENTS_ENABLED } from '../config/api';
 import StripeIcon from './icons/StripeIcon';
 
 const VetStripeConnect = () => {
@@ -53,6 +54,12 @@ const VetStripeConnect = () => {
   }, [location.search]);
 
   const checkStatus = async () => {
+    // Payments are switched off for now — don't even hit the API.
+    if (!PAYMENTS_ENABLED) {
+      setLoading(false);
+      return;
+    }
+
     // Check authentication first
     if (!isAuthenticated()) {
       redirectToLogin();
@@ -285,6 +292,20 @@ const VetStripeConnect = () => {
   // If not authenticated, show nothing (will redirect)
   if (!isAuthenticated()) {
     return null;
+  }
+
+  // Payments are switched off for now — see src/config/api.js. This component
+  // isn't currently wired into any live page, but guard here too in case it's
+  // ever reconnected without remembering to check the flag at the call site.
+  if (!PAYMENTS_ENABLED) {
+    return (
+      <Alert
+        type="info"
+        showIcon
+        message={getAContent('cmp_vetonest.com_PaymentsUnavailable_Title') || 'Payments unavailable'}
+        description={getAContent('cmp_vetonest.com_PaymentsUnavailable_Message') || 'Payments are currently unavailable.'}
+      />
+    );
   }
 
   if (loading) {

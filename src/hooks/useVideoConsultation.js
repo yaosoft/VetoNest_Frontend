@@ -23,6 +23,13 @@ const getSignalingUrl = () => {
 
 const CHANNEL_NAME = 'vetonest-chat';
 
+// Hard cap on connected call length. Enforced entirely client-side — both
+// peers independently start this timer the moment their own connection
+// fires 'connect', and each just calls its own endCall(), which already
+// tells the other side via the existing 'call-ended' signal. No signaling
+// server changes needed.
+const MAX_CALL_DURATION_MS = 3 * 60 * 1000;
+
 export const useVideoConsultation = (
   currentUserId,
   targetUserId,
@@ -53,6 +60,7 @@ export const useVideoConsultation = (
   const onMessageRef = useRef(null);
   const callStartTimeRef = useRef(null);
   const missedCallTimeoutRef = useRef(null);
+  const maxCallDurationTimeoutRef = useRef(null);
   const callConnectedRef = useRef(false);
   const initiatingCallRef = useRef(false);
   const isEndingCallRef = useRef(false);
@@ -91,6 +99,8 @@ export const useVideoConsultation = (
 
   const resetCallState = useCallback(() => {
     if (missedCallTimeoutRef.current) clearTimeout(missedCallTimeoutRef.current);
+    if (maxCallDurationTimeoutRef.current) clearTimeout(maxCallDurationTimeoutRef.current);
+    maxCallDurationTimeoutRef.current = null;
     callInProgressRef.current = false;
     initiatingCallRef.current = false;
     dataChannelRef.current = null;
@@ -107,6 +117,11 @@ export const useVideoConsultation = (
       callConnectedRef.current = true;
       callStartTimeRef.current = new Date();
       if (missedCallTimeoutRef.current) clearTimeout(missedCallTimeoutRef.current);
+      if (maxCallDurationTimeoutRef.current) clearTimeout(maxCallDurationTimeoutRef.current);
+      maxCallDurationTimeoutRef.current = setTimeout(() => {
+        console.log('⏰ Max call duration (3 min) reached — ending call');
+        endCallRef.current?.();
+      }, MAX_CALL_DURATION_MS);
     });
     peer.on('stream', (stream) => {
       console.log('📹 Remote stream received');
@@ -363,6 +378,7 @@ export const useVideoConsultation = (
   useEffect(() => {
     return () => {
       if (missedCallTimeoutRef.current) clearTimeout(missedCallTimeoutRef.current);
+      if (maxCallDurationTimeoutRef.current) clearTimeout(maxCallDurationTimeoutRef.current);
       resetCallState();
       if (ownsSocketRef.current && socketRef.current) {
         socketRef.current.disconnect();

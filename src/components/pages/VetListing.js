@@ -297,7 +297,7 @@ const ListingPage = () => {
                     : item.etablissementType?.nom || getAContent('cmp_vetonest.com_Clinic_Txt') || 'Clinic')
                 : (item.vetoSpecialite?.tagRef 
                     ? getAContent(item.vetoSpecialite.tagRef) 
-                    : item.vetoSpecialite?.nom || getAContent('cmp_vetonest.com_Veterinarian_Txt') || 'Veterinarian');
+                    : item.vetoSpecialite?.nom || getAContent('cmp_vetonest.com_Veterinarian_Label') || 'Veterinarian');
               
               // Safe UI card text resolution order for locations
               let locationText = '';

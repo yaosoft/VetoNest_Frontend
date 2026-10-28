@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import { createContext, useState, useEffect, useContext, useCallback, useRef  } from 'react'
 
+import { API_CONFIG } from '../config/api';
 import { Space, Spin, Button, notification, message, Popconfirm, Radio, Flex, DatePicker, Image, Upload } from 'antd';
 import {
 	RadiusBottomleftOutlined,
@@ -56,6 +57,24 @@ export const SiteProvider = ({ children }) => {
 		return response.json();
 	}
 	
+	// helper: fetch for /api/admin/* - sends the admin token from login. A 401
+	// means the token is missing, expired or no longer an admin's, so drop the
+	// admin session and send the user back to the admin login.
+	async function adminFetch(url, options = {}) {
+		let token = null;
+		try { token = JSON.parse(localStorage.getItem('admin_data'))?.token; } catch (e) {}
+		const response = await fetch(url, {
+			...options,
+			headers: { ...options.headers, ...(token && { 'Authorization': 'Bearer ' + token }) },
+		});
+		if (response.status === 401) {
+			localStorage.removeItem('admin_logged_in');
+			localStorage.removeItem('admin_data');
+			window.location.href = '/admin/login';
+		}
+		return response;
+	}
+	
 	// helper: wrap your fetchData function with caching
 	const fetchWithCache = useCallback(async (url, options, method, cacheKey, ttl = 60000) => {
 		  const key = cacheKey || url;
@@ -86,14 +105,10 @@ export const SiteProvider = ({ children }) => {
 	// User Id
 	const [ verificationUserId, setVerificationUserId ] = useState( localStorage.getItem( 'verificationUserId' ) ? JSON.parse( localStorage.getItem( 'verificationUserId' ) ) : '' );
 
-	// Backend api url 
-	// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
-	// const base_api_url = '/api/'; // dev
-	const base_api_url = 'https://backend.vetonest.com/api/'// prod 
-
-	// Backend public url 
-	// const base_url = 'http://localhost/VetoNest/public/'; // dev
-	const base_url = 'https://backend.vetonest.com/'// prod 
+	// Backend api url — picked at build time via REACT_APP_API_URL / REACT_APP_BASE_URL,
+	// see src/config/api.js for the fallback and how staging/production builds differ.
+	const base_api_url = API_CONFIG.base_api_url;
+	const base_url = API_CONFIG.base_url;
 
 	const [ siteDomainName, setSiteDomainName ] = useState( 'vetonest.com' );
 	const [ siteName, setSiteName ] = useState( 'VetoNest' );
@@ -439,22 +454,30 @@ export const SiteProvider = ({ children }) => {
 	const [ siteLanguage, setSiteLanguage ] = useState( '' );
 	const [ languageFlag, setLanguageFlag ] = useState( '' );
 	const languageSetup = async ( languageId ) => {
-		const languages = await languageList();
-		const language = await languages.filter( e => e.id == languageId )[0];
-		const languageCode = language ? language.languageCode : defaultLanguageCode;
-		const flag = '/img/flags/' + languageCode + '.svg';
-		setLanguageFlag( flag );
-		setSiteLanguage( languageCode );
+		try {
+			const languages = await languageList();
+			const language = await languages.filter( e => e.id == languageId )[0];
+			const languageCode = language ? language.languageCode : defaultLanguageCode;
+			const flag = '/img/flags/' + languageCode + '.svg';
+			setLanguageFlag( flag );
+			setSiteLanguage( languageCode );
 
-		// ── Language code → correct BCP 47 locale ────────────────────────────
-		setSiteLocale( toSiteLocale( languageCode ) );
+			// ── Language code → correct BCP 47 locale ────────────────────────────
+			setSiteLocale( toSiteLocale( languageCode ) );
 
-		// get content
-		const siteContentData = {
-			siteLanguage: languageCode,
+			// get content
+			const siteContentData = {
+				siteLanguage: languageCode,
+			}
+			const siteContent = await getSiteContent( siteContentData );
+			setSiteContent( siteContent );
+		} catch ( err ) {
+			// A transient failure here (network hiccup, a truncated CMS response -
+			// getSiteContent already retries once before this is reached) must not
+			// wipe out whatever content is already on screen. Log it and leave the
+			// existing siteContent/flag/locale alone rather than blanking the page.
+			console.error( 'languageSetup failed for languageId', languageId, err );
 		}
-		const siteContent = await getSiteContent( siteContentData );
-		setSiteContent( siteContent );
 	}
 
 	const getLanguagePreference = async ( userData ) => {
@@ -504,18 +527,29 @@ export const SiteProvider = ({ children }) => {
 	const [ siteContent, setSiteContent ] = useState( [] );
 	const getSiteContent = async ( siteContentData ) => {
 		const siteLanguage = siteContentData.siteLanguage;
-		
+
 		const url	= base_cmp_Url + 'tag_content/list/?domain=' + siteDomainName + '&languageCode=' + siteLanguage;
 
 		const data		= '';
 		const method 	= 'GET';
 		setSpiner( 'block' );
-		const rep = await fetchData( url, data, method );
 
-// console.log( 'getSiteContent', rep );
-
-		setSpiner( 'none' );
-		return rep;
+		// This response can run several hundred KB for a fully-translated
+		// language (French especially). A transient network hiccup can
+		// truncate it mid-transfer - observed directly while debugging a
+		// content-loading bug - which fetchData surfaces as a thrown error
+		// (non-200, or a JSON parse failure on the truncated body). One retry
+		// covers that without needing every caller of languageSetup to know.
+		try {
+			try {
+				return await fetchData( url, data, method );
+			} catch ( err ) {
+				console.warn( 'getSiteContent failed once, retrying:', err );
+				return await fetchData( url, data, method );
+			}
+		} finally {
+			setSpiner( 'none' );
+		}
 	}
 
 	// Get a content from site siteContent.
@@ -1785,9 +1819,11 @@ const saveComment = async (commentData) => {
 					// 'Authorization': 'Bearer ' + getToken() // Add auth if needed
 				// },
 			// });
-			const response = await fetchData(url, '', 'GET');
-			// const data = await response.json();
-			return response;
+			const response = await adminFetch(url, {
+				method: 'GET',
+				headers: { 'Accept': 'application/json' },
+			});
+			return await response.json();
 		} catch (error) {
 			console.error('Error fetching veterinarians:', error);
 			return { success: false, veterinarians: [], message: error.message };
@@ -1803,7 +1839,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminCreateVeterinarian = async (vetData) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/create', {
+			const response = await adminFetch(base_api_url + 'admin/vet/create', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1868,7 +1904,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminUpdateVeterinarian = async (profileVetoId, vetData) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/update', {
+			const response = await adminFetch(base_api_url + 'admin/vet/update', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1892,7 +1928,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminSendVetInvitation = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/invite', {
+			const response = await adminFetch(base_api_url + 'admin/vet/invite', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1916,7 +1952,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminDisableVeterinarian = async (profileVetoId, reason, adminUserId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/disable', {
+			const response = await adminFetch(base_api_url + 'admin/vet/disable', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1938,7 +1974,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminEnableVeterinarian = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/enable', {
+			const response = await adminFetch(base_api_url + 'admin/vet/enable', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1962,7 +1998,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminUpdateVerificationStatus = async (profileVetoId, statusCode, notes = null) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/update-verification', {
+			const response = await adminFetch(base_api_url + 'admin/vet/update-verification', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1984,7 +2020,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminGetVetDetails = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/details?profileVetoId=' + profileVetoId, {
+			const response = await adminFetch(base_api_url + 'admin/vet/details?profileVetoId=' + profileVetoId, {
 				method: 'GET',
 				headers: {
 					'Accept': 'application/json',
@@ -2004,7 +2040,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminGetVetStatistics = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/statistics?profileVetoId=' + profileVetoId, {
+			const response = await adminFetch(base_api_url + 'admin/vet/statistics?profileVetoId=' + profileVetoId, {
 				method: 'GET',
 				headers: {
 					'Accept': 'application/json',
@@ -2025,7 +2061,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminDeleteVeterinarian = async (profileVetoId, reason) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/delete', {
+			const response = await adminFetch(base_api_url + 'admin/vet/delete', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

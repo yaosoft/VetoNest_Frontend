@@ -157,8 +157,6 @@ const SignIn = () => {
 				email: values.signInEmail.trim()  // ← trim her
 			};
 
-			// const base_api_url = 'http://localhost/VetoNest/public/index.php/api/'; // dev
-			// const base_api_url = 'https://backend.vetonest.com/api/'    // prod
 			const url = base_api_url + 'user/login';
 
 			const response = await fetch(url, {
