@@ -57,6 +57,24 @@ export const SiteProvider = ({ children }) => {
 		return response.json();
 	}
 	
+	// helper: fetch for /api/admin/* - sends the admin token from login. A 401
+	// means the token is missing, expired or no longer an admin's, so drop the
+	// admin session and send the user back to the admin login.
+	async function adminFetch(url, options = {}) {
+		let token = null;
+		try { token = JSON.parse(localStorage.getItem('admin_data'))?.token; } catch (e) {}
+		const response = await fetch(url, {
+			...options,
+			headers: { ...options.headers, ...(token && { 'Authorization': 'Bearer ' + token }) },
+		});
+		if (response.status === 401) {
+			localStorage.removeItem('admin_logged_in');
+			localStorage.removeItem('admin_data');
+			window.location.href = '/admin/login';
+		}
+		return response;
+	}
+	
 	// helper: wrap your fetchData function with caching
 	const fetchWithCache = useCallback(async (url, options, method, cacheKey, ttl = 60000) => {
 		  const key = cacheKey || url;
@@ -1801,9 +1819,11 @@ const saveComment = async (commentData) => {
 					// 'Authorization': 'Bearer ' + getToken() // Add auth if needed
 				// },
 			// });
-			const response = await fetchData(url, '', 'GET');
-			// const data = await response.json();
-			return response;
+			const response = await adminFetch(url, {
+				method: 'GET',
+				headers: { 'Accept': 'application/json' },
+			});
+			return await response.json();
 		} catch (error) {
 			console.error('Error fetching veterinarians:', error);
 			return { success: false, veterinarians: [], message: error.message };
@@ -1819,7 +1839,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminCreateVeterinarian = async (vetData) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/create', {
+			const response = await adminFetch(base_api_url + 'admin/vet/create', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1884,7 +1904,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminUpdateVeterinarian = async (profileVetoId, vetData) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/update', {
+			const response = await adminFetch(base_api_url + 'admin/vet/update', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1908,7 +1928,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminSendVetInvitation = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/invite', {
+			const response = await adminFetch(base_api_url + 'admin/vet/invite', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1932,7 +1952,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminDisableVeterinarian = async (profileVetoId, reason, adminUserId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/disable', {
+			const response = await adminFetch(base_api_url + 'admin/vet/disable', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1954,7 +1974,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminEnableVeterinarian = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/enable', {
+			const response = await adminFetch(base_api_url + 'admin/vet/enable', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1978,7 +1998,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminUpdateVerificationStatus = async (profileVetoId, statusCode, notes = null) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/update-verification', {
+			const response = await adminFetch(base_api_url + 'admin/vet/update-verification', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -2000,7 +2020,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminGetVetDetails = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/details?profileVetoId=' + profileVetoId, {
+			const response = await adminFetch(base_api_url + 'admin/vet/details?profileVetoId=' + profileVetoId, {
 				method: 'GET',
 				headers: {
 					'Accept': 'application/json',
@@ -2020,7 +2040,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminGetVetStatistics = async (profileVetoId) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/statistics?profileVetoId=' + profileVetoId, {
+			const response = await adminFetch(base_api_url + 'admin/vet/statistics?profileVetoId=' + profileVetoId, {
 				method: 'GET',
 				headers: {
 					'Accept': 'application/json',
@@ -2041,7 +2061,7 @@ const saveComment = async (commentData) => {
 	 */
 	const adminDeleteVeterinarian = async (profileVetoId, reason) => {
 		try {
-			const response = await fetch(base_api_url + 'admin/vet/delete', {
+			const response = await adminFetch(base_api_url + 'admin/vet/delete', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

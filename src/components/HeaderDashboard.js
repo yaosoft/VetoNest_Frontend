@@ -36,22 +36,23 @@ const HeaderDashboard = () => {
 
 	// Login / logout - Admin version
 	const handleClickLogInOut = async(event) => {
-		event.preventDefault();		
+		event.preventDefault();
+		// The admin session lives only in these localStorage keys - admin login
+		// doesn't set the regular 'user' entry, so clear them unconditionally,
+		// otherwise /admin/login sees admin_logged_in and bounces back here.
+		localStorage.removeItem('admin_logged_in');
+		localStorage.removeItem('admin_data');
+		localStorage.removeItem('admin_remember');
+		localStorage.removeItem('admin_username');
+
 		if(isAuthenticated()){
-			// Clear admin session from localStorage
-			localStorage.removeItem('admin_logged_in');
-			localStorage.removeItem('admin_data');
-			localStorage.removeItem('admin_remember');
-			localStorage.removeItem('admin_username');
-			
 			const resp = await logOut();
-			if(resp === true)
-				await navigate('/admin/login')
-			else
+			if(resp !== true) {
 				message.error('Erreur lors de la déconnexion')
-		} else {
-			await navigate('/admin/login')
+				return
+			}
 		}
+		await navigate('/admin/login')
 	}
 
 	return (
