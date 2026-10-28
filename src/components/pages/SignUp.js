@@ -799,45 +799,6 @@ console.log( 'signUpType: ' + signUpType );
 								/>
 							</div>
 						)}
-						 <Button
-							type="default"
-							htmlType="submit"
-							block
-							className="login-form__btn rounded10"
-							onClick={handleClickRegistration}
-							disabled={sendingDisabled}
-							style={{
-								height: '45px',
-								backgroundColor: '#000000',
-								borderColor: '#000000',
-								color: '#ffffff'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.backgroundColor = '#333333';
-								e.currentTarget.style.borderColor = '#333333';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.backgroundColor = '#000000';
-								e.currentTarget.style.borderColor = '#000000';
-							}}
-						>
-							<Space>
-								{signUpSpin === 'block' && (
-									<Spin
-										indicator={
-											<LoadingOutlined
-												style={{
-													fontSize: 20,
-													color: '#ffffff',
-												}}
-												spin
-											/>
-										}
-									/>
-								)}
-								{signUp_btnSubmit}
-							</Space>
-						</Button>
 					</div>
 				</div>
 			</Modal>
