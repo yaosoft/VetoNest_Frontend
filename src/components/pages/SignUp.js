@@ -118,6 +118,12 @@ const SignUp = ( params ) => {
 	const recaptchaRef = React.useRef(null);
 	const recaptchaSiteKey = process.env.REACT_APP_RECAPTCHA_SITE_KEY || '';
 	const [recaptchaToken, setRecaptchaToken] = useState('');
+	// The server wants a fresh captcha for every code request, and the form's
+	// widget is behind the code modal, so resending shows its own widget there.
+	const resendRecaptchaRef = React.useRef(null);
+	const [showResendCaptcha, setShowResendCaptcha] = useState(false);
+	// Bumped on every resend so the code input clears the old digits.
+	const [codeInputKey, setCodeInputKey] = useState(0);
 
 	// Returned by the server once the mailed code has been confirmed; user/create
 	// refuses to create the account without it.
@@ -297,7 +303,7 @@ const COOLDOWN_SECONDS = 60;
 	// Ask the server for a verification code. The code is generated and stored
 	// server-side and only ever reaches the user's mailbox, so nothing here knows
 	// what it is. Returns true when the mail was accepted.
-	const sendVerificationCode = async () => {
+	const sendVerificationCode = async ( captchaToken = recaptchaToken ) => {
 		const rep = await requestEmailVerification({
 			email: signUpEmail,
 			userName: signUpName,
@@ -307,11 +313,12 @@ const COOLDOWN_SECONDS = 60;
 			siteEmail: siteEmail,
 			siteUrl: siteUrl,
 			siteLocale: siteLanguage,
-			recaptchaToken: recaptchaToken,
+			recaptchaToken: captchaToken,
 		});
 
-		// A used token cannot be replayed, so clear the widget either way.
+		// A used token cannot be replayed, so clear the widgets either way.
 		recaptchaRef.current?.reset();
+		resendRecaptchaRef.current?.reset();
 		setRecaptchaToken('');
 
 		if (rep && rep.success)
@@ -343,8 +350,20 @@ const COOLDOWN_SECONDS = 60;
 			return;
 		}
 
+		// Wait for the modal's captcha; its onChange calls resendCode()
+		if (recaptchaSiteKey) {
+			setShowResendCaptcha(true);
+			return;
+		}
+
+		await resendCode('');
+	};
+
+	const resendCode = async (captchaToken) => {
+		setShowResendCaptcha(false);
 		setDisplayCodeIncorrect('none');
 		setDisplayCodeCorrect('none');
+		setCodeInputKey(prev => prev + 1);
 		
 		// Increment resend count
 		setResendCount(prev => prev + 1);
@@ -361,7 +380,7 @@ const COOLDOWN_SECONDS = 60;
 			});
 		}, 1000);
 		
-		if (await sendVerificationCode())
+		if (await sendVerificationCode(captchaToken))
 			message.success("Verification code resent!");
 	};
 	
@@ -734,6 +753,7 @@ console.log( 'signUpType: ' + signUpType );
 					</p>
 
 					<InputCode
+						key={codeInputKey}
 						length={6}
 						label={signUp_codeLabel || "Enter verification code"}
 						loading={loading}
@@ -760,9 +780,25 @@ console.log( 'signUpType: ' + signUpType );
 					)}
 					
 					<div style={{ marginTop: 24 }}>
-						<span style={{ color: '#666', marginRight: 8 }}>
+						<Button
+							type="link"
+							onClick={handleResendCode}
+							disabled={resendCooldown > 0}
+							style={{ padding: 0, color: '#000', fontWeight: 500 }}
+						>
 							{getAContent( 'cmp_vetonest.com_bDwPuqPxdf' ) || signUp_codeResend}
-						</span>
+							{resendCooldown > 0 && ` (${resendCooldown}s)`}
+						</Button>
+						{showResendCaptcha && recaptchaSiteKey && (
+							<div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+								<ReCAPTCHA
+									ref={ resendRecaptchaRef }
+									sitekey={ recaptchaSiteKey }
+									hl={ siteLanguage }
+									onChange={ ( token ) => token && resendCode( token ) }
+								/>
+							</div>
+						)}
 						 <Button
 							type="default"
 							htmlType="submit"
