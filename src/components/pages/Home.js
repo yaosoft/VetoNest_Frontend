@@ -108,40 +108,33 @@ export default function HomePage() {
           </div>
         </section>
 
-		{/* BETA TESTING ANNOUNCEMENT - NAMUR */}
+		{/* VET CALL-OUT */}
 		<section className="home-search text-center">
 		  <div className="container">
-			<div className="beta-announcement">
-			  <span className="beta-badge">
+			<div className="vet-callout">
+			  <span className="vet-badge">
 				{getAContent("cmp_vetonest.com_BetaBadge")}
 			  </span>
-			  
-			  <div className="namur-highlight">
-				<img 
-				  src="/img/flags/be.svg" 
-				  alt={getAContent("cmp_vetonest.com_BelgiumFlagAlt")}
-				  className="namur-flag"
-				/>
-				<h2 className="namur-title">
-				  {getAContent("cmp_vetonest.com_NamurTitle")}
-				</h2>
-			  </div>
-			  
-			  <p className="beta-message">
+
+			  <h2 className="vet-title">
+				{getAContent("cmp_vetonest.com_NamurTitle")}
+			  </h2>
+
+			  <p className="vet-message">
 				{getAContent("cmp_vetonest.com_BetaMessage")}
 			  </p>
-			  
-			  <div className="beta-features">
-				<div className="beta-feature">
+
+			  <div className="vet-features">
+				<div className="vet-feature">
 				  <span className="feature-icon">✅</span>
 				  <span>{getAContent("cmp_vetonest.com_BetaFeature1")}</span>
 				</div>
-				<div className="beta-feature">
-				  <span className="feature-icon">📱</span>
+				<div className="vet-feature">
+				  <span className="feature-icon">📅</span>
 				  <span>{getAContent("cmp_vetonest.com_BetaFeature2")}</span>
 				</div>
-				<div className="beta-feature">
-				  <span className="feature-icon">🚀</span>
+				<div className="vet-feature">
+				  <span className="feature-icon">🐾</span>
 				  <span>{getAContent("cmp_vetonest.com_BetaFeature3")}</span>
 				</div>
 			  </div>
@@ -151,22 +144,18 @@ export default function HomePage() {
 				  {getAContent("cmp_vetonest.com_VetCtaButton")}
 				</Link>
 			  </div>
-			  
-			  <p className="beta-note">
-				<small>{getAContent("cmp_vetonest.com_BetaNote")}</small>
-			  </p>
 			</div>
 
 			<style jsx>{`
-			  .beta-announcement {
+			  .vet-callout {
 				background: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 100%);
 				border-radius: 32px;
 				padding: 3rem 2rem;
 				box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 			  }
-			  .beta-badge {
+			  .vet-badge {
 				display: inline-block;
-				background: #ff6b35;
+				background: #1a3c34;
 				color: white;
 				padding: 0.25rem 1rem;
 				border-radius: 50px;
@@ -175,43 +164,27 @@ export default function HomePage() {
 				margin-bottom: 1.5rem;
 				letter-spacing: 1px;
 			  }
-			  .namur-highlight {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				gap: 1rem;
-				margin-bottom: 1.5rem;
-			  }
-			  .namur-flag {
-				width: 35px;
-				height: 35px;
-				border-radius: 8px;
-				box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-			  }
-			  .namur-title {
+			  .vet-title {
 				font-size: 2rem;
 				font-weight: 700;
 				color: #1a3c34;
-				margin: 0;
+				margin: 0 0 1.5rem;
 			  }
-			  .beta-message {
+			  .vet-message {
 				font-size: 1rem;
 				color: #2c3e50;
 				max-width: 600px;
 				margin: 1rem auto;
 				line-height: 1.6;
 			  }
-			  .beta-message strong {
-				color: #ff6b35;
-			  }
-			  .beta-features {
+			  .vet-features {
 				display: flex;
 				justify-content: center;
 				gap: 2rem;
 				flex-wrap: wrap;
 				margin: 2rem 0;
 			  }
-			  .beta-feature {
+			  .vet-feature {
 				display: flex;
 				align-items: center;
 				gap: 0.5rem;
@@ -228,24 +201,16 @@ export default function HomePage() {
 				text-align: center;
 				margin: 0.5rem 0;
 			  }
-			  .vet-btn {
-				background: #1a3c34;
-				color: white;
-				padding: 0.9rem 2rem;
-				border-radius: 50px;
-				font-weight: 600;
-				transition: all 0.3s ease;
-				display: inline-block;
-				text-decoration: none;
-			  }
-			  .vet-btn:hover {
-				background: #ff6b35;
-				transform: translateY(-2px);
-			  }
-			  .beta-note {
-				margin-top: 1.0rem;
-				color: #7f8c8d;
-				text-align: center;
+			  @media (max-width: 600px) {
+				.vet-callout {
+				  padding: 2rem 1rem;
+				}
+				.vet-title {
+				  font-size: 1.5rem;
+				}
+				.vet-features {
+				  gap: 0.75rem;
+				}
 			  }
 			`}</style>
 		  </div>
@@ -490,4 +455,4 @@ export default function HomePage() {
       <Footer />
     </>
   );
-}
+}
