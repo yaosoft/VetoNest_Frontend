@@ -13,9 +13,19 @@ import {
 	QuestionCircleOutlined
 } from '@ant-design/icons';
 import { Form, Input, Select } from 'antd';
+import { FaInstagram, FaFacebookF, FaLinkedinIn, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 
 import Content from './Content.js';
 import CookieConsent from './CookieConsent';  // Import the existing CookieConsent component
+
+// Social networks shown in the footer ("#" = account not created yet)
+const socialLinks = [
+	{ name: 'Instagram', url: 'https://www.instagram.com/vetonest1/', Icon: FaInstagram },
+	{ name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61596199972869', Icon: FaFacebookF },
+	{ name: 'LinkedIn', url: 'https://www.linkedin.com/company/vetonest/', Icon: FaLinkedinIn },
+	{ name: 'X', url: '#', Icon: FaXTwitter },
+	{ name: 'YouTube', url: '#', Icon: FaYoutube },
+];
 
 const Footer = () => {
 	
@@ -209,10 +219,18 @@ const Footer = () => {
                   <div className="col-md-3">
                      <h3 id="cmp_vetonest.com_jkquJ9NP2S">Réseaux</h3>
                      <ul className="social_icon">
-                        <li><a href="#"><i className="fa fa-facebook" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i className="fa fa-twitter" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i className="fa fa-linkedin" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i className="fa fa-youtube-play" aria-hidden="true"></i></a></li>
+                        { socialLinks.map( ({ name, url, Icon }) => (
+                           <li key={ name }>
+                              <a
+                                 href={ url }
+                                 title={ name }
+                                 aria-label={ name }
+                                 { ...( url !== '#' && { target: '_blank', rel: 'noopener noreferrer' } ) }
+                              >
+                                 <Icon aria-hidden="true" />
+                              </a>
+                           </li>
+                        ) ) }
                      </ul>
                   </div>
                   
