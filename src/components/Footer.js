@@ -13,18 +13,16 @@ import {
 	QuestionCircleOutlined
 } from '@ant-design/icons';
 import { Form, Input, Select } from 'antd';
-import { FaInstagram, FaFacebookF, FaLinkedinIn, FaXTwitter, FaYoutube } from 'react-icons/fa6';
+import { FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa6';
 
 import Content from './Content.js';
 import CookieConsent from './CookieConsent';  // Import the existing CookieConsent component
 
-// Social networks shown in the footer ("#" = account not created yet)
+// Social networks shown in the footer
 const socialLinks = [
 	{ name: 'Instagram', url: 'https://www.instagram.com/vetonest1/', Icon: FaInstagram },
 	{ name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61596199972869', Icon: FaFacebookF },
 	{ name: 'LinkedIn', url: 'https://www.linkedin.com/company/vetonest/', Icon: FaLinkedinIn },
-	{ name: 'X', url: '#', Icon: FaXTwitter },
-	{ name: 'YouTube', url: '#', Icon: FaYoutube },
 ];
 
 const Footer = () => {
@@ -225,7 +223,8 @@ const Footer = () => {
                                  href={ url }
                                  title={ name }
                                  aria-label={ name }
-                                 { ...( url !== '#' && { target: '_blank', rel: 'noopener noreferrer' } ) }
+                                 target="_blank"
+                                 rel="noopener noreferrer"
                               >
                                  <Icon aria-hidden="true" />
                               </a>
