@@ -20,8 +20,8 @@ import CookieConsent from './CookieConsent';  // Import the existing CookieConse
 
 // Social networks shown in the footer
 const socialLinks = [
-	{ name: 'Instagram', url: 'https://www.instagram.com/vetonest1/', Icon: FaInstagram },
 	{ name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61596199972869', Icon: FaFacebookF },
+	{ name: 'Instagram', url: 'https://www.instagram.com/vetonest1/', Icon: FaInstagram },
 	{ name: 'LinkedIn', url: 'https://www.linkedin.com/company/vetonest/', Icon: FaLinkedinIn },
 ];
 

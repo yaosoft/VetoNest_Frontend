@@ -2585,7 +2585,7 @@ ul.social_icon li a {
      justify-content: center;
      font-size: 27px;
      border-radius: 30px;
-     margin: 0 9px;
+     margin: 0 18px 0 0; /* no left margin so the first icon lines up with the title */
      color: #fff;
 }
 
