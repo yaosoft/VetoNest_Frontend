@@ -2055,11 +2055,11 @@ const saveComment = async (commentData) => {
 	};
 
 	/**
-	 * Admin: Delete vet profile (soft delete)
+	 * Admin: Permanently delete a vet profile. The backend refuses (409,
+	 * code 'has_consultations') when the vet has consultations.
 	 * @param {number} profileVetoId - The vet profile ID
-	 * @param {string} reason - Reason for deletion
 	 */
-	const adminDeleteVeterinarian = async (profileVetoId, reason) => {
+	const adminDeleteVeterinarian = async (profileVetoId) => {
 		try {
 			const response = await adminFetch(base_api_url + 'admin/vet/delete', {
 				method: 'POST',
@@ -2067,7 +2067,7 @@ const saveComment = async (commentData) => {
 					'Content-Type': 'application/json',
 					'Accept': 'application/json',
 				},
-				body: JSON.stringify({ profileVetoId, reason })
+				body: JSON.stringify({ profileVetoId })
 			});
 			const data = await response.json();
 			return data;
