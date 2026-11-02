@@ -45,6 +45,7 @@ import {
 	ClockCircleOutlined,
 	SendOutlined,
 	EditOutlined,
+	DeleteOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -73,6 +74,7 @@ const AdminVetManagement = () => {
         getAllVeterinarians,
         adminDisableVeterinarian,
         adminEnableVeterinarian,
+        adminDeleteVeterinarian,
         adminGetVetDetails,
         adminGetVetStatistics,
         adminUpdateVerificationStatus,
@@ -280,6 +282,35 @@ const AdminVetManagement = () => {
         });
     };
     
+    // Handle permanent deletion
+    const handleDeleteVet = (vet) => {
+        Modal.confirm({
+            title: `Supprimer définitivement ${vet.fullName}`,
+            content: 'Le profil du vétérinaire, ses horaires, services et adresses seront supprimés, ainsi que son compte de connexion s\'il n\'est pas utilisé ailleurs. Cette action est irréversible. Un vétérinaire ayant des consultations ne peut pas être supprimé : désactivez-le plutôt.',
+            okText: 'Oui, supprimer',
+            okType: 'danger',
+            cancelText: 'Annuler',
+            onOk: async () => {
+                setActionLoading(vet.id);
+                try {
+                    const response = await adminDeleteVeterinarian(vet.id);
+                    if (response.success) {
+                        message.success(`${vet.fullName} a été supprimé`);
+                        fetchVeterinarians();
+                    } else if (response.code === 'has_consultations') {
+                        message.error(`Suppression impossible : ${vet.fullName} a ${response.consultationCount} consultation(s). Désactivez-le plutôt.`, 6);
+                    } else {
+                        message.error(response.message || 'Échec de la suppression');
+                    }
+                } catch (error) {
+                    message.error('Erreur lors de la suppression');
+                } finally {
+                    setActionLoading(null);
+                }
+            }
+        });
+    };
+
     // Handle verification status update
     const handleUpdateVerification = async () => {
         setActionLoading(vetToVerify?.id);
@@ -756,7 +787,7 @@ const AdminVetManagement = () => {
         {
             title: 'Actions',
             key: 'actions',
-            width: 200,
+            width: 240,
             fixed: 'right',
             render: (_, record) => (
                 <Space>
@@ -812,6 +843,15 @@ const AdminVetManagement = () => {
                             />
                         </Tooltip>
                     )}
+                    <Tooltip title="Supprimer définitivement">
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            size="small"
+                            onClick={() => handleDeleteVet(record)}
+                            loading={actionLoading === record.id}
+                        />
+                    </Tooltip>
                     {record.isClaimed === false && (
                         <Tooltip title={record.invitationStatus === 'sent' ? "Renvoyer l'invitation" : "Envoyer l'invitation"}>
                             <Button
