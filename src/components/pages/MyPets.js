@@ -37,6 +37,7 @@ import Header from '../Header';
 import Footer from '../Footer';
 import Title from '../Title';
 import ModalRemoveAnimal from '../ModalRemoveAnimal';
+import { PET_CATEGORIES, FALLBACK_ESPECE_IDS, contentOr, categoryLabel, speciesLabel, petKindLabel } from '../../utils/petCategories';
 
 const { Option } = Select;
 const { Dragger } = Upload;
@@ -82,9 +83,10 @@ const MyPets = () => {
 	const [editingAnimal, setEditingAnimal]   = useState(null);
 	const [form]                               = Form.useForm();
 
-	// Species / Breeds (mirrors ModalProfile logic)
-	const FALLBACK_ESPECE_IDS = [998, 999];   // 'I don't know' / 'Other' species
+	// Category (required) > Species (optional) > Breed (optional)
 	const FALLBACK_RACE_ID    = 9998;          // 'Unknown breed' default
+	const [categorySelected, setCategorySelected] = useState(null);
+	const [animalCategoryError, setAnimalCategoryError] = useState('');
 	const [especeSelectedId, setEspeceSelectedId] = useState(null);
 	const [raceSelectedId, setRaceSelectedId]     = useState(null);
 	const [races, setRaces]                       = useState([]);
@@ -180,7 +182,33 @@ const MyPets = () => {
 		return list;
 	};
 
+	const handleChangeAnimalCategory = (code) => {
+		setCategorySelected(code);
+		setAnimalCategoryError('');
+		// A species from another category no longer applies
+		const current = (especes || []).find((e) => e.id === especeSelectedId);
+		if (!current || current.category !== code) {
+			setEspeceSelectedId(null);
+			setRaceSelectedId(null);
+			setRaces([]);
+			form.setFieldsValue({ Espece: null, Race: null });
+		}
+	};
+
+	// Species of the selected category, for the optional species select
+	const especesInCategory = useMemo(
+		() => (especes || []).filter((e) => categorySelected && e.category === categorySelected),
+		[especes, categorySelected]
+	);
+
 	const handleChangeAnimalEspece = async (specieId) => {
+		if (!specieId) {
+			setEspeceSelectedId(null);
+			setRaceSelectedId(null);
+			setRaces([]);
+			form.setFieldsValue({ Espece: null, Race: null });
+			return;
+		}
 		setBreedSpinner(true);
 		const breeds = await loadBreedsForSpecies(specieId);
 		setRaces(breeds);
@@ -243,12 +271,10 @@ const MyPets = () => {
 	}, [fileList]);
 
 	// ── Species display name ──────────────────────────────────────────────────
-	const getEspeceName = useCallback((especeId) => {
-		if (!especes?.length) return '—';
-		const esp = especes.find(j => j.id === especeId);
-		if (!esp) return '—';
-		return getAContent(esp.tagRef) || esp.nom;
-	}, [especes, getAContent]);
+	const getPetKind = useCallback(
+		(animal) => petKindLabel(getAContent, animal, especes || []) || '—',
+		[especes, getAContent]
+	);
 
 	const formatDate = useCallback((dateString) => {
 		if (!dateString) return '—';
@@ -321,6 +347,8 @@ const MyPets = () => {
 		setAnimalDateNaissanceRaw('');
 		setAnimalDateNaissanceError('');
 		setAnimalBirthDatePickerValue(null);
+		setCategorySelected(null);
+		setAnimalCategoryError('');
 		setEspeceSelectedId(null);
 		setRaceSelectedId(null);
 		setRaces([]);
@@ -340,9 +368,11 @@ const MyPets = () => {
 			setAnimalName(animalNameVal);
 			form.setFieldsValue({ AnimalName: animalNameVal });
 
-			const especeId = animal.espece?.id;
+			setCategorySelected(animal.category || animal.espece?.category || null);
+			// Old 'Unknown' / 'Other' species are not offered any more
+			const especeId = FALLBACK_ESPECE_IDS.includes(Number(animal.espece?.id)) ? null : animal.espece?.id;
 			form.setFieldsValue({ Espece: especeId });
-			setEspeceSelectedId(especeId);
+			setEspeceSelectedId(especeId || null);
 			if (especeId) {
 				const breeds = await loadBreedsForSpecies(especeId);
 				setRaces(breeds);
@@ -396,18 +426,17 @@ const MyPets = () => {
 			setAnimalDateNaissanceError(getAContent('cmp_vetonest.com_Zu38Qp10Fx'));
 			formHasEmpty = true;
 		}
-		if (!especeSelectedId) {
-			setAnimalEspeceError(getAContent('cmp_vetonest.com_Wv62Ak55Lo'));
+		if (!categorySelected) {
+			setAnimalCategoryError(contentOr(getAContent, 'cmp_vetonest.com_PetCategory_Required', "Choisissez une catégorie d'animal"));
 			formHasEmpty = true;
 		}
-		let effectiveRaceId = raceSelectedId;
-		if (!raceSelectedId && especeSelectedId) {
+		// Species and breed are optional; a species without a breed is saved
+		// with 'Unknown breed'.
+		let effectiveRaceId = especeSelectedId ? raceSelectedId : null;
+		if (especeSelectedId && !raceSelectedId) {
 			effectiveRaceId = FALLBACK_RACE_ID;
 			setRaceSelectedId(FALLBACK_RACE_ID);
 			form.setFieldValue('Race', FALLBACK_RACE_ID);
-		} else if (!raceSelectedId) {
-			setAnimalRaceError(getAContent('cmp_vetonest.com_Mf29Dz83Qr'));
-			formHasEmpty = true;
 		}
 		if (animalInsurance == null) {
 			setAnimalInsuranceError(getAContent('cmp_vetonest.com_Ba82Hr60Qn'));
@@ -424,8 +453,9 @@ const MyPets = () => {
 			nomAnimal: animalName,
 			sexeId: animalSexe,
 			dateDeNaissance: dayjs(animalDateNaissanceRaw).format('YYYY-MM-DD'),
-			especeId: especeSelectedId,
-			raceId: effectiveRaceId,
+			category: categorySelected,
+			especeId: especeSelectedId || '',
+			raceId: effectiveRaceId || '',
 			profileUserId: profileId,
 			assurance: animalInsurance,
 			active: 1,
@@ -437,7 +467,7 @@ const MyPets = () => {
 
 		setSubmitting(false);
 
-		if (resp === false) {
+		if (!resp || !resp.ok) {
 			message.error(getAContent('cmp_vetonest.com_Jm3eXy90Pa'));
 			return;
 		}
@@ -493,7 +523,7 @@ const MyPets = () => {
 	// ── Animal Card ───────────────────────────────────────────────────────────
 	const AnimalCard = ({ animal }) => {
 		const breedNameValue = breedNames[animal.id] || animal.race?.nom || '—';
-		const speciesName    = getEspeceName(animal.espece?.id);
+		const speciesName    = getPetKind(animal);
 		const photoUrl       = animal.picture
 			? (animal.picture.startsWith('http') ? animal.picture : base_url + 'uploads/files/pets/' + animal.picture)
 			: photoAnimalDefaultSrc;
@@ -834,7 +864,34 @@ const MyPets = () => {
 							</div>
 						</Form.Item>
 
-						{/* Species & Breed - Side by side */}
+						{/* Category (required) */}
+						<div style={{ marginBottom: '12px' }}>
+							<div style={{ marginBottom: '4px' }}>
+								<label style={{ color: '#fff', fontWeight: 600, fontSize: '13px' }}>
+									{contentOr(getAContent, 'cmp_vetonest.com_PetCategory_Label', "Catégorie d'animal")}
+								</label>
+							</div>
+							<Select
+								variant="borderless"
+								className="customAntselect custom-select-rounded backgroundYellow height40 birthdateField borderNone"
+								bordered={false}
+								value={categorySelected}
+								onChange={handleChangeAnimalCategory}
+								placeholder={contentOr(getAContent, 'cmp_vetonest.com_PetCategory_Placeholder', 'Sélectionnez une catégorie')}
+								style={{ width: '100%' }}
+							>
+								{PET_CATEGORIES.map((c) => (
+									<Option key={c.code} value={c.code}>
+										{categoryLabel(getAContent, c.code)}
+									</Option>
+								))}
+							</Select>
+							{animalCategoryError && (
+								<div style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px' }}>{animalCategoryError}</div>
+							)}
+						</div>
+
+						{/* Species & Breed (optional) - Side by side */}
 						<div style={{ marginBottom: '4px' }}>
 							<div style={{ display: 'flex', gap: '12px' }}>
 								<div style={{ flex: 1 }}>
@@ -849,15 +906,17 @@ const MyPets = () => {
 										bordered={false}
 										value={especeSelectedId}
 										onChange={handleChangeAnimalEspece}
+										allowClear
 										showSearch
 										optionFilterProp="label"
 										filterSort={(a, b) => (a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())}
-										placeholder={getAContent('cmp_vetonest.com_Xp47Na93Qs')}
+										placeholder={contentOr(getAContent, 'cmp_vetonest.com_PetSpecies_Optional', 'Espèce (optionnel)')}
+										disabled={!categorySelected}
 										style={{ width: '100%' }}
 									>
-										{(especes || []).map((v) => (
-											<Option key={v.id} value={v.id}>
-												{getAContent(v.tagRef) || v.nom}
+										{especesInCategory.map((v) => (
+											<Option key={v.id} value={v.id} label={speciesLabel(getAContent, v)}>
+												{speciesLabel(getAContent, v)}
 											</Option>
 										))}
 									</Select>
@@ -878,7 +937,7 @@ const MyPets = () => {
 										optionFilterProp="label"
 										filterSort={(a, b) => (a?.label ?? '').toLowerCase().localeCompare((b?.label ?? '').toLowerCase())}
 										placeholder={getAContent('cmp_vetonest.com_Sl9bX2qZm')}
-										disabled={!especeSelectedId || FALLBACK_ESPECE_IDS.includes(Number(especeSelectedId))}
+										disabled={!especeSelectedId}
 										style={{ width: '100%' }}
 									>
 										{races.map((v) => (

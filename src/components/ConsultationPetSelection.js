@@ -1,6 +1,7 @@
 import React, { useState, useContext, useMemo, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { SiteContext } from "../context/site";
+import { petKindLabel } from "../utils/petCategories";
 import { useCachedData } from "../hooks/useCachedData";
 
 const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }) => {
@@ -19,13 +20,6 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
   const [isLoadingBreeds, setIsLoadingBreeds] = useState(false);
   const loadedSpeciesRef = useRef(new Set());
   const photoDefaultSrc = photoAnimalDefaultSrc;
-
-  // Memoize the species name mapping
-  const getEspeceName = useCallback((especeId) => {
-    if (!especes?.length) return '—';
-    const espece = especes.find(j => j.id === especeId);
-    return espece ? getAContent(espece.tagRef) : '—';
-  }, [especes, getAContent]);
 
   const formatShortDate = useCallback((dateString) => {
     if (!dateString) return '—';
@@ -166,7 +160,7 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
               <div className="consultation-pet-details">
                 <h4 className="consultation-pet-name">{pet.nom}</h4>
                 <p className="consultation-pet-info">
-                  {getAContent('cmp_vetonest.com_Species_Label')} : {pet.espece ? getEspeceName(pet.espece.id) : getAContent('cmp_vetonest.com_Unknown_Txt')}
+                  {getAContent('cmp_vetonest.com_Species_Label')} : {petKindLabel(getAContent, pet, especes) || getAContent('cmp_vetonest.com_Unknown_Txt')}
                   <br />
                   {getAContent('cmp_vetonest.com_Breed_Label')} : {breedName}
                   <br />

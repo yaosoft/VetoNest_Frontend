@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { SiteContext } from "../context/site";
+import { petKindLabel } from "../utils/petCategories";
 import moment from "moment";
 import { Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -48,15 +49,7 @@ const ConsultationSymptoms = (params) => {
 
   const calculateAge = (birthdate) => moment().diff(moment(birthdate), 'years');
 
-  const FALLBACK_ESPECE_IDS = [998, 999];
   const FALLBACK_RACE_IDS   = [9998, 9999];
-
-  const getEspeceName = (especeId) => {
-    if (!especes.length) return '.';
-    if (FALLBACK_ESPECE_IDS.includes(Number(especeId))) return '';
-    const found = especes.find((j) => j.id == especeId);
-    return found ? getAContent(found.tagRef) : '—';
-  };
 
   const goToBooking = () => {
     if (params.onNext) params.onNext({
@@ -72,7 +65,8 @@ const ConsultationSymptoms = (params) => {
     const symptomData = {
       complaint: primaryComplaint,
       animalId:  animal.id,
-      specie:    animal.espece && !FALLBACK_ESPECE_IDS.includes(Number(animal.espece.id)) ? getEspeceName(animal.espece.id) : 'Unknown',
+      // Species when known, otherwise the broad category (e.g. 'Équins')
+      specie:    petKindLabel(getAContent, animal, especes) || 'Unknown',
       breed:     animal.race   && !FALLBACK_RACE_IDS.includes(Number(animal.race.id))   ? (breedNames[animal.race.id]?.nom || 'Unknown') : 'Unknown',
       siteLocale: siteLocale.split('-')[0],
       vetSpecialities: allSpecialities
@@ -332,7 +326,7 @@ const ConsultationSymptoms = (params) => {
           <div>
             <h4 style={{ margin: "0 0 2px 0", fontSize: "16px", color: "#1a1a2e" }}>{animal.nom}</h4>
             <p style={{ margin: 0, fontSize: "14px", color: "#888" }}>
-              {animal.espece && !FALLBACK_ESPECE_IDS.includes(Number(animal.espece.id)) ? getEspeceName(animal.espece.id) : ''}
+              {petKindLabel(getAContent, animal, especes) || ''}
               {animal.race && !FALLBACK_RACE_IDS.includes(Number(animal.race.id))
                 ? ` · ${breedNames[animal.race.id]?.tagRef ? getAContent(breedNames[animal.race.id].tagRef) : (breedNames[animal.race.id]?.nom || '')}`
                 : ''}
