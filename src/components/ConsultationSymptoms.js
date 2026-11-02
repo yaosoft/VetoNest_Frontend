@@ -686,4 +686,4 @@ const ConsultationSymptoms = (params) => {
   );
 };
 
-export default ConsultationSymptoms;
+export default ConsultationSymptoms;

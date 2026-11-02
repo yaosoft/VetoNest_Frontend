@@ -179,4 +179,4 @@ const ConsultationPetSelection = React.memo(({ animals, setAnimal, selectedPet }
 
 ConsultationPetSelection.displayName = 'ConsultationPetSelection';
 
-export default ConsultationPetSelection;
+export default ConsultationPetSelection;
