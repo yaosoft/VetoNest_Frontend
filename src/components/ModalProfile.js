@@ -47,18 +47,6 @@ import VetName from './VetName';
 
 import InputCode from "./InputCode";
 
-// country-state-city bundles ~8 MB of city data, so it is loaded on demand
-// (its own chunk) instead of being part of the initial download.
-let countryStateCityPromise = null;
-const loadCountryStateCity = () => {
-	if ( !countryStateCityPromise )
-		countryStateCityPromise = import( 'country-state-city' ).catch( err => {
-			countryStateCityPromise = null; // allow a retry on the next call
-			throw err;
-		} );
-	return countryStateCityPromise;
-};
-
 const ModalProfile = ( params ) => {
 	const { 
 		getUser,
@@ -1071,18 +1059,6 @@ const ModalProfile = ( params ) => {
 	}
 
 
-	// Build countries options
-	const BuildCountriesOptions = () => {
-		return(
-			countries.map( ( country, index ) => 
-				({
-					value: country.isoCode,
-					label: country.name,
-				})
-			)
-		)
-	}
-
 	// Build lieu countries options
 	const BuildLieuCountriesOptions = () => {
 		return(
@@ -1125,29 +1101,6 @@ const ModalProfile = ( params ) => {
 	  setIsDeleting(false);
 	};
 
-	// Build states options
-	const BuildStatesOptions = () => {
-		return(
-			states.map( ( state, index ) => 
-				({
-					value: state.isoCode,
-					label: state.name,
-				})
-			)
-		)
-	}
-
-	// Build cities options
-	const BuildCitiesOptions = () => {
-		return(
-			cities.map( ( city, index ) => 
-				({
-					value: city.name,
-					label: city.name,
-				})
-			)
-		)
-	}
 
 	// Build races
 	const BuildRacesOptions = async () => {
@@ -2300,14 +2253,6 @@ const ModalProfile = ( params ) => {
 		form.validateFields()
 	}
 
-	// countries
-	const [ countryError, setCountryError ] = useState( '' );
-	const [ countryDefault, setCountryDefault ] = useState( getAContent(  'cmp_vetonest.com_k3a92hFsP1'  )  );
-	const [ countrySelected, setCountrySelected ] = useState( '' );
-	const [ countries, setCountries ]  = useState( [] ); 
-	const [ countryCode, setCountryCode ] = useState( '' );	
-	const [ flagCode, setFlagCode ] = useState( '' );
-
 	const [ lieuCountryError, setLieuCountryError ] = useState( '' );
 	const [ lieuCountryDefault, setLieuCountryDefault ] = useState( getAContent(  'cmp_vetonest.com_k3a92hFsP1'  ) );
 	const [ lieuCountrySelected, setLieuCountrySelected ] = useState( '' );
@@ -2322,19 +2267,6 @@ const ModalProfile = ( params ) => {
 		const country = countriesAllowed.filter( e => e.iso == countryIso )[0];
 		setSelectedFlag( country.iso );
 		setSelectedCountryCode( country.countryCode );
-	}
-
-	const handleChangeCountrySelected = async ( countryCode ) => {
-		setCountrySelected( countryCode );
-		const { State } = await loadCountryStateCity();
-		const countryStates = State.getStatesOfCountry( countryCode );
-		setCountryCode( countryCode );
-		setFlagCode( flagCode );
-		setStates( countryStates );			
-		setCountryError( '' );
-		setShowStatesCities( '' );
-		setStateSelected( '' );
-		setCitySelected( '' );
 	}
 
 	const [ displayLieuCity, setDisplayLieuCity ] = useState( 'none' );
@@ -2370,32 +2302,6 @@ const ModalProfile = ( params ) => {
 		form.validateFields(['LieuCity']);
 	};
 
-	// states
-	const [ stateError, setStateError ] = useState( '' );
-	const [ stateDefault, setStateDefault ] = useState( getAContent(  'cmp_vetonest.com_Rn3t7KcUy4'  )  );
-	const [ stateNotFound, setStateNotFound ] = useState( getAContent(  'cmp_vetonest.com_Hb2e8NvTs8'  )  );
-	const [ stateSelected, setStateSelected ] = useState( '' );
-	const [ states, setStates ]  = useState( [] );
-	const handleChangeStateSelected = async ( stateCode ) => {
-		setStateSelected( stateCode );
-		const { City } = await loadCountryStateCity();
-		const stateCities = City.getCitiesOfState( countryCode, stateCode );
-		setStateError( '' );
-		setCities( stateCities );
-		setCitySelected( '' );
-	}
-
-	// cities
-	const [ cityError, setCityError ] = useState( '' );
-	const [ cityDefault, setCityDefault ] = useState( getAContent(  'cmp_vetonest.com_Pq8x2VmAz9'  ) );
-	const [ cityNotFound, setCityNotFound ] = useState( getAContent(  'cmp_vetonest.com_Rn3t7KcUy4'  ) );
-	const [ citySelected, setCitySelected ] = useState( '' );
-	const [ cities, setCities ]  = useState( [] ); 
-	const handleChangeCitySelected = ( value ) => {
-		setCitySelected( value );
-		setCityError();
-	}
-	const [ showStatesCities, setShowStatesCities ]  = useState( 'none' );
 
 	// Phone number veto
 	const [ phoneNumber, setPhoneNumber ] = useState( '' );
@@ -2820,10 +2726,6 @@ const ModalProfile = ( params ) => {
 		setTitle( visibleModalTitle );
 		const fieldName = params.params.fieldName;
 
-		loadCountryStateCity().then( ( { Country } ) => {
-			const countries = Country.getAllCountries().map( country => ( { ...country, id: country.isoCode } ) );
-			setCountries( countries );
-		} ).catch( err => console.error( '[ModalProfile] country list failed to load', err ) );
 		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
 // console.log( '>>>>>>>>>>>>>> cccccccccc countriesOptions', countriesOptions );
 

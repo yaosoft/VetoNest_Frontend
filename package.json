@@ -14,7 +14,6 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.26.0",
-    "country-state-city": "^3.2.1",
     "dayjs": "^1.11.15",
     "events": "^3.3.0",
     "http-proxy-middleware": "^2.0.6",
