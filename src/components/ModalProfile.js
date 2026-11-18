@@ -3,7 +3,6 @@ import { useNavigate, Link, useLocation  } from 'react-router-dom';
 import { AuthContext } from "../context/AuthProvider";
 import { SiteContext } from "../context/site";
 
-import { Country, State, City }  from 'country-state-city';
 import { 
     ExclamationCircleOutlined,
     DeleteOutlined, 
@@ -47,6 +46,18 @@ import 'dayjs/locale/it';
 import VetName from './VetName';
 
 import InputCode from "./InputCode";
+
+// country-state-city bundles ~8 MB of city data, so it is loaded on demand
+// (its own chunk) instead of being part of the initial download.
+let countryStateCityPromise = null;
+const loadCountryStateCity = () => {
+	if ( !countryStateCityPromise )
+		countryStateCityPromise = import( 'country-state-city' ).catch( err => {
+			countryStateCityPromise = null; // allow a retry on the next call
+			throw err;
+		} );
+	return countryStateCityPromise;
+};
 
 const ModalProfile = ( params ) => {
 	const { 
@@ -2313,8 +2324,9 @@ const ModalProfile = ( params ) => {
 		setSelectedCountryCode( country.countryCode );
 	}
 
-	const handleChangeCountrySelected = ( countryCode ) => {
+	const handleChangeCountrySelected = async ( countryCode ) => {
 		setCountrySelected( countryCode );
+		const { State } = await loadCountryStateCity();
 		const countryStates = State.getStatesOfCountry( countryCode );
 		setCountryCode( countryCode );
 		setFlagCode( flagCode );
@@ -2364,8 +2376,9 @@ const ModalProfile = ( params ) => {
 	const [ stateNotFound, setStateNotFound ] = useState( getAContent(  'cmp_vetonest.com_Hb2e8NvTs8'  )  );
 	const [ stateSelected, setStateSelected ] = useState( '' );
 	const [ states, setStates ]  = useState( [] );
-	const handleChangeStateSelected = ( stateCode ) => {
+	const handleChangeStateSelected = async ( stateCode ) => {
 		setStateSelected( stateCode );
+		const { City } = await loadCountryStateCity();
 		const stateCities = City.getCitiesOfState( countryCode, stateCode );
 		setStateError( '' );
 		setCities( stateCities );
@@ -2807,13 +2820,10 @@ const ModalProfile = ( params ) => {
 		setTitle( visibleModalTitle );
 		const fieldName = params.params.fieldName;
 
-		const allCountries = Country.getAllCountries();
-		var countries = Array();
-		for( const country of allCountries ){ 
-			country.id = country.isoCode;
-			countries.push( country );
-		}
-		setCountries( countries );
+		loadCountryStateCity().then( ( { Country } ) => {
+			const countries = Country.getAllCountries().map( country => ( { ...country, id: country.isoCode } ) );
+			setCountries( countries );
+		} ).catch( err => console.error( '[ModalProfile] country list failed to load', err ) );
 		const countriesOptions = countriesAllowed.map( ( v, k ) => ( { value: v.id, label: eval( v.tagClass ) } ) );
 // console.log( '>>>>>>>>>>>>>> cccccccccc countriesOptions', countriesOptions );
 
